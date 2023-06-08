@@ -13,7 +13,8 @@ import Combine
 class SecurityModeViewModel: ObservableObject {
     // MARK: ViewState
 
-    @Published var securityViewModels: [DefaultSelectableRowViewModel] = []
+    @Published var securityViewModels: [DefaultSelectableRowViewModel<SecurityModeOption>] = []
+    @Published var currentSecurityOption: SecurityModeOption
     @Published var error: AlertBinder?
     @Published var isLoading: Bool = false
 
@@ -23,8 +24,6 @@ class SecurityModeViewModel: ObservableObject {
 
     // MARK: Private
 
-    @Published private var currentSecurityOption: SecurityModeOption
-
     private let cardModel: CardViewModel
     private var bag = Set<AnyCancellable>()
     private unowned let coordinator: SecurityModeRoutable
@@ -32,28 +31,21 @@ class SecurityModeViewModel: ObservableObject {
     init(cardModel: CardViewModel, coordinator: SecurityModeRoutable) {
         self.cardModel = cardModel
         self.coordinator = coordinator
-        self.currentSecurityOption = cardModel.currentSecurityOption
+        currentSecurityOption = cardModel.currentSecurityOption
 
         updateView()
         bind()
     }
 
-    func bind() {
-        cardModel.$currentSecurityOption
-            .sink { [weak self] option in
-                self?.currentSecurityOption = option
-            }
-            .store(in: &bag)
-    }
-
     func actionButtonDidTap() {
-        Analytics.log(.securityModeChanged, params: [.mode: currentSecurityOption.rawValue])
         switch currentSecurityOption {
         case .accessCode, .passCode:
-            openPinChange()
+            openPinChange(option: currentSecurityOption)
         case .longTap:
             isLoading = true
             cardModel.changeSecurityOption(.longTap) { [weak self] result in
+                self?.logSecurityModeChange()
+
                 self?.isLoading = false
 
                 switch result {
@@ -63,30 +55,31 @@ class SecurityModeViewModel: ObservableObject {
                     if case .userCancelled = error.toTangemSdkError() {
                         return
                     }
-                    self?.error = error.alertBinder
                 }
             }
         }
     }
 
-    func updateView() {
+    private func bind() {
+        cardModel.$currentSecurityOption
+            .sink { [weak self] option in
+                self?.currentSecurityOption = option
+            }
+            .store(in: &bag)
+    }
+
+    private func updateView() {
         securityViewModels = cardModel.availableSecurityOptions.map { option in
             DefaultSelectableRowViewModel(
+                id: option,
                 title: option.title,
-                subtitle: option.description,
-                isSelected: isSelected(option: option)
+                subtitle: option.description
             )
         }
     }
 
-    func isSelected(option: SecurityModeOption) -> Binding<Bool> {
-        Binding<Bool>(root: self, default: false) { root in
-            root.currentSecurityOption == option
-        } set: { root, isSelected in
-            if isSelected {
-                root.currentSecurityOption = option
-            }
-        }
+    private func logSecurityModeChange() {
+        Analytics.log(event: .securityModeChanged, params: [.mode: currentSecurityOption.analyticsName])
     }
 }
 
@@ -129,15 +122,31 @@ enum SecurityModeOption: String, CaseIterable, Identifiable, Equatable {
             return Localization.detailsManageSecurityPasscodeDescription
         }
     }
+
+    var analyticsName: String {
+        switch self {
+        case .longTap:
+            return "Long Tap"
+        case .passCode:
+            return "Passcode"
+        case .accessCode:
+            return "Access Code"
+        }
+    }
 }
 
 // MARK: - Navigation
+
 extension SecurityModeViewModel {
-    func openPinChange() {
-        coordinator.openPinChange(with: currentSecurityOption.title) { [weak self] completion in
+    func openPinChange(option: SecurityModeOption) {
+        coordinator.openPinChange(with: option.title) { [weak self] coordinatorCompletion in
             guard let self = self else { return }
 
-            self.cardModel.changeSecurityOption(self.currentSecurityOption, completion: completion)
+            self.cardModel.changeSecurityOption(option) { [weak self] result in
+                self?.logSecurityModeChange()
+
+                coordinatorCompletion(result)
+            }
         }
     }
 }

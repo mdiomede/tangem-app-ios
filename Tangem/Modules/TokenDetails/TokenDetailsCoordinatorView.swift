@@ -40,20 +40,18 @@ struct TokenDetailsCoordinatorView: CoordinatorView {
             .sheet(item: $coordinator.sendCoordinator) {
                 SendCoordinatorView(coordinator: $0)
             }
-
-        NavHolder()
             .sheet(item: $coordinator.pushTxCoordinator) {
                 PushTxCoordinatorView(coordinator: $0)
             }
-
-        NavHolder()
             .sheet(item: $coordinator.modalWebViewModel) {
                 WebViewContainer(viewModel: $0)
             }
 
         NavHolder()
-            .bottomSheet(item: $coordinator.warningBankCardViewModel,
-                         viewModelSettings: .warning) {
+            .bottomSheet(
+                item: $coordinator.warningBankCardViewModel,
+                viewModelSettings: .warning
+            ) {
                 WarningBankCardView(viewModel: $0)
             }
     }

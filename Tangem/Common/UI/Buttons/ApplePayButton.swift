@@ -9,10 +9,11 @@ import SwiftUI
 import PassKit
 
 struct ApplePayButton: UIViewRepresentable {
+    let type: PKPaymentButtonType
     let action: () -> Void
 
     func makeUIView(context: Context) -> some UIView {
-        let button = PKPaymentButton(paymentButtonType: .buy, paymentButtonStyle: .black)
+        let button = PKPaymentButton(paymentButtonType: type, paymentButtonStyle: .black)
         button.addTarget(
             context.coordinator,
             action: #selector(Coordinator.didTapButton),
@@ -21,8 +22,7 @@ struct ApplePayButton: UIViewRepresentable {
         return button
     }
 
-    func updateUIView(_ uiView: UIViewType, context: Context) {
-    }
+    func updateUIView(_ uiView: UIViewType, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -44,7 +44,7 @@ struct ApplePayButton: UIViewRepresentable {
 
 struct ApplePayButton_Previews: PreviewProvider {
     static var previews: some View {
-        ApplePayButton(action: { })
+        ApplePayButton(type: .buy, action: {})
             .frame(height: 45)
             .padding(.horizontal)
     }

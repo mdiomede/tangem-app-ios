@@ -10,8 +10,8 @@ import Foundation
 import TangemSdk
 import BlockchainSdk
 
-struct TwinConfig {
-    private let card: CardDTO
+struct TwinConfig: CardContainer {
+    let card: CardDTO
     private let walletData: WalletData
     private let twinData: TwinData
 
@@ -27,12 +27,6 @@ struct TwinConfig {
 }
 
 extension TwinConfig: UserWalletConfig {
-    var sdkConfig: Config {
-        var config = TangemSdkConfigFactory().makeDefaultConfig()
-        config.cardIdDisplayFormat = .lastLunh(4)
-        return config
-    }
-
     var cardSetLabel: String? {
         Localization.cardLabelCardCount(cardsCount)
     }
@@ -45,49 +39,8 @@ extension TwinConfig: UserWalletConfig {
         "Twin"
     }
 
-    var defaultCurve: EllipticCurve? {
-        defaultBlockchain.curve
-    }
-
-    var onboardingSteps: OnboardingSteps {
-        var steps = [TwinsOnboardingStep]()
-
-        if !AppSettings.shared.isTwinCardOnboardingWasDisplayed { // show intro only once
-            AppSettings.shared.isTwinCardOnboardingWasDisplayed = true
-            let twinPairNumber = twinData.series.pair.number
-            steps.append(.intro(pairNumber: "#\(twinPairNumber)"))
-        }
-
-        if card.wallets.isEmpty { // twin without created wallet. Start onboarding
-            steps.append(contentsOf: TwinsOnboardingStep.twinningProcessSteps)
-            steps.append(contentsOf: userWalletSavingSteps)
-            steps.append(contentsOf: TwinsOnboardingStep.topupSteps)
-            return .twins(steps)
-        } else { // twin with created wallet
-            if twinData.pairPublicKey == nil { // is not twinned
-                steps.append(contentsOf: TwinsOnboardingStep.twinningProcessSteps)
-                steps.append(contentsOf: userWalletSavingSteps)
-                steps.append(contentsOf: TwinsOnboardingStep.topupSteps)
-                return .twins(steps)
-            } else { // is twinned
-                if AppSettings.shared.cardsStartedActivation.contains(card.cardId) { // card is in onboarding process, go to topup
-                    steps.append(contentsOf: userWalletSavingSteps)
-                    steps.append(contentsOf: TwinsOnboardingStep.topupSteps)
-                    return .twins(steps)
-                } else { // unknown twin, ready to use, go to main
-                    return .twins(steps)
-                }
-            }
-        }
-    }
-
-    var userWalletSavingSteps: [TwinsOnboardingStep] {
-        guard needUserWalletSavingSteps else { return [] }
-        return [.saveUserWallet]
-    }
-
-    var backupSteps: OnboardingSteps? {
-        nil
+    var mandatoryCurves: [EllipticCurve] {
+        [.secp256k1]
     }
 
     var supportedBlockchains: Set<Blockchain> {
@@ -115,11 +68,11 @@ extension TwinConfig: UserWalletConfig {
     var tangemSigner: TangemSigner {
         guard let walletPublicKey = card.wallets.first?.publicKey,
               let pairWalletPublicKey = twinData.pairPublicKey else {
-            return .init(with: card.cardId)
+            return .init(with: card.cardId, sdk: makeTangemSdk())
         }
 
         let twinKey = TwinKey(key1: walletPublicKey, key2: pairWalletPublicKey)
-        return .init(with: twinKey)
+        return .init(with: twinKey, sdk: makeTangemSdk())
     }
 
     var emailData: [EmailCollectedData] {
@@ -128,6 +81,10 @@ extension TwinConfig: UserWalletConfig {
 
     var userWalletIdSeed: Data? {
         TwinCardsUtils.makeCombinedWalletKey(for: card, pairData: twinData)
+    }
+
+    var productType: Analytics.ProductType {
+        .twin
     }
 
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
@@ -141,7 +98,7 @@ extension TwinConfig: UserWalletConfig {
 
             return .disabled()
         case .longTap:
-            return card.settings.isResettingUserCodesAllowed ? .available : .hidden
+            return card.settings.isRemovingUserCodesAllowed ? .available : .hidden
         case .send:
             return .available
         case .longHashes:
@@ -157,8 +114,6 @@ extension TwinConfig: UserWalletConfig {
         case .walletConnect:
             return .hidden
         case .multiCurrency:
-            return .hidden
-        case .tokensSearch:
             return .hidden
         case .resetToFactory:
             return .available
@@ -180,6 +135,14 @@ extension TwinConfig: UserWalletConfig {
             return .hidden
         case .swapping:
             return .hidden
+        case .displayHashesCount:
+            return .hidden
+        case .transactionHistory:
+            return .hidden
+        case .seedPhrase:
+            return .hidden
+        case .accessCodeRecoverySettings:
+            return .hidden
         }
     }
 
@@ -190,10 +153,20 @@ extension TwinConfig: UserWalletConfig {
         }
 
         let factory = WalletManagerFactoryProvider().factory
-        let twinManager = try factory.makeTwinWalletManager(walletPublicKey: walletPublicKey,
-                                                            pairKey: savedPairKey,
-                                                            isTestnet: AppEnvironment.current.isTestnet)
+        let twinManager = try factory.makeTwinWalletManager(
+            walletPublicKey: walletPublicKey,
+            pairKey: savedPairKey,
+            isTestnet: AppEnvironment.current.isTestnet
+        )
 
         return WalletModel(walletManager: twinManager, derivationStyle: card.derivationStyle)
+    }
+
+    func makeOnboardingStepsBuilder(backupService: BackupService) -> OnboardingStepsBuilder {
+        return TwinOnboardingStepsBulder(card: card, twinData: twinData, touId: tou.id)
+    }
+
+    func makeTangemSdk() -> TangemSdk {
+        TwinTangemSdkFactory(isAccessCodeSet: card.isAccessCodeSet).makeTangemSdk()
     }
 }

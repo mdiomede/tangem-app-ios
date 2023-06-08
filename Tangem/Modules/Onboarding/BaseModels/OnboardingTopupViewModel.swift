@@ -20,14 +20,14 @@ class OnboardingTopupViewModel<Step: OnboardingStep, Coordinator: OnboardingTopu
 
     var walletModelUpdateCancellable: AnyCancellable?
 
-    var cardModel: CardViewModel?
-
     var buyCryptoURL: URL? {
-        if let wallet = cardModel?.wallets.first {
-            return exchangeService.getBuyUrl(currencySymbol: wallet.blockchain.currencySymbol,
-                                             amountType: .coin,
-                                             blockchain: wallet.blockchain,
-                                             walletAddress: wallet.address)
+        if let wallet = cardModel?.walletModels.first?.wallet {
+            return exchangeService.getBuyUrl(
+                currencySymbol: wallet.blockchain.currencySymbol,
+                amountType: .coin,
+                blockchain: wallet.blockchain,
+                walletAddress: wallet.address
+            )
         }
 
         return nil
@@ -49,14 +49,6 @@ class OnboardingTopupViewModel<Step: OnboardingStep, Coordinator: OnboardingTopu
 
     private var refreshButtonDispatchWork: DispatchWorkItem?
 
-    override init(input: OnboardingInput, coordinator: Coordinator) {
-        if let cardModel = input.cardInput.cardModel {
-            self.cardModel = cardModel
-        }
-
-        super.init(input: input, coordinator: coordinator)
-    }
-
     func updateCardBalance(for type: Amount.AmountType = .coin, shouldGoToNextStep: Bool = true) {
         guard
             let walletModel = cardModel?.walletModels.first,
@@ -73,12 +65,13 @@ class OnboardingTopupViewModel<Step: OnboardingStep, Coordinator: OnboardingTopu
                 self.updateCardBalanceText(for: walletModel, type: type)
                 switch walletModelState {
                 case .noAccount(let message):
-                    print(message)
+                    AppLog.shared.debug(message)
                     fallthrough
                 case .idle:
                     if shouldGoToNextStep,
                        !walletModel.isEmptyIncludingPendingIncomingTxs,
                        !(walletModel.wallet.amounts[type]?.isZero ?? true) {
+                        Analytics.logTopUpIfNeeded(balance: walletModel.totalBalance)
                         self.goToNextStep()
                         self.walletModelUpdateCancellable = nil
                         return
@@ -86,8 +79,14 @@ class OnboardingTopupViewModel<Step: OnboardingStep, Coordinator: OnboardingTopu
 
                     self.resetRefreshButtonState()
                 case .failed(let error):
-                    self.alert = error.alertBinder
                     self.resetRefreshButtonState()
+
+                    // Need check is display alert yet, because not to present an error if it is already shown
+                    guard self.alert == nil else {
+                        return
+                    }
+
+                    self.alert = error.alertBinder
                 case .loading, .created, .noDerivation:
                     return
                 }
@@ -117,12 +116,14 @@ class OnboardingTopupViewModel<Step: OnboardingStep, Coordinator: OnboardingTopu
             self.refreshButtonState = .refreshButton
         }
     }
-
 }
 
 // MARK: - Navigation
+
 extension OnboardingTopupViewModel {
     func openCryptoShopIfPossible() {
+        Analytics.log(.buttonBuyCrypto)
+
         if tangemApiService.geoIpRegionCode == LanguageCode.ru {
             coordinator.openBankWarning {
                 self.openBuyCrypto()
@@ -135,6 +136,8 @@ extension OnboardingTopupViewModel {
     }
 
     func openQR() {
+        Analytics.log(.onboardingButtonShowTheWalletAddress)
+
         coordinator.openQR(shareAddress: shareAddress, address: walletAddress, qrNotice: qrNoticeMessage)
     }
 

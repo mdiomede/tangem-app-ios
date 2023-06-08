@@ -12,13 +12,13 @@ import BlockchainSdk
 struct TokenDetailsView: View {
     @ObservedObject var viewModel: TokenDetailsViewModel
 
-    var pendingTransactionViews: [PendingTxView] {
+    var pendingTransactionViews: [LegacyPendingTxView] {
         let incTx = viewModel.incomingTransactions.map {
-            PendingTxView(pendingTx: $0)
+            LegacyPendingTxView(pendingTx: $0)
         }
 
-        let outgTx = viewModel.outgoingTransactions.enumerated().map { (index, pendingTx) in
-            PendingTxView(pendingTx: pendingTx) {
+        let outgTx = viewModel.outgoingTransactions.enumerated().map { index, pendingTx in
+            LegacyPendingTxView(pendingTx: pendingTx) {
                 viewModel.openPushTx(for: index)
             }
         }
@@ -26,61 +26,15 @@ struct TokenDetailsView: View {
         return incTx + outgTx
     }
 
-    @ViewBuilder
-    var exchangeCryptoButton: some View {
-        if viewModel.canSellCrypto && viewModel.canBuyCrypto {
-            MainButton(
-                title: Localization.walletButtonTrade,
-                icon: .leading(Assets.exchangeMini),
-                isDisabled: !(viewModel.canBuyCrypto || viewModel.canSellCrypto),
-                action: viewModel.tradeCryptoAction
-            )
-            .actionSheet(isPresented: $viewModel.showTradeSheet, content: {
-                ActionSheet(title: Text(Localization.walletChooseTradeAction),
-                            buttons: [
-                                .default(Text(Localization.walletButtonBuy), action: viewModel.openBuyCryptoIfPossible),
-                                .default(Text(Localization.walletButtonSell), action: viewModel.openSellCrypto),
-                                .cancel(),
-                            ])
-            })
-        } else if viewModel.canSellCrypto {
-            MainButton(
-                title: Localization.walletButtonSell,
-                icon: .leading(Assets.arrowDownMini),
-                isDisabled: !viewModel.canSellCrypto,
-                action: viewModel.openSellCrypto
-            )
-        } else {
-            // Keep the BUY button last so that it will appear when everything is disabled
-            MainButton(
-                title: Localization.walletButtonBuy,
-                icon: .leading(Assets.arrowUpMini),
-                isDisabled: !viewModel.canBuyCrypto,
-                action: viewModel.openBuyCryptoIfPossible
-            )
-        }
-    }
-
     @ViewBuilder var bottomButtons: some View {
         HStack(alignment: .center) {
-            if FeatureProvider.isAvailable(.exchange) {
-                exchangeButton
-            } else {
-                exchangeCryptoButton
-            }
-
-            MainButton(
-                title: Localization.walletButtonSend,
-                icon: .leading(Assets.arrowRightMini),
-                isDisabled: !viewModel.canSend,
-                action: viewModel.openSend
-            )
+            exchangeButton
+            sendButton
         }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-
             Text(viewModel.title)
                 .font(Font.system(size: 36, weight: .bold, design: .default))
                 .padding(.horizontal, 16)
@@ -101,15 +55,16 @@ struct TokenDetailsView: View {
                         ForEach(self.pendingTransactionViews) { $0 }
 
                         if let walletModel = viewModel.walletModel {
-                            BalanceAddressView(walletModel: walletModel,
-                                               amountType: viewModel.amountType,
-                                               isRefreshing: viewModel.isRefreshing,
-                                               showExplorerURL: viewModel.showExplorerURL)
+                            BalanceAddressView(
+                                walletModel: walletModel,
+                                amountType: viewModel.amountType,
+                                isRefreshing: viewModel.isRefreshing,
+                                showExplorerURL: viewModel.showExplorerURL
+                            )
                         }
 
                         bottomButtons
                             .padding(.top, 16)
-
 
                         if let sendBlockedReason = viewModel.sendBlockedReason {
                             AlertCardView(title: "", message: sendBlockedReason)
@@ -134,21 +89,11 @@ struct TokenDetailsView: View {
             }
         }
         .edgesIgnoringSafeArea(.bottom)
-        .navigationBarHidden(false)
         .navigationBarTitle("", displayMode: .inline)
-        .navigationBarBackButtonHidden(false)
         .navigationBarItems(trailing: trailingButton)
         .background(Color.tangemBgGray.edgesIgnoringSafeArea(.all))
-        .ignoresKeyboard()
+        .ignoresSafeArea(.keyboard)
         .onAppear(perform: viewModel.onAppear)
-        //        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
-        //            .filter {_ in !navigation.detailsToSend
-        //                && !navigation.detailsToBuyCrypto && !navigation.detailsToSellCrypto
-        //            }
-        //            .delay(for: 0.5, scheduler: DispatchQueue.global())
-        //            .receive(on: DispatchQueue.main)) { _ in
-        //                viewModel.walletModel?.update(silent: true)
-        //            }
         .alert(item: $viewModel.alert) { $0.alert }
     }
 
@@ -176,24 +121,35 @@ struct TokenDetailsView: View {
 
         case .multi:
             MainButton(
-                title: Localization.walletButtonTrade,
+                title: Localization.walletButtonActions,
                 icon: .leading(Assets.exchangeIcon),
                 action: viewModel.openExchangeActionSheet
             )
             .actionSheet(item: $viewModel.exchangeActionSheet, content: { $0.sheet })
-
         }
+    }
+
+    @ViewBuilder
+    var sendButton: some View {
+        MainButton(
+            title: Localization.commonSend,
+            icon: .leading(Assets.arrowRightMini),
+            isDisabled: !viewModel.canSend,
+            action: viewModel.openSend
+        )
     }
 }
 
 struct TokenDetailsView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            TokenDetailsView(viewModel: TokenDetailsViewModel(cardModel: PreviewCard.cardanoNote.cardModel,
-                                                              blockchainNetwork: PreviewCard.cardanoNote.blockchainNetwork!,
-                                                              amountType: .coin,
-                                                              coordinator: TokenDetailsCoordinator()))
-                .deviceForPreviewZoomed(.iPhone7)
+            TokenDetailsView(viewModel: TokenDetailsViewModel(
+                cardModel: PreviewCard.cardanoNote.cardModel,
+                blockchainNetwork: PreviewCard.cardanoNote.blockchainNetwork!,
+                amountType: .coin,
+                coordinator: TokenDetailsCoordinator()
+            ))
+            .deviceForPreviewZoomed(.iPhone7)
         }
     }
 }

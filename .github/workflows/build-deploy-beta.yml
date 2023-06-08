@@ -19,6 +19,7 @@ jobs:
    - name: Jira Login
      uses: atlassian/gajira-login@master
      env:
+
       JIRA_BASE_URL: ${{ secrets.JIRA_URL }}
       JIRA_USER_EMAIL: ${{ secrets.JIRA_USER }}
       JIRA_API_TOKEN: ${{ secrets.JIRA_TOKEN }}
@@ -29,7 +30,7 @@ jobs:
      with:
       github-token: ${{ secrets.GH_MOBILE_PAT}}
       pull-number: ${{ github.event.number }}
-      
+
    # TEST
    - name: Output issues
      run: echo ${{ steps.github-issues.outputs.issues }}

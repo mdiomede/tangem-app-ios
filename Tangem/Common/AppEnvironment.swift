@@ -41,13 +41,13 @@ extension AppEnvironment {
     }
 
     var apiBaseUrl: URL {
-        EnvironmentProvider.shared.useDevApi ?
+        FeatureStorage().useDevApi ?
             URL(string: "https://devapi.tangem-tech.com/v1")! :
             URL(string: "https://api.tangem-tech.com/v1")!
     }
 
-    var isTestnet: Bool  {
-        EnvironmentProvider.shared.isTestnet
+    var isTestnet: Bool {
+        FeatureStorage().isTestnet
     }
 
     var isDebug: Bool {
@@ -71,10 +71,13 @@ extension AppEnvironment {
             return "config_dev"
         }
 
-        if self == .alpha {
+        switch self {
+        case .production:
+            return "config_prod"
+        case .beta:
+            return "config_beta"
+        case .alpha:
             return "config_alpha"
         }
-
-        return "config_prod"
     }
 }

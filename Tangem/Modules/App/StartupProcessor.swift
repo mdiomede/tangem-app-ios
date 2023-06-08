@@ -10,18 +10,16 @@ import Foundation
 import TangemSdk
 
 class StartupProcessor {
-    @Injected(\.backupServiceProvider) private var backupServiceProvider: BackupServiceProviding
     @Injected(\.userWalletRepository) private var userWalletRepository: UserWalletRepository
 
     func getStartupOption() -> StartupOption {
-        if backupServiceProvider.backupService.hasIncompletedBackup,
-           !backupServiceProvider.backupService.hasUncompletedSaltPayBackup {
+        if BackupHelper().hasIncompletedBackup {
             return .uncompletedBackup
         }
 
-        if AppSettings.shared.saveUserWallets
-            && !userWalletRepository.isEmpty
-            && BiometricsUtil.isAvailable {
+        if AppSettings.shared.saveUserWallets,
+           !userWalletRepository.isEmpty,
+           BiometricsUtil.isAvailable {
             return .auth
         }
 

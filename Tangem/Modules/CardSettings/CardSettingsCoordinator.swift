@@ -24,6 +24,7 @@ class CardSettingsCoordinator: CoordinatorObject {
 
     @Published var securityManagementCoordinator: SecurityModeCoordinator?
     @Published var modalOnboardingCoordinator: OnboardingCoordinator?
+    @Published var accessCodeRecoverySettingsViewModel: AccessCodeRecoverySettingsViewModel?
 
     // MARK: - Helpers
 
@@ -54,11 +55,15 @@ extension CardSettingsCoordinator: CardSettingsRoutable {
     func openOnboarding(with input: OnboardingInput, hasOtherCards: Bool) {
         let dismissAction: Action = { [weak self] in
             self?.modalOnboardingCoordinator = nil
+        }
+
+        let popToMainAction: ParamsAction<PopToRootOptions> = { [weak self] _ in
+            self?.modalOnboardingCoordinator = nil
             self?.dismiss()
         }
 
-        let coordinator = OnboardingCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
-        let options = OnboardingCoordinator.Options(input: input, destination: hasOtherCards ? .dismiss : .root)
+        let coordinator = OnboardingCoordinator(dismissAction: dismissAction, popToRootAction: hasOtherCards ? popToMainAction : popToRootAction)
+        let options = OnboardingCoordinator.Options(input: input, destination: .root)
         coordinator.start(with: options)
         modalOnboardingCoordinator = coordinator
     }
@@ -70,12 +75,16 @@ extension CardSettingsCoordinator: CardSettingsRoutable {
         securityManagementCoordinator = coordinator
     }
 
-    func openResetCardToFactoryWarning(cardModel: CardViewModel) {
+    func openResetCardToFactoryWarning(with input: ResetToFactoryViewModel.Input) {
         Analytics.log(.buttonFactoryReset)
         resetToFactoryViewModel = ResetToFactoryViewModel(
-            cardModel: cardModel,
+            input: input,
             coordinator: self
         )
+    }
+
+    func openAccessCodeRecoverySettings(using provider: AccessCodeRecoverySettingsProvider) {
+        accessCodeRecoverySettingsViewModel = .init(settingsProvider: provider)
     }
 }
 

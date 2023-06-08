@@ -24,13 +24,13 @@ class TwinsCreateWalletTask: CardSessionRunnable {
     var requiresPin2: Bool { true }
 
     deinit {
-        print("Twins create wallet task deinited")
+        AppLog.shared.debug("Twins create wallet task deinited")
     }
 
     private let firstTwinCardId: String?
     private var fileToWrite: Data?
-    private var walletManager: WalletManager? = nil
-    private var scanCommand: AppScanTask? = nil
+    private var walletManager: WalletManager?
+    private var scanCommand: AppScanTask?
 
     init(firstTwinCardId: String?, fileToWrite: Data?) {
         self.firstTwinCardId = firstTwinCardId
@@ -44,7 +44,7 @@ class TwinsCreateWalletTask: CardSessionRunnable {
             return
         }
 
-        if let firstTwinCardId = self.firstTwinCardId {
+        if let firstTwinCardId = firstTwinCardId {
             guard let firstSeries = TwinCardSeries.series(for: firstTwinCardId) else {
                 completion(.failure(.underlying(error: Localization.twinErrorNotATwinCard)))
                 return
@@ -69,22 +69,10 @@ class TwinsCreateWalletTask: CardSessionRunnable {
         }
     }
 
-    //	private func deleteFile(at index: Int? = nil, in session: CardSession, completion: @escaping CompletionResult<CreateWalletResponse>) {
-    //		let deleteFile = DeleteFilesTask(filesToDelete: index == nil ? nil : [index!])
-    //		deleteFile.run(in: session) { (result) in
-    //			switch result {
-    //			case .success:
-    //				self.createWallet(in: session, completion: completion)
-    //			case .failure(let error):
-    //				completion(.failure(error))
-    //			}
-    //		}
-    //	}
-
     private func eraseWallet(in session: CardSession, completion: @escaping CompletionResult<CommandResponse>) {
         let walletPublicKey = session.environment.card?.wallets.first?.publicKey
         let erase = PurgeWalletCommand(publicKey: walletPublicKey!)
-        erase.run(in: session) { (result) in
+        erase.run(in: session) { result in
             switch result {
             case .success:
                 self.createWallet(in: session, completion: completion)
@@ -96,7 +84,7 @@ class TwinsCreateWalletTask: CardSessionRunnable {
 
     private func createWallet(in session: CardSession, completion: @escaping CompletionResult<CommandResponse>) {
         let createWalletTask = CreateWalletTask(curve: .secp256k1 /* , isPermanent: false */ )
-        createWalletTask.run(in: session) { (result) in
+        createWalletTask.run(in: session) { result in
             switch result {
             case .success(let response):
                 if let fileToWrite = self.fileToWrite {
@@ -111,8 +99,6 @@ class TwinsCreateWalletTask: CardSessionRunnable {
     }
 
     private func writePublicKeyFile(fileToWrite: Data, walletResponse: CreateWalletResponse, in session: CardSession, completion: @escaping CompletionResult<CommandResponse>) {
-        //		let writeFileCommand = WriteFileCommand(dataToWrite: FileDataProtectedByPasscode(data: fileToWrite))
-
         guard let issuerKeys = SignerUtils.signerKeys(for: session.environment.card!.issuer.publicKey) else {
             completion(.failure(TangemSdkError.unknownError))
             return
@@ -120,7 +106,7 @@ class TwinsCreateWalletTask: CardSessionRunnable {
 
         let task = WriteIssuerDataTask(pairPubKey: fileToWrite, keys: issuerKeys)
         session.viewDelegate.showAlertMessage(Localization.twinsRecreateTitleCreatingWallet)
-        task.run(in: session) { (response) in
+        task.run(in: session) { response in
             switch response {
             case .success:
                 self.scanCard(session: session, walletResponse: walletResponse, completion: completion)
@@ -128,27 +114,20 @@ class TwinsCreateWalletTask: CardSessionRunnable {
                 completion(.failure(error))
             }
         }
-        //		command.run(in: session) { (response) in
-        //			switch response {
-        //			case .success:
-        //				completion(.success(walletResponse))
-        //			case .failure(let error):
-        //				completion(.failure(error))
-        //			}
-        //		}
     }
 
     private func scanCard(session: CardSession, walletResponse: CreateWalletResponse, completion: @escaping CompletionResult<CommandResponse>) {
-        self.scanCommand =  AppScanTask()
+        scanCommand = AppScanTask()
         scanCommand!.run(in: session) { scanCompletion in
             switch scanCompletion {
             case .failure(let error):
                 completion(.failure(error))
             case .success(let scanResponse):
-                completion(.success(TwinsCreateWalletTaskResponse(createWalletResponse: walletResponse,
-                                                                  card: scanResponse.card)))
+                completion(.success(TwinsCreateWalletTaskResponse(
+                    createWalletResponse: walletResponse,
+                    card: scanResponse.card
+                )))
             }
         }
     }
-
 }

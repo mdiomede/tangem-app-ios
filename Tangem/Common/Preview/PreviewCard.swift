@@ -26,15 +26,24 @@ enum PreviewCard {
     var cardModel: CardViewModel {
         let card = CardDTO(card: card)
         let ci = CardInfo(card: card, walletData: walletData, name: "Name")
-        let config = UserWalletConfigFactory(ci).makeConfig()
-        let vm = CardViewModel(cardInfo: ci, config: config)
-        let walletModels: [WalletModel]
+        let vm = CardViewModel(cardInfo: ci)!
         if let blockchain = blockchain {
-            let factory = WalletManagerFactory(config: .init(blockchairApiKeys: [], blockcypherTokens: [], infuraProjectId: "", tronGridApiKey: "", quickNodeSolanaCredentials: .init(apiKey: "", subdomain: ""), quickNodeBscCredentials: .init(apiKey: "", subdomain: "")))
+            let factory = WalletManagerFactory(
+                config: .init(
+                    blockchairApiKeys: [],
+                    blockcypherTokens: [],
+                    infuraProjectId: "",
+                    nowNodesApiKey: "",
+                    getBlockApiKey: "",
+                    kaspaSecondaryApiUrl: nil,
+                    tronGridApiKey: "",
+                    tonCenterApiKeys: .init(mainnetApiKey: "", testnetApiKey: ""),
+                    quickNodeSolanaCredentials: .init(apiKey: "", subdomain: ""),
+                    quickNodeBscCredentials: .init(apiKey: "", subdomain: ""),
+                    blockscoutCredentials: .init(login: "", password: "")
+                )
+            )
             let walletManager = try! factory.makeWalletManager(blockchain: blockchain, walletPublicKey: publicKey)
-            walletModels = [WalletModel(walletManager: walletManager, derivationStyle: .legacy)]
-        } else {
-            walletModels = []
         }
 
         // TODO: Add preview models

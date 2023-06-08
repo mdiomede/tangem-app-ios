@@ -10,60 +10,12 @@ import Foundation
 import TangemSdk
 import BlockchainSdk
 
-struct Start2CoinConfig {
-    private let card: CardDTO
+struct Start2CoinConfig: CardContainer {
+    let card: CardDTO
     private let walletData: WalletData
 
     private var defaultBlockchain: Blockchain {
         Blockchain.from(blockchainName: walletData.blockchain, curve: card.supportedCurves[0])!
-    }
-
-    private func makeTouURL() -> URL? {
-        let baseurl = "https://app.tangem.com/tou/"
-        let regionCode = self.regionCode(for: card.cardId) ?? "fr"
-        let languageCode = Locale.current.languageCode ?? "fr"
-        let filename = self.filename(languageCode: languageCode, regionCode: regionCode)
-        let url = URL(string: baseurl + filename)
-        return url
-    }
-
-    private func filename(languageCode: String, regionCode: String) -> String {
-        switch (languageCode, regionCode) {
-        case ("fr", "ch"):
-            return "Start2Coin-fr-ch-tangem.pdf"
-        case ("de", "ch"):
-            return "Start2Coin-de-ch-tangem.pdf"
-        case ("en", "ch"):
-            return "Start2Coin-en-ch-tangem.pdf"
-        case ("it", "ch"):
-            return "Start2Coin-it-ch-tangem.pdf"
-        case ("fr", "fr"):
-            return "Start2Coin-fr-fr-atangem.pdf"
-        case ("de", "at"):
-            return "Start2Coin-de-at-tangem.pdf"
-        case (_, "fr"):
-            return "Start2Coin-fr-fr-atangem.pdf"
-        case (_, "ch"):
-            return "Start2Coin-en-ch-tangem.pdf"
-        case (_, "at"):
-            return "Start2Coin-de-at-tangem.pdf"
-        default:
-            return "Start2Coin-fr-fr-atangem.pdf"
-        }
-    }
-
-    private func regionCode(for cid: String) -> String? {
-        let cidPrefix = cid[cid.index(cid.startIndex, offsetBy: 1)]
-        switch cidPrefix {
-        case "0":
-            return "fr"
-        case "1":
-            return "ch"
-        case "2":
-            return "at"
-        default:
-            return nil
-        }
     }
 
     init(card: CardDTO, walletData: WalletData) {
@@ -74,12 +26,14 @@ struct Start2CoinConfig {
 
 extension Start2CoinConfig: UserWalletConfig {
     var emailConfig: EmailConfig? {
-        .init(recipient: "cardsupport@start2coin.com",
-              subject: Localization.feedbackSubjectSupport)
+        .init(
+            recipient: "cardsupport@start2coin.com",
+            subject: Localization.feedbackSubjectSupport
+        )
     }
 
-    var touURL: URL {
-        makeTouURL() ?? DummyConfig().touURL
+    var tou: TOU {
+        TOUBuilder().makeTOU(for: card.cardId)
     }
 
     var cardsCount: Int {
@@ -94,25 +48,8 @@ extension Start2CoinConfig: UserWalletConfig {
         "Start2Coin"
     }
 
-    var defaultCurve: EllipticCurve? {
-        defaultBlockchain.curve
-    }
-
-    var onboardingSteps: OnboardingSteps {
-        if card.wallets.isEmpty {
-            return .singleWallet([.createWallet] + userWalletSavingSteps + [.success])
-        }
-
-        return .singleWallet([])
-    }
-
-    var backupSteps: OnboardingSteps? {
-        return nil
-    }
-
-    var userWalletSavingSteps: [SingleCardOnboardingStep] {
-        guard needUserWalletSavingSteps else { return [] }
-        return [.saveUserWallet]
+    var mandatoryCurves: [EllipticCurve] {
+        [.secp256k1]
     }
 
     var supportedBlockchains: Set<Blockchain> {
@@ -137,7 +74,7 @@ extension Start2CoinConfig: UserWalletConfig {
         WarningEventsFactory().makeWarningEvents(for: card)
     }
 
-    var tangemSigner: TangemSigner { .init(with: card.cardId) }
+    var tangemSigner: TangemSigner { .init(with: card.cardId, sdk: makeTangemSdk()) }
 
     var emailData: [EmailCollectedData] {
         CardEmailDataFactory().makeEmailData(for: card, walletData: walletData)
@@ -145,6 +82,10 @@ extension Start2CoinConfig: UserWalletConfig {
 
     var userWalletIdSeed: Data? {
         card.wallets.first?.publicKey
+    }
+
+    var productType: Analytics.ProductType {
+        .start2coin
     }
 
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
@@ -162,7 +103,7 @@ extension Start2CoinConfig: UserWalletConfig {
         case .passcode:
             return .hidden
         case .longTap:
-            return card.settings.isResettingUserCodesAllowed ? .available : .hidden
+            return card.settings.isRemovingUserCodesAllowed ? .available : .hidden
         case .longHashes:
             return .hidden
         case .backup:
@@ -174,8 +115,6 @@ extension Start2CoinConfig: UserWalletConfig {
         case .walletConnect:
             return .hidden
         case .multiCurrency:
-            return .hidden
-        case .tokensSearch:
             return .hidden
         case .resetToFactory:
             return .hidden
@@ -197,6 +136,14 @@ extension Start2CoinConfig: UserWalletConfig {
             return .hidden
         case .swapping:
             return .hidden
+        case .displayHashesCount:
+            return .available
+        case .transactionHistory:
+            return .hidden
+        case .seedPhrase:
+            return .hidden
+        case .accessCodeRecoverySettings:
+            return .hidden
         }
     }
 
@@ -206,9 +153,114 @@ extension Start2CoinConfig: UserWalletConfig {
         }
 
         let factory = WalletModelFactory()
-        return try factory.makeSingleWallet(walletPublicKey: walletPublicKey,
-                                            blockchain: defaultBlockchain,
-                                            token: nil,
-                                            derivationStyle: card.derivationStyle)
+        return try factory.makeSingleWallet(
+            walletPublicKey: walletPublicKey,
+            blockchain: defaultBlockchain,
+            token: nil,
+            derivationStyle: card.derivationStyle
+        )
+    }
+
+    func makeOnboardingStepsBuilder(backupService: BackupService) -> OnboardingStepsBuilder {
+        return Start2CoinOnboardingStepsBuilder(card: card, touId: tou.id)
+    }
+}
+
+// MARK: - TOU
+
+fileprivate struct TOUBuilder {
+    func makeTOU(for cardId: String) -> TOU {
+        let regionCode = regionCode(for: cardId)
+        let url = TOUItem.makeFrom(languageCode: Locale.current.languageCode, regionCode: regionCode).url
+        let id = TOUItem.makeFrom(languageCode: nil, regionCode: regionCode).urlString
+
+        return TOU(id: id, url: url)
+    }
+
+    private func regionCode(for cardId: String) -> String {
+        let cardIdPrefix = cardId[cardId.index(cardId.startIndex, offsetBy: 1)]
+        switch cardIdPrefix {
+        case "0":
+            return "fr"
+        case "1":
+            return "ch"
+        case "2":
+            return "at"
+        default:
+            return "fr"
+        }
+    }
+}
+
+fileprivate enum TOUItem: CaseIterable {
+    case deAt
+    case deCh
+    case enCh
+    case frCh
+    case frFr
+    case itCh
+
+    var url: URL { .init(string: urlString)! }
+
+    var urlString: String {
+        switch self {
+        case .deAt: return "https://tangem.com/start2coin-de-at-tangem.html"
+        case .deCh: return "https://tangem.com/start2coin-de-ch-tangem.html"
+        case .enCh: return "https://tangem.com/start2coin-en-ch-tangem.html"
+        case .frCh: return "https://tangem.com/start2coin-fr-ch-tangem.html"
+        case .frFr: return "https://tangem.com/start2coin-fr-fr-tangem.html"
+        case .itCh: return "https://tangem.com/start2coin-it-ch-tangem.html"
+        }
+    }
+
+    var urlStringLegacy: String {
+        switch self {
+        case .deAt: return "https://app.tangem.com/tou/Start2Coin-de-at-tangem.pdf"
+        case .deCh: return "https://app.tangem.com/tou/Start2Coin-de-ch-tangem.pdf"
+        case .enCh: return "https://app.tangem.com/tou/Start2Coin-en-ch-tangem.pdf"
+        case .frCh: return "https://app.tangem.com/tou/Start2Coin-fr-ch-tangem.pdf"
+        case .frFr: return "https://app.tangem.com/tou/Start2Coin-fr-fr-atangem.pdf"
+        case .itCh: return "https://app.tangem.com/tou/Start2Coin-it-ch-tangem.pdf"
+        }
+    }
+
+    static func makeFrom(languageCode: String?, regionCode: String) -> Self {
+        switch (languageCode, regionCode) {
+        case ("fr", "ch"):
+            return .frCh
+        case ("de", "ch"):
+            return .deCh
+        case ("en", "ch"):
+            return .enCh
+        case ("it", "ch"):
+            return .itCh
+        case ("fr", "fr"):
+            return .frFr
+        case ("de", "at"):
+            return .deAt
+        case (_, "fr"):
+            return .frFr
+        case (_, "ch"):
+            return .enCh
+        case (_, "at"):
+            return .deAt
+        default:
+            return .frFr
+        }
+    }
+}
+
+struct S2CTOUMigrator {
+    func migrate() {
+        var termsOfServicesAccepted = AppSettings.shared.termsOfServicesAccepted
+
+        for tou in TOUItem.allCases {
+            if termsOfServicesAccepted.contains(tou.urlStringLegacy) {
+                termsOfServicesAccepted.remove(tou.urlStringLegacy)
+                termsOfServicesAccepted.append(tou.urlString)
+            }
+        }
+
+        AppSettings.shared.termsOfServicesAccepted = termsOfServicesAccepted
     }
 }

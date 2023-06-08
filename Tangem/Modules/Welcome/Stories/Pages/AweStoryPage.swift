@@ -10,9 +10,9 @@ import SwiftUI
 
 struct AweStoryPage: View {
     @Binding var progress: Double
-    let isScanning: Bool
-    let scanCard: (() -> Void)
-    let orderCard: (() -> Void)
+    @Binding var isScanning: Bool
+    let scanCard: () -> Void
+    let orderCard: () -> Void
 
     var body: some View {
         VStack {
@@ -39,7 +39,7 @@ struct AweStoryPage: View {
 
             Spacer()
 
-            Image("coin_shower")
+            Assets.Stories.coinShower.image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .overlay(
@@ -58,7 +58,7 @@ struct AweStoryPage: View {
                     slowMovementSpeedCoefficient: 0.15
                 )
 
-            StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: isScanning, scanCard: scanCard, orderCard: orderCard)
+            StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: $isScanning, scanCard: scanCard, orderCard: orderCard)
                 .padding(.horizontal)
                 .padding(.bottom)
         }
@@ -69,7 +69,7 @@ struct AweStoryPage: View {
 
 struct AweStoryPage_Previews: PreviewProvider {
     static var previews: some View {
-        AweStoryPage(progress: .constant(1), isScanning: false) { } orderCard: { }
+        AweStoryPage(progress: .constant(1), isScanning: .constant(false)) {} orderCard: {}
             .previewGroup(devices: [.iPhone7, .iPhone12ProMax], withZoomed: false)
             .environment(\.colorScheme, .dark)
     }

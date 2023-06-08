@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import TangemSdk
 
 class DetailsCoordinator: CoordinatorObject {
     var dismissAction: Action
@@ -75,11 +76,11 @@ extension DetailsCoordinator: DetailsRoutable {
     }
 
     func openMail(with dataCollector: EmailDataCollector, recipient: String, emailType: EmailType) {
-        mailViewModel = MailViewModel(dataCollector: dataCollector, recipient: recipient, emailType: emailType)
+        let logsComposer = LogsComposer(infoProvider: dataCollector)
+        mailViewModel = MailViewModel(logsComposer: logsComposer, recipient: recipient, emailType: emailType)
     }
 
     func openWalletConnect(with cardModel: CardViewModel) {
-        Analytics.log(.myWalletsScreenOpened)
         let coordinator = WalletConnectCoordinator()
         let options = WalletConnectCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
@@ -87,22 +88,22 @@ extension DetailsCoordinator: DetailsRoutable {
     }
 
     func openDisclaimer(at url: URL) {
-        disclaimerViewModel = .init(url: url, style: .navbar, coordinator: nil)
+        disclaimerViewModel = .init(url: url, style: .details)
     }
 
-    func openScanCardSettings(with userWalletId: Data) {
-        scanCardSettingsViewModel = ScanCardSettingsViewModel(expectedUserWalletId: userWalletId, coordinator: self)
+    func openScanCardSettings(with userWalletId: Data, sdk: TangemSdk) {
+        scanCardSettingsViewModel = ScanCardSettingsViewModel(expectedUserWalletId: userWalletId, sdk: sdk, coordinator: self)
     }
 
-    func openAppSettings(userWallet: UserWallet) {
+    func openAppSettings(userWallet: CardViewModel) {
         let coordinator = AppSettingsCoordinator(popToRootAction: popToRootAction)
         coordinator.start(with: .default(userWallet: userWallet))
         appSettingsCoordinator = coordinator
     }
 
-    func openSupportChat(cardId: String, dataCollector: EmailDataCollector) {
+    func openSupportChat(input: SupportChatInputModel) {
         Analytics.log(.chatScreenOpened)
-        supportChatViewModel = SupportChatViewModel(cardId: cardId, dataCollector: dataCollector)
+        supportChatViewModel = SupportChatViewModel(input: input)
     }
 
     func openInSafari(url: URL) {
@@ -121,6 +122,7 @@ extension DetailsCoordinator: DetailsRoutable {
         let coordinator = ReferralCoordinator(dismissAction: dismissAction)
         coordinator.start(with: .init(cardModel: cardModel, userWalletId: userWalletId))
         referralCoordinator = coordinator
+        Analytics.log(.referralScreenOpened)
     }
 }
 

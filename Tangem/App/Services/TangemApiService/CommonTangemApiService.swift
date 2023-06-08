@@ -9,17 +9,25 @@
 import Foundation
 import Combine
 import Moya
+import BlockchainSdk
 
 class CommonTangemApiService {
-    private let provider = TangemProvider<TangemApiTarget>(plugins: [CachePolicyPlugin()])
+    private let provider = TangemProvider<TangemApiTarget>(plugins: [
+        CachePolicyPlugin(),
+        NetworkLoggerPlugin(configuration: .init(
+            output: NetworkLoggerPlugin.tangemSdkLoggerOutput,
+            logOptions: .verbose
+        )),
+    ])
+
     private var bag: Set<AnyCancellable> = []
 
     private let fallbackRegionCode = Locale.current.regionCode?.lowercased() ?? ""
-    private var _geoIpRegionCode: String? = nil
-    private var authData: TangemApiTarget.AuthData? = nil
+    private var _geoIpRegionCode: String?
+    private var authData: TangemApiTarget.AuthData?
 
     deinit {
-        print("CommonTangemApiService deinit")
+        AppLog.shared.debug("CommonTangemApiService deinit")
     }
 }
 
@@ -54,7 +62,7 @@ extension CommonTangemApiService: TangemApiService {
     }
 
     func loadCoins(requestModel: CoinsListRequestModel) -> AnyPublisher<[CoinModel], Error> {
-        provider
+        return provider
             .requestPublisher(TangemApiTarget(type: .coins(requestModel), authData: authData))
             .filterSuccessfulStatusCodes()
             .map(CoinsResponse.self)
@@ -103,9 +111,13 @@ extension CommonTangemApiService: TangemApiService {
 
     func loadRates(for coinIds: [String]) -> AnyPublisher<[String: Decimal], Error> {
         provider
-            .requestPublisher(TangemApiTarget(type: .rates(coinIds: coinIds,
-                                                           currencyId: AppSettings.shared.selectedCurrencyCode),
-                                              authData: authData))
+            .requestPublisher(TangemApiTarget(
+                type: .rates(
+                    coinIds: coinIds,
+                    currencyId: AppSettings.shared.selectedCurrencyCode
+                ),
+                authData: authData
+            ))
             .filterSuccessfulStatusAndRedirectCodes()
             .map(RatesResponse.self)
             .eraseError()
@@ -114,22 +126,30 @@ extension CommonTangemApiService: TangemApiService {
     }
 
     func loadReferralProgramInfo(for userWalletId: String) async throws -> ReferralProgramInfo {
-        let target = TangemApiTarget(type: .loadReferralProgramInfo(userWalletId: userWalletId),
-                                     authData: authData)
+        let target = TangemApiTarget(
+            type: .loadReferralProgramInfo(userWalletId: userWalletId),
+            authData: authData
+        )
         let response = try await provider.asyncRequest(for: target)
         let filteredResponse = try response.filterSuccessfulStatusAndRedirectCodes()
         return try JSONDecoder().decode(ReferralProgramInfo.self, from: filteredResponse.data)
     }
 
-    func participateInReferralProgram(using token: ReferralProgramInfo.Token,
-                                      for address: String,
-                                      with userWalletId: String) async throws -> ReferralProgramInfo {
-        let userInfo = ReferralParticipationRequestBody(walletId: userWalletId,
-                                                        networkId: token.networkId,
-                                                        tokenId: token.id,
-                                                        address: address)
-        let target = TangemApiTarget(type: .participateInReferralProgram(userInfo: userInfo),
-                                     authData: authData)
+    func participateInReferralProgram(
+        using token: ReferralProgramInfo.Token,
+        for address: String,
+        with userWalletId: String
+    ) async throws -> ReferralProgramInfo {
+        let userInfo = ReferralParticipationRequestBody(
+            walletId: userWalletId,
+            networkId: token.networkId,
+            tokenId: token.id,
+            address: address
+        )
+        let target = TangemApiTarget(
+            type: .participateInReferralProgram(userInfo: userInfo),
+            authData: authData
+        )
         let response = try await provider.asyncRequest(for: target)
         let filteredResponse = try response.filterSuccessfulStatusAndRedirectCodes()
         return try JSONDecoder().decode(ReferralProgramInfo.self, from: filteredResponse.data)
@@ -145,6 +165,8 @@ extension CommonTangemApiService: TangemApiService {
             .subscribe(on: DispatchQueue.global())
             .weakAssign(to: \._geoIpRegionCode, on: self)
             .store(in: &bag)
+
+        AppLog.shared.debug("CommonTangemApiService initialized")
     }
 
     func setAuthData(_ authData: TangemApiTarget.AuthData) {

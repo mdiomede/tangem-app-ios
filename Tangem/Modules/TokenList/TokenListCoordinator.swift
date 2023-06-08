@@ -13,9 +13,11 @@ class TokenListCoordinator: CoordinatorObject {
     var popToRootAction: ParamsAction<PopToRootOptions>
 
     // MARK: - Main view model
+
     @Published private(set) var tokenListViewModel: TokenListViewModel? = nil
 
     // MARK: - Child view models
+
     @Published var addCustomTokenViewModel: AddCustomTokenViewModel? = nil
 
     required init(dismissAction: @escaping Action, popToRootAction: @escaping ParamsAction<PopToRootOptions>) {
@@ -30,15 +32,12 @@ class TokenListCoordinator: CoordinatorObject {
 
 extension TokenListCoordinator: AddCustomTokenRoutable {
     func closeModule() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { // fix freeze ios13
-            self.dismiss()
-        }
+        dismiss()
     }
 }
 
 extension TokenListCoordinator: TokenListRoutable {
     func openAddCustom(for cardModel: CardViewModel) {
-        Analytics.log(.customTokenScreenOpened)
         addCustomTokenViewModel = .init(cardModel: cardModel, coordinator: self)
     }
 }

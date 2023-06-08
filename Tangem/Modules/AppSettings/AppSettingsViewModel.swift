@@ -12,7 +12,6 @@ import TangemSdk
 
 class AppSettingsViewModel: ObservableObject {
     @Injected(\.userWalletRepository) private var userWalletRepository: UserWalletRepository
-    @Injected(\.tangemSdkProvider) private var sdkProvider: TangemSdkProviding
 
     // MARK: ViewState
 
@@ -29,7 +28,7 @@ class AppSettingsViewModel: ObservableObject {
     // MARK: Properties
 
     private var bag: Set<AnyCancellable> = []
-    private let userWallet: UserWallet
+    private let userWallet: CardViewModel
     private var isBiometryAvailable: Bool = true
 
     private var isSavingWallet: Bool {
@@ -46,24 +45,35 @@ class AppSettingsViewModel: ObservableObject {
         }
     }
 
-    init(userWallet: UserWallet, coordinator: AppSettingsRoutable) {
+    init(userWallet: CardViewModel, coordinator: AppSettingsRoutable) {
         self.coordinator = coordinator
 
         let isSavingWallet = AppSettings.shared.saveUserWallets
         self.isSavingWallet = isSavingWallet
-        self.isSavingAccessCodes = isSavingWallet && AppSettings.shared.saveAccessCodes
+        isSavingAccessCodes = isSavingWallet && AppSettings.shared.saveAccessCodes
         self.userWallet = userWallet
 
         updateView()
+        bind()
     }
 }
 
 // MARK: - Private
 
 private extension AppSettingsViewModel {
+    func bind() {
+        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+            .sink { [weak self] _ in
+                self?.updateView()
+            }
+            .store(in: &bag)
+    }
+
     func isSavingWalletRequestChange(saveWallet: Bool) {
-        Analytics.log(.saveUserWalletSwitcherChanged,
-                      params: [.state: Analytics.ParameterValue.state(for: saveWallet).rawValue])
+        Analytics.log(
+            .saveUserWalletSwitcherChanged,
+            params: [.state: Analytics.ParameterValue.state(for: saveWallet)]
+        )
 
         if saveWallet {
             unlockWithBiometry { [weak self] in
@@ -75,10 +85,10 @@ private extension AppSettingsViewModel {
     }
 
     func unlockWithBiometry(completion: @escaping (_ success: Bool) -> Void) {
-        userWalletRepository.unlock(with: .biometry) { [weak self] result in
+        BiometricsUtil.requestAccess(localizedReason: Localization.biometryTouchIdReason) { [weak self] result in
             guard let self else { return }
 
-            if case .error = result {
+            if case .failure = result {
                 self.updateView()
                 completion(false)
             } else {
@@ -89,24 +99,29 @@ private extension AppSettingsViewModel {
     }
 
     func isSavingAccessCodesRequestChange(saveAccessCodes: Bool) {
-        Analytics.log(.saveAccessCodeSwitcherChanged,
-                      params: [.state: Analytics.ParameterValue.state(for: saveAccessCodes).rawValue])
+        Analytics.log(
+            .saveAccessCodeSwitcherChanged,
+            params: [.state: Analytics.ParameterValue.state(for: saveAccessCodes)]
+        )
 
         if saveAccessCodes {
-            self.setSaveAccessCodes(true)
+            setSaveAccessCodes(true)
         } else {
-            self.presentSavingAccessCodesDeleteAlert()
+            presentSavingAccessCodesDeleteAlert()
         }
     }
 
     func setupView() {
-        if !isBiometryAvailable {
+        if isBiometryAvailable {
+            warningViewModel = nil
+        } else {
             warningViewModel = DefaultWarningRowViewModel(
-                icon: Assets.attention,
                 title: Localization.appSettingsWarningTitle,
                 subtitle: Localization.appSettingsWarningSubtitle,
-                action: openBiometrySettings
-            )
+                leftView: .icon(Assets.attention)
+            ) { [weak self] in
+                self?.openBiometrySettings()
+            }
         }
 
         savingWalletViewModel = DefaultToggleRowViewModel(

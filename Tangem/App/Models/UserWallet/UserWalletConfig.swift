@@ -10,12 +10,10 @@ import Foundation
 import TangemSdk
 import BlockchainSdk
 
-protocol UserWalletConfig {
-    var sdkConfig: Config { get }
-
+protocol UserWalletConfig: OnboardingStepsBuilderFactory, BackupServiceFactory, TangemSdkFactory {
     var emailConfig: EmailConfig? { get }
 
-    var touURL: URL { get }
+    var tou: TOU { get }
 
     var cardsCount: Int { get }
 
@@ -23,16 +21,13 @@ protocol UserWalletConfig {
 
     var cardName: String { get }
 
-    var defaultCurve: EllipticCurve? { get }
+    var mandatoryCurves: [EllipticCurve] { get }
 
     var tangemSigner: TangemSigner { get }
 
     var warningEvents: [WarningEvent] { get }
 
-    var onboardingSteps: OnboardingSteps { get }
-
-    var backupSteps: OnboardingSteps? { get }
-
+    var canSkipBackup: Bool { get }
     /// All blockchains supported by this user wallet.
     var supportedBlockchains: Set<Blockchain> { get }
 
@@ -47,11 +42,11 @@ protocol UserWalletConfig {
 
     var emailData: [EmailCollectedData] { get }
 
-    var cardAmountType: Amount.AmountType { get }
+    var cardAmountType: Amount.AmountType? { get }
 
     var userWalletIdSeed: Data? { get }
 
-    var supportChatEnvironment: SupportChatEnvironment { get }
+    var productType: Analytics.ProductType { get }
 
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability
 
@@ -59,32 +54,25 @@ protocol UserWalletConfig {
 }
 
 extension UserWalletConfig {
-    var sdkConfig: Config {
-        TangemSdkConfigFactory().makeDefaultConfig()
-    }
-
-    var needUserWalletSavingSteps: Bool {
-        return BiometricsUtil.isAvailable && !AppSettings.shared.saveUserWallets && !AppSettings.shared.askedToSaveUserWallets
-    }
-
     func hasFeature(_ feature: UserWalletFeature) -> Bool {
         getFeatureAvailability(feature).isAvailable
     }
 
-    var cardAmountType: Amount.AmountType {
-        .coin
+    var cardAmountType: Amount.AmountType? {
+        return nil
     }
 
-    var supportChatEnvironment: SupportChatEnvironment {
-        .default
-    }
-
-    var touURL: URL {
-        .init(string: "https://tangem.com/tangem_tos.html")!
+    var tou: TOU {
+        let url = URL(string: "https://tangem.com/tangem_tos.html")!
+        return TOU(id: url.absoluteString, url: url)
     }
 
     var emailConfig: EmailConfig? {
         .default
+    }
+
+    var canSkipBackup: Bool {
+        true
     }
 }
 
@@ -93,8 +81,30 @@ struct EmailConfig {
     let subject: String
 
     static var `default`: EmailConfig {
-        .init(recipient: "support@tangem.com",
-              subject: Localization.feedbackSubjectSupportTangem)
+        .init(
+            recipient: "support@tangem.com",
+            subject: Localization.feedbackSubjectSupportTangem
+        )
     }
 }
 
+struct TOU {
+    let id: String
+    let url: URL
+}
+
+protocol CardContainer {
+    var card: CardDTO { get }
+}
+
+extension UserWalletConfig where Self: CardContainer {
+    func makeTangemSdk() -> TangemSdk {
+        let factory = GenericTangemSdkFactory(isAccessCodeSet: card.isAccessCodeSet)
+        return factory.makeTangemSdk()
+    }
+
+    func makeBackupService() -> BackupService {
+        let factory = GenericBackupServiceFactory(isAccessCodeSet: card.isAccessCodeSet)
+        return factory.makeBackupService()
+    }
+}

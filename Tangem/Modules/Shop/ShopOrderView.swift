@@ -17,7 +17,5 @@ struct ShopOrderView: View {
             WebViewContainer(viewModel: .init(url: order.statusUrl, title: "", addLoadingIndicator: true))
         }
         .edgesIgnoringSafeArea(.all)
-        .navigationBarHidden(true)
-        .navigationBarTitle("", displayMode: .inline)
     }
 }

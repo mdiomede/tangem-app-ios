@@ -11,9 +11,11 @@ import TangemSdk
 
 class CreateMultiWalletTask: CardSessionRunnable {
     private let curves: [EllipticCurve]
+    private let seed: Data?
 
-    init(curves: [EllipticCurve] = [.secp256k1, .ed25519]) {
+    init(curves: [EllipticCurve] = [.secp256k1, .ed25519], seed: Data? = nil) {
         self.curves = curves
+        self.seed = seed
     }
 
     func run(in session: CardSession, completion: @escaping CompletionResult<SuccessResponse>) {
@@ -32,19 +34,24 @@ class CreateMultiWalletTask: CardSessionRunnable {
 
     private func createWallet(at index: Int, session: CardSession, completion: @escaping CompletionResult<SuccessResponse>) {
         let curve = curves[index]
-        let createWalletTask = CreateWalletTask(curve: curve /* , isPermanent: false */ )
+        let createWalletTask: CreateWalletTask
+        if let seed = seed {
+            createWalletTask = .init(curve: curve, seed: seed)
+        } else {
+            createWalletTask = .init(curve: curve)
+        }
+
         createWalletTask.run(in: session) { createWalletCompletion in
             switch createWalletCompletion {
             case .failure(let error):
                 completion(.failure(error))
             case .success(let createWalletResponse):
                 if index == self.curves.count - 1 {
-                    completion(.success(SuccessResponse(cardId: (createWalletResponse).cardId)))
+                    completion(.success(SuccessResponse(cardId: createWalletResponse.cardId)))
                 } else {
                     self.createWallet(at: index + 1, session: session, completion: completion)
                 }
             }
         }
     }
-
 }

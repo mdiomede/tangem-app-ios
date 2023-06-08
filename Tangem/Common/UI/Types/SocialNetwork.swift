@@ -6,7 +6,7 @@
 //  Copyright © 2022 Tangem AG. All rights reserved.
 //
 
-import SwiftUI
+import Foundation
 
 enum SocialNetwork: Hashable, CaseIterable, Identifiable {
     var id: Int { hashValue }
@@ -18,8 +18,9 @@ enum SocialNetwork: Hashable, CaseIterable, Identifiable {
     case github
     case youtube
     case linkedin
+    case discord
 
-    var icon: Image {
+    var icon: ImageType {
         switch self {
         case .telegram:
             return Assets.SocialNetwork.telegram
@@ -35,6 +36,8 @@ enum SocialNetwork: Hashable, CaseIterable, Identifiable {
             return Assets.SocialNetwork.youTube
         case .linkedin:
             return Assets.SocialNetwork.linkedIn
+        case .discord:
+            return Assets.SocialNetwork.discord
         }
     }
 
@@ -43,9 +46,9 @@ enum SocialNetwork: Hashable, CaseIterable, Identifiable {
         case .telegram:
             switch Locale.current.languageCode {
             case LanguageCode.ru, LanguageCode.by:
-                return URL(string: "https://t.me/tangem_ru")
+                return URL(string: "https://t.me/tangem_chat_ru")
             default:
-                return URL(string: "https://t.me/TangemCards")
+                return URL(string: "https://t.me/tangem_chat")
             }
         case .twitter:
             return URL(string: "https://twitter.com/tangem")
@@ -59,6 +62,29 @@ enum SocialNetwork: Hashable, CaseIterable, Identifiable {
             return URL(string: "https://youtube.com/channel/UCFGwLS7yggzVkP6ozte0m1w")
         case .linkedin:
             return URL(string: "https://www.linkedin.com/company/tangem")
+        case .discord:
+            return URL(string: "https://discord.gg/7AqTVyqdGS")
+        }
+    }
+
+    var name: String {
+        switch self {
+        case .telegram:
+            return "Telegram"
+        case .twitter:
+            return "Twitter"
+        case .facebook:
+            return "Facebook"
+        case .instagram:
+            return "Instagram"
+        case .github:
+            return "GitHub"
+        case .youtube:
+            return "YouTube"
+        case .linkedin:
+            return "LinkedIn"
+        case .discord:
+            return "Discord"
         }
     }
 }

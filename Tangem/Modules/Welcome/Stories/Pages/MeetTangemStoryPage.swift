@@ -10,10 +10,11 @@ import SwiftUI
 
 struct MeetTangemStoryPage: View {
     @Binding var progress: Double
+    var immediatelyShowTangemLogo: Bool
     var immediatelyShowButtons: Bool
-    let isScanning: Bool
-    let scanCard: (() -> Void)
-    let orderCard: (() -> Void)
+    @Binding var isScanning: Bool
+    let scanCard: () -> Void
+    let orderCard: () -> Void
 
     private let words: [String] = [
         "",
@@ -22,12 +23,12 @@ struct MeetTangemStoryPage: View {
         Localization.storyMeetStore,
         Localization.storyMeetSend,
         Localization.storyMeetPay,
-        Localization.storyMeetExchange,
+        // Localization.storyMeetExchange,
         Localization.storyMeetBorrow,
         Localization.storyMeetLend,
         Localization.storyMeetLend,
         // Duplicate the last word to make it last longer
-//        Localization.storyMeetStake, // no stake for now
+        // Localization.commonStake, // no stake for now
         "",
     ]
 
@@ -57,7 +58,7 @@ struct MeetTangemStoryPage: View {
                     .padding()
                     .modifier(AnimatableVisibilityModifier(
                         progress: progress,
-                        start: wordListProgressEnd,
+                        start: immediatelyShowTangemLogo ? 0 : wordListProgressEnd,
                         end: .infinity
                     ))
 
@@ -87,7 +88,7 @@ struct MeetTangemStoryPage: View {
 
                 Color.clear
                     .background(
-                        Image("hand_with_card")
+                        Assets.Stories.handWithCard.image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .fixedSize(horizontal: false, vertical: true)
@@ -111,8 +112,8 @@ struct MeetTangemStoryPage: View {
                                 progress: progress,
                                 start: wordListProgressEnd,
                                 end: 1
-                            ))
-                        ,
+                            )),
+
                         alignment: .top
                     )
             }
@@ -120,7 +121,7 @@ struct MeetTangemStoryPage: View {
             VStack {
                 Spacer()
 
-                StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: isScanning, scanCard: scanCard, orderCard: orderCard)
+                StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: $isScanning, scanCard: scanCard, orderCard: orderCard)
             }
             .padding(.horizontal)
             .padding(.bottom)
@@ -135,10 +136,9 @@ struct MeetTangemStoryPage: View {
     }
 }
 
-
 struct MeetTangemStoryPage_Previews: PreviewProvider {
     static var previews: some View {
-        MeetTangemStoryPage(progress: .constant(0.8), immediatelyShowButtons: false, isScanning: false) { } orderCard: { }
+        MeetTangemStoryPage(progress: .constant(0.8), immediatelyShowTangemLogo: false, immediatelyShowButtons: false, isScanning: .constant(false)) {} orderCard: {}
             .previewGroup(devices: [.iPhone7, .iPhone12ProMax], withZoomed: false)
             .environment(\.colorScheme, .dark)
     }

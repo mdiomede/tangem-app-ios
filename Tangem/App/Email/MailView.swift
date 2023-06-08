@@ -15,7 +15,6 @@ struct MailView: UIViewControllerRepresentable {
     @Environment(\.presentationMode) private var presentation
 
     class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-
         @Binding var presentation: PresentationMode
 
         let emailType: EmailType
@@ -25,9 +24,11 @@ struct MailView: UIViewControllerRepresentable {
             self.emailType = emailType
         }
 
-        func mailComposeController(_ controller: MFMailComposeViewController,
-                                   didFinishWith result: MFMailComposeResult,
-                                   error: Error?) {
+        func mailComposeController(
+            _ controller: MFMailComposeViewController,
+            didFinishWith result: MFMailComposeResult,
+            error: Error?
+        ) {
             guard result == .sent || result == .failed else {
                 $presentation.wrappedValue.dismiss()
                 return
@@ -62,20 +63,20 @@ struct MailView: UIViewControllerRepresentable {
         vc.setToRecipients([viewModel.recipient])
         vc.setSubject(viewModel.emailType.emailSubject)
         var messageBody = "\n" + viewModel.emailType.emailPreface
-        messageBody.append("\n\n\n")
-        messageBody.append(viewModel.emailType.dataCollectionMessage + "\n")
-        messageBody.append(viewModel.dataCollector.dataForEmail)
+        messageBody.append("\n\n")
         vc.setMessageBody(messageBody, isHTML: false)
-        if let attachment = viewModel.dataCollector.attachment {
-            vc.addAttachmentData(attachment, mimeType: "text/plain", fileName: "logs.txt")
+
+        viewModel.logsComposer.getLogsData().forEach {
+            vc.addAttachmentData($0.value, mimeType: "text/plain", fileName: $0.key)
         }
+
         return vc
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController,
-                                context: UIViewControllerRepresentableContext<MailView>) {
-
-    }
+    func updateUIViewController(
+        _ uiViewController: UIViewController,
+        context: UIViewControllerRepresentableContext<MailView>
+    ) {}
 }
 
 fileprivate struct MailViewPlaceholder: View {

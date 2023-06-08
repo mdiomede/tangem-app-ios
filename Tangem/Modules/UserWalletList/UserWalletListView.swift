@@ -11,15 +11,6 @@ import SwiftUI
 struct UserWalletListView: View {
     @ObservedObject private var viewModel: UserWalletListViewModel
 
-    static var sheetBackground: Color {
-        if #available(iOS 14, *) {
-            return Colors.Background.secondary
-        } else {
-            // iOS 13 can't convert named SwiftUI colors to UIColor
-            return Color(hex: "F2F2F7")!
-        }
-    }
-
     private let listHorizontalPadding: Double = 16
 
     init(viewModel: UserWalletListViewModel) {
@@ -36,16 +27,20 @@ struct UserWalletListView: View {
 
                 Group {
                     if viewModel.isLocked {
-                        MainButton(title: viewModel.unlockAllButtonTitle,
-                                   style: .secondary,
-                                   isDisabled: viewModel.isScanningCard,
-                                   action: viewModel.unlockAllWallets)
+                        MainButton(
+                            title: viewModel.unlockAllButtonTitle,
+                            style: .secondary,
+                            isDisabled: viewModel.isScanningCard,
+                            action: viewModel.unlockAllWallets
+                        )
                     }
 
-                    MainButton(title: Localization.userWalletListAddButton,
-                               icon: .trailing(Assets.tangemIcon),
-                               isLoading: viewModel.isScanningCard,
-                               action: viewModel.addUserWallet)
+                    MainButton(
+                        title: Localization.userWalletListAddButton,
+                        icon: .trailing(Assets.tangemIcon),
+                        isLoading: viewModel.isScanningCard,
+                        action: viewModel.addUserWallet
+                    )
                 }
                 .padding(.horizontal, listHorizontalPadding)
             }
@@ -55,18 +50,23 @@ struct UserWalletListView: View {
             $0.alert
         }
         .actionSheet(isPresented: $viewModel.showingDeleteConfirmation) {
-            ActionSheet(title: Text(Localization.userWalletListDeletePrompt),
-                        buttons: [
-                            .destructive(Text(Localization.commonDelete), action: viewModel.didConfirmWalletDeletion),
-                            .cancel(Text(Localization.commonCancel), action: viewModel.didCancelWalletDeletion),
-                        ])
+            ActionSheet(
+                title: Text(Localization.userWalletListDeletePrompt),
+                buttons: [
+                    .destructive(Text(Localization.commonDelete), action: viewModel.didConfirmWalletDeletion),
+                    .cancel(Text(Localization.commonCancel), action: viewModel.didCancelWalletDeletion),
+                ]
+            )
         }
-        .background(Self.sheetBackground.edgesIgnoringSafeArea(.all))
+        .background(Colors.Background.secondary.edgesIgnoringSafeArea(.all))
         .background(
-            ScanTroubleshootingView(isPresented: $viewModel.showTroubleshootingView,
-                                    tryAgainAction: viewModel.tryAgain,
-                                    requestSupportAction: viewModel.requestSupport)
+            ScanTroubleshootingView(
+                isPresented: $viewModel.showTroubleshootingView,
+                tryAgainAction: viewModel.tryAgain,
+                requestSupportAction: viewModel.requestSupport
+            )
         )
+        .onAppear(perform: viewModel.onAppear)
     }
 }
 
@@ -87,9 +87,8 @@ extension UserWalletListView {
     }
 
     @ViewBuilder
-    @available(iOS 14.0, *)
     private func userWalletsList() -> some View {
-        List() {
+        List {
             sections()
         }
         .listStyle(.insetGrouped)

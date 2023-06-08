@@ -34,7 +34,5 @@ struct ShopOrderProgressView: View {
                     .offset(x: 0, y: -50)
             )
             .edgesIgnoringSafeArea(.all)
-            .navigationBarHidden(true)
-            .navigationBarTitle("", displayMode: .inline)
     }
 }

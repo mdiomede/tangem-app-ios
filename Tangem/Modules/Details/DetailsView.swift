@@ -37,12 +37,11 @@ struct DetailsView: View {
             socialNetworks
                 .readSize { socialNetworksViewSize = $0 }
         }
-        .ignoresBottomArea()
+        .ignoresSafeArea(.container, edges: .bottom)
         .background(Colors.Background.secondary.edgesIgnoringSafeArea(.all))
-        .navigationBarBackButtonHidden(false)
-        .navigationBarHidden(false)
-        .alert(item: $viewModel.error) { $0.alert }
+        .alert(item: $viewModel.alert) { $0.alert }
         .navigationBarTitle(Text(Localization.detailsTitle), displayMode: .inline)
+        .onAppear(perform: viewModel.onAppear)
     }
 
     // MARK: - Wallet Connect Section
@@ -106,7 +105,7 @@ struct DetailsView: View {
         Button(action: {
             viewModel.openSocialNetwork(network: network)
         }) {
-            network.icon
+            network.icon.image
                 .resizable()
                 .frame(width: 24, height: 24)
         }
@@ -117,8 +116,10 @@ struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             DetailsView(
-                viewModel: DetailsViewModel(cardModel: PreviewCard.tangemWalletEmpty.cardModel,
-                                            coordinator: DetailsCoordinator())
+                viewModel: DetailsViewModel(
+                    cardModel: PreviewCard.tangemWalletEmpty.cardModel,
+                    coordinator: DetailsCoordinator()
+                )
             )
         }
         .navigationViewStyle(.stack)

@@ -12,7 +12,7 @@ import SwiftUI
 // TODO: Make ObservableObject
 struct DefaultRowViewModel {
     let title: String
-    let detailsType: DetailsType?
+    private(set) var detailsType: DetailsType?
     let action: (() -> Void)?
 
     /// - Parameters:
@@ -27,6 +27,10 @@ struct DefaultRowViewModel {
         self.title = title
         self.detailsType = detailsType
         self.action = action
+    }
+
+    mutating func update(detailsType: DetailsType?) {
+        self.detailsType = detailsType
     }
 }
 
@@ -50,19 +54,6 @@ extension DefaultRowViewModel {
     enum DetailsType: Hashable {
         case text(_ string: String)
         case loader
-        case icon(_ image: Image)
-
-        func hash(into hasher: inout Hasher) {
-            switch self {
-            case .icon:
-                hasher.combine("icon")
-            case .loader:
-                hasher.combine("loader")
-            case .text(let string):
-                hasher.combine("text")
-                hasher.combine(string)
-            }
-        }
+        case icon(_ image: ImageType)
     }
 }
-

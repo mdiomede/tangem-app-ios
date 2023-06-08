@@ -9,10 +9,9 @@
 import TangemSdk
 
 struct DerivationManager {
-    @Injected(\.tangemSdkProvider) private var tangemSdkProvider: TangemSdkProviding
-
     private let config: UserWalletConfig
     private let cardInfo: CardInfo
+    private let sdk: TangemSdk
 
     private var cardId: String? {
         if config.cardsCount == 1 {
@@ -25,6 +24,7 @@ struct DerivationManager {
     init(config: UserWalletConfig, cardInfo: CardInfo) {
         self.config = config
         self.cardInfo = cardInfo
+        sdk = config.makeTangemSdk()
     }
 
     func deriveIfNeeded(entries: [StorageEntry], completion: @escaping (Result<DerivationResult?, TangemSdkError>) -> Void) {
@@ -35,7 +35,7 @@ struct DerivationManager {
 
         let nonDeriveEntries = entries.compactMap { entry -> StorageEntry? in
             guard let path = entry.blockchainNetwork.derivationPath,
-                  let wallet = cardInfo.card.wallets.first(where: { $0.curve == entry.blockchainNetwork.blockchain.curve }),
+                  let wallet = cardInfo.card.wallets.last(where: { $0.curve == entry.blockchainNetwork.blockchain.curve }),
                   !wallet.derivedKeys.keys.contains(path) else {
                 return nil
             }
@@ -63,17 +63,16 @@ struct DerivationManager {
             }
         }
 
-        tangemSdkProvider.sdk.startSession(with: DeriveMultipleWalletPublicKeysTask(derivations), cardId: cardId) { result in
+        sdk.startSession(with: DeriveMultipleWalletPublicKeysTask(derivations), cardId: cardId) { result in
             switch result {
             case .success(let response):
                 completion(.success(response))
             case .failure(let error):
-                Analytics.logCardSdkError(error, for: .purgeWallet, card: card)
+                AppLog.shared.error(error, params: [.action: .deriveKeys])
                 completion(.failure(error))
             }
         }
     }
 }
-
 
 typealias DerivationResult = DeriveMultipleWalletPublicKeysTask.Response

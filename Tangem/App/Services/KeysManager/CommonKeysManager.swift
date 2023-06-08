@@ -13,13 +13,13 @@ class CommonKeysManager {
     private let keys: Keys
 
     init() throws {
-        self.keys = try JsonUtils.readBundleFile(with: AppEnvironment.current.configFileName, type: CommonKeysManager.Keys.self)
+        keys = try JsonUtils.readBundleFile(with: AppEnvironment.current.configFileName, type: CommonKeysManager.Keys.self)
     }
 }
 
 extension CommonKeysManager: KeysManager {
-    var appsFlyerDevKey: String {
-        keys.appsFlyerDevKey
+    var appsFlyer: AppsFlyerConfig {
+        keys.appsFlyer
     }
 
     var moonPayKeys: MoonPayKeys {
@@ -35,15 +35,22 @@ extension CommonKeysManager: KeysManager {
     }
 
     var blockchainConfig: BlockchainSdkConfig {
-        BlockchainSdkConfig(blockchairApiKeys: keys.blockchairApiKeys,
-                            blockcypherTokens: keys.blockcypherTokens,
-                            infuraProjectId: keys.infuraProjectId,
-                            tronGridApiKey: keys.tronGridApiKey,
-                            // TODO: rename to solana
-                            quickNodeSolanaCredentials: .init(apiKey: keys.quiknodeApiKey, subdomain: keys.quiknodeSubdomain),
-                            quickNodeBscCredentials: .init(apiKey: keys.bscQuiknodeApiKey, subdomain: keys.bscQuiknodeSubdomain),
-                            defaultNetworkProviderConfiguration: .init(logger: .verbose, urlSessionConfiguration: .standart),
-                            networkProviderConfigurations: [.saltPay: .init(logger: .verbose, credentials: keys.saltPay.credentials)])
+        BlockchainSdkConfig(
+            blockchairApiKeys: keys.blockchairApiKeys,
+            blockcypherTokens: keys.blockcypherTokens,
+            infuraProjectId: keys.infuraProjectId,
+            nowNodesApiKey: keys.nowNodesApiKey,
+            getBlockApiKey: keys.getBlockApiKey,
+            kaspaSecondaryApiUrl: keys.kaspaSecondaryApiUrl,
+            tronGridApiKey: keys.tronGridApiKey,
+            tonCenterApiKeys: .init(mainnetApiKey: keys.tonCenterApiKey.mainnet, testnetApiKey: keys.tonCenterApiKey.testnet),
+            // TODO: rename to solana
+            quickNodeSolanaCredentials: .init(apiKey: keys.quiknodeApiKey, subdomain: keys.quiknodeSubdomain),
+            quickNodeBscCredentials: .init(apiKey: keys.bscQuiknodeApiKey, subdomain: keys.bscQuiknodeSubdomain),
+            blockscoutCredentials: .init(login: "", password: ""), // used for saltpay tx history
+            defaultNetworkProviderConfiguration: .init(logger: .verbose, urlSessionConfiguration: .standart),
+            networkProviderConfigurations: [:]
+        )
     }
 
     var shopifyShop: ShopifyShop {
@@ -58,12 +65,20 @@ extension CommonKeysManager: KeysManager {
         keys.amplitudeApiKey
     }
 
-    var saltPay: SaltPayConfiguration {
-        keys.saltPay
+    var utorgSID: String {
+        "tangemTEST"
     }
 
     var infuraProjectId: String {
         keys.infuraProjectId
+    }
+
+    var swapReferrerAccount: SwapReferrerAccount? {
+        keys.swapReferrerAccount
+    }
+
+    var walletConnectProjectId: String {
+        keys.walletConnectProjectId
     }
 }
 
@@ -76,7 +91,11 @@ extension CommonKeysManager {
         let blockchairApiKeys: [String]
         let blockcypherTokens: [String]
         let infuraProjectId: String
-        let appsFlyerDevKey: String
+        let nowNodesApiKey: String
+        let getBlockApiKey: String
+        let kaspaSecondaryApiUrl: String
+        let tonCenterApiKey: TonCenterApiKeys
+        let appsFlyer: AppsFlyerConfig
         let amplitudeApiKey: String
         let tronGridApiKey: String
         let quiknodeApiKey: String
@@ -85,6 +104,7 @@ extension CommonKeysManager {
         let bscQuiknodeSubdomain: String
         let shopifyShop: ShopifyShop
         let zendesk: ZendeskConfig
-        let saltPay: SaltPayConfiguration
+        let swapReferrerAccount: SwapReferrerAccount?
+        let walletConnectProjectId: String
     }
 }

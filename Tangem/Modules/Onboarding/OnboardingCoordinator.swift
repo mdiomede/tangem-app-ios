@@ -13,14 +13,17 @@ class OnboardingCoordinator: CoordinatorObject {
     var popToRootAction: ParamsAction<PopToRootOptions>
 
     // MARK: - Main view models
+
     @Published private(set) var singleCardViewModel: SingleCardOnboardingViewModel? = nil
     @Published private(set) var twinsViewModel: TwinsOnboardingViewModel? = nil
     @Published private(set) var walletViewModel: WalletOnboardingViewModel? = nil
 
     // MARK: - Child coordinators
-    @Published var mainCoordinator: MainCoordinator? = nil
+
+    @Published var mainCoordinator: LegacyMainCoordinator? = nil
 
     // MARK: - Child view models
+
     @Published var buyCryptoModel: WebViewContainerViewModel? = nil
     @Published var warningBankCardViewModel: WarningBankCardViewModel? = nil
     @Published var modalWebViewModel: WebViewContainerViewModel? = nil
@@ -64,6 +67,7 @@ extension OnboardingCoordinator {
         case root
         case dismiss
     }
+
     struct Options {
         let input: OnboardingInput
         let destination: DestinationOnFinish
@@ -72,18 +76,21 @@ extension OnboardingCoordinator {
 
 extension OnboardingCoordinator: OnboardingTopupRoutable {
     func openCryptoShop(at url: URL, closeUrl: String, action: @escaping (String) -> Void) {
-        buyCryptoModel = .init(url: url,
-                               title: Localization.walletButtonBuy,
-                               addLoadingIndicator: true,
-                               withCloseButton: true, urlActions: [closeUrl: { [weak self] response in
-                                   DispatchQueue.main.async {
-                                       action(response)
-                                       self?.buyCryptoModel = nil
-                                   }
-                               }])
+        buyCryptoModel = .init(
+            url: url,
+            title: Localization.commonBuy,
+            addLoadingIndicator: true,
+            withCloseButton: true,
+            urlActions: [closeUrl: { [weak self] response in
+                DispatchQueue.main.async {
+                    action(response)
+                    self?.buyCryptoModel = nil
+                }
+            }]
+        )
     }
 
-    func openBankWarning(confirmCallback: @escaping () -> (), declineCallback: @escaping () -> ()) {
+    func openBankWarning(confirmCallback: @escaping () -> Void, declineCallback: @escaping () -> Void) {
         let delay = 0.6
         warningBankCardViewModel = .init(confirmCallback: { [weak self] in
             self?.warningBankCardViewModel = nil
@@ -99,11 +106,13 @@ extension OnboardingCoordinator: OnboardingTopupRoutable {
     }
 
     func openP2PTutorial() {
-        modalWebViewModel = WebViewContainerViewModel(url: URL(string: "https://tangem.com/howtobuy.html")!,
-                                                      title: "",
-                                                      addLoadingIndicator: true,
-                                                      withCloseButton: false,
-                                                      urlActions: [:])
+        modalWebViewModel = WebViewContainerViewModel(
+            url: URL(string: "https://tangem.com/howtobuy.html")!,
+            title: "",
+            addLoadingIndicator: true,
+            withCloseButton: false,
+            urlActions: [:]
+        )
     }
 
     func openQR(shareAddress: String, address: String, qrNotice: String) {
@@ -119,21 +128,30 @@ extension OnboardingCoordinator: WalletOnboardingRoutable {
         })
     }
 
-    func openSupportChat(cardId: String, dataCollector: EmailDataCollector) {
-        supportChatViewModel = SupportChatViewModel(cardId: cardId, dataCollector: dataCollector)
+    func openSupportChat(input: SupportChatInputModel) {
+        Analytics.log(.chatScreenOpened)
+        supportChatViewModel = SupportChatViewModel(input: input)
+    }
+
+    func openWebView(with url: URL) {
+        modalWebViewModel = WebViewContainerViewModel(
+            url: url,
+            title: "",
+            addLoadingIndicator: true
+        )
     }
 }
 
 extension OnboardingCoordinator: OnboardingRoutable {
-    func onboardingDidFinish() {
+    func onboardingDidFinish(userWallet: CardViewModel?) {
         switch options.destination {
         case .main:
-            guard let card = options.input.cardInput.cardModel else {
-                closeOnboarding()
+            if let userWallet {
+                openMain(with: userWallet)
                 return
             }
 
-            openMain(with: card)
+            closeOnboarding()
         case .root:
             popToRoot()
         case .dismiss:
@@ -146,9 +164,8 @@ extension OnboardingCoordinator: OnboardingRoutable {
     }
 
     private func openMain(with cardModel: CardViewModel) {
-        Analytics.log(.screenOpened)
-        let coordinator = MainCoordinator(popToRootAction: popToRootAction)
-        let options = MainCoordinator.Options(cardModel: cardModel)
+        let coordinator = LegacyMainCoordinator(popToRootAction: popToRootAction)
+        let options = LegacyMainCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
         mainCoordinator = coordinator
     }

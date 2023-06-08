@@ -8,64 +8,35 @@
 
 import Foundation
 
-// MARK: - Provider
-
-// Use this provider to check the availability of your feature
+/// Use this provider to check the availability of your feature
 enum FeatureProvider {
-    static func isAvailable(_ toggle: FeatureToggle) -> Bool {
+    static func isAvailable(_ feature: Feature) -> Bool {
         if AppEnvironment.current.isProduction {
-            return isAvailableInProduction(toggle)
+            return isAvailableForReleaseVersion(feature)
         }
 
-        return EnvironmentProvider.shared.availableFeatures.contains(toggle)
+        let state = FeatureStorage().availableFeatures[feature]
+        switch state {
+        case .none:
+            return isAvailableForReleaseVersion(feature)
+        case .default:
+            assertionFailure("Default state shouldn't be saved in storage")
+            return isAvailableForReleaseVersion(feature)
+        case .on:
+            return true
+        case .off:
+            return false
+        }
     }
 
     /// Return `true` if the feature is should be released or has already been released in current app version
-    private static func isAvailableInProduction(_ toggle: FeatureToggle) -> Bool {
+    static func isAvailableForReleaseVersion(_ feature: Feature) -> Bool {
         guard let appVersion: String = InfoDictionaryUtils.version.value(),
-              let releaseVersion = toggle.releaseVersion.version,
+              let releaseVersion = feature.releaseVersion.version,
               appVersion >= releaseVersion else {
             return false
         }
 
         return true
-    }
-}
-
-// MARK: - FeatureToggle
-
-enum FeatureToggle: String, Hashable, CaseIterable {
-    case exchange
-    case referralProgram
-
-    var name: String {
-        switch self {
-        case .exchange: return "Exchange"
-        case .referralProgram: return "Referral Program"
-        }
-    }
-
-    var releaseVersion: ReleaseVersion {
-        switch self {
-        case .exchange: return .unspecified
-        case .referralProgram: return .unspecified
-        }
-    }
-}
-
-extension FeatureToggle {
-    enum ReleaseVersion: Hashable {
-        /// This case is for an unterminated release date
-        case unspecified
-
-        /// Version in the format "1.1.0" or "1.2"
-        case version(_ version: String)
-
-        var version: String? {
-            switch self {
-            case .unspecified: return nil
-            case .version(let version): return version
-            }
-        }
     }
 }

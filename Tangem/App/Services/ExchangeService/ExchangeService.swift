@@ -9,7 +9,11 @@
 import Foundation
 import BlockchainSdk
 
+// TODO: Refactor name)
+private typealias ExternalExchangeService = ExchangeService
+
 protocol ExchangeService: AnyObject, Initializable {
+    var initializationPublisher: Published<Bool>.Publisher { get }
     var successCloseUrl: String { get }
     var sellRequestUrl: String { get }
     func canBuy(_ currencySymbol: String, amountType: Amount.AmountType, blockchain: Blockchain) -> Bool
@@ -20,14 +24,20 @@ protocol ExchangeService: AnyObject, Initializable {
 }
 
 private struct ExchangeServiceKey: InjectionKey {
-    static var currentValue: ExchangeService = CombinedExchangeService(
-        buyService: MercuryoService(),
+    static var currentValue: ExternalExchangeService = CombinedExchangeService(
+        mercuryoService: MercuryoService(),
+        utorgService: nil, // Remove optional from the ExternalExchangeService and set the utorgSID in the CommonKeysManager tore-integrate Utorg
         sellService: MoonPayService()
     )
 }
 
 extension InjectedValues {
     var exchangeService: ExchangeService {
+        externalExchangeService
+    }
+
+    // TODO: Make not private because we can't mock this services. For now it's ok, but later it should be updated.
+    private var externalExchangeService: ExternalExchangeService {
         get { Self[ExchangeServiceKey.self] }
         set { Self[ExchangeServiceKey.self] = newValue }
     }

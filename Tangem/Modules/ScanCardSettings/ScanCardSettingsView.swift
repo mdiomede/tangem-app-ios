@@ -19,7 +19,7 @@ struct ScanCardSettingsView: View {
         VStack(spacing: 16) {
             ScrollView {
                 VStack(alignment: .center, spacing: 0) {
-                    Assets.cards
+                    Assets.cards.image
                         .padding(.vertical, 32)
 
                     VStack(alignment: .center, spacing: 16) {
@@ -53,7 +53,7 @@ struct ScanCardSettingsView: View {
 }
 
 struct ScanCardSettingsView_Preview: PreviewProvider {
-    static let viewModel = ScanCardSettingsViewModel(expectedUserWalletId: Data(), coordinator: DetailsCoordinator())
+    static let viewModel = ScanCardSettingsViewModel(expectedUserWalletId: Data(), sdk: .init(), coordinator: DetailsCoordinator())
 
     static var previews: some View {
         ScanCardSettingsView(viewModel: viewModel)

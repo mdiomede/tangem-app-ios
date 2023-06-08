@@ -10,8 +10,8 @@ import Foundation
 import TangemSdk
 import BlockchainSdk
 
-struct NoteDemoConfig {
-    private let card: CardDTO
+struct NoteDemoConfig: CardContainer {
+    let card: CardDTO
     private let noteData: WalletData
 
     init(card: CardDTO, noteData: WalletData) {
@@ -39,29 +39,8 @@ extension NoteDemoConfig: UserWalletConfig {
         "Note"
     }
 
-    var defaultCurve: EllipticCurve? {
-        defaultBlockchain.curve
-    }
-
-    var onboardingSteps: OnboardingSteps {
-        if card.wallets.isEmpty {
-            return .singleWallet([.createWallet] + userWalletSavingSteps + [.topup, .successTopup])
-        } else {
-            if !AppSettings.shared.cardsStartedActivation.contains(card.cardId) {
-                return .singleWallet([])
-            }
-
-            return .singleWallet(userWalletSavingSteps + [.topup, .successTopup])
-        }
-    }
-
-    var backupSteps: OnboardingSteps? {
-        nil
-    }
-
-    var userWalletSavingSteps: [SingleCardOnboardingStep] {
-        guard needUserWalletSavingSteps else { return [] }
-        return [.saveUserWallet]
+    var mandatoryCurves: [EllipticCurve] {
+        [defaultBlockchain.curve]
     }
 
     var supportedBlockchains: Set<Blockchain> {
@@ -92,7 +71,7 @@ extension NoteDemoConfig: UserWalletConfig {
         return warnings
     }
 
-    var tangemSigner: TangemSigner { .init(with: card.cardId) }
+    var tangemSigner: TangemSigner { .init(with: card.cardId, sdk: makeTangemSdk()) }
 
     var emailData: [EmailCollectedData] {
         CardEmailDataFactory().makeEmailData(for: card, walletData: noteData)
@@ -100,6 +79,10 @@ extension NoteDemoConfig: UserWalletConfig {
 
     var userWalletIdSeed: Data? {
         card.wallets.first?.publicKey
+    }
+
+    var productType: Analytics.ProductType {
+        .demoNote
     }
 
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
@@ -126,8 +109,6 @@ extension NoteDemoConfig: UserWalletConfig {
             return .hidden
         case .multiCurrency:
             return .hidden
-        case .tokensSearch:
-            return .hidden
         case .resetToFactory:
             return .disabled(localizedReason: Localization.alertDemoFeatureDisabled)
         case .receive:
@@ -148,6 +129,14 @@ extension NoteDemoConfig: UserWalletConfig {
             return .hidden
         case .swapping:
             return .hidden
+        case .displayHashesCount:
+            return .available
+        case .transactionHistory:
+            return .hidden
+        case .seedPhrase:
+            return .hidden
+        case .accessCodeRecoverySettings:
+            return .hidden
         }
     }
 
@@ -159,11 +148,17 @@ extension NoteDemoConfig: UserWalletConfig {
         }
 
         let factory = WalletModelFactory()
-        let model = try factory.makeSingleWallet(walletPublicKey: walletPublicKey,
-                                                 blockchain: blockchain,
-                                                 token: token.tokens.first,
-                                                 derivationStyle: card.derivationStyle)
+        let model = try factory.makeSingleWallet(
+            walletPublicKey: walletPublicKey,
+            blockchain: blockchain,
+            token: token.tokens.first,
+            derivationStyle: card.derivationStyle
+        )
         model.demoBalance = DemoUtil().getDemoBalance(for: defaultBlockchain)
         return model
     }
 }
+
+// MARK: - NoteCardOnboardingStepsBuilderFactory
+
+extension NoteDemoConfig: NoteCardOnboardingStepsBuilderFactory {}

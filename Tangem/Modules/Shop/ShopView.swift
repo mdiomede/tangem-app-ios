@@ -45,27 +45,27 @@ struct ShopView: View {
                         buyButtons
                     }
                     .padding(.horizontal)
-                    .frame(minWidth: geometry.size.width,
-                           maxWidth: geometry.size.width,
-                           minHeight: geometry.size.height,
-                           maxHeight: .infinity, alignment: .top)
+                    .frame(
+                        minWidth: geometry.size.width,
+                        maxWidth: geometry.size.width,
+                        minHeight: geometry.size.height,
+                        maxHeight: .infinity,
+                        alignment: .top
+                    )
                 }
             }
         }
         .background(Color(UIColor.tangemBgGray).edgesIgnoringSafeArea(.all))
         .onAppear(perform: viewModel.didAppear)
-        .navigationBarHidden(true)
-        .navigationBarTitle("", displayMode: .inline)
-        // HACK: Don't remove it, otherwise navigation title will NOT hide on iOS 13
-        .keyboardAdaptive(animated: .constant(false))
         .alert(item: $viewModel.error) { $0.alert }
     }
 
+    @ViewBuilder
     private var cardStack: some View {
         let secondCardOffset = 12.0
         let thirdCardOffset = 22.0
 
-        return Image("wallet_card")
+        Assets.Onboarding.walletCard.image
             .resizable()
             .aspectRatio(contentMode: .fit)
             .background(
@@ -98,18 +98,7 @@ struct ShopView: View {
     private var purchaseForm: some View {
         VStack(spacing: 0) {
             HStack {
-                Image("box")
-                Text(Localization.shopShipping)
-                Spacer()
-                Text(Localization.shopFree)
-            }
-            .padding(.horizontal)
-            .padding(.vertical, sectionRowVerticalPadding)
-
-            Separator(height: 0.5, padding: 0)
-
-            HStack {
-                Image("ticket")
+                Assets.Shop.ticket.image
                 TextField(Localization.shopIHaveAPromoCode, text: $viewModel.discountCode) { editing in
                     if !editing {
                         viewModel.didEnterDiscountCode()
@@ -124,11 +113,9 @@ struct ShopView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, sectionRowVerticalPadding)
-        }
-        .background(Color.white.cornerRadius(sectionCornerRadius))
-        .padding(.bottom, 8)
 
-        VStack {
+            Separator(height: 0.5, padding: 0)
+
             HStack {
                 Text(Localization.shopTotal)
 
@@ -155,12 +142,24 @@ struct ShopView: View {
         }
         .background(Color.white.cornerRadius(sectionCornerRadius))
         .padding(.bottom, 8)
+
+        if let preorderDeliveryDate = viewModel.preorderDeliveryDateFormatted {
+            VStack {
+                soldOutText(preorderDeliveryDate)
+                    .style(Fonts.Regular.subheadline, color: Colors.Text.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+            }
+            .background(Color.white.cornerRadius(sectionCornerRadius))
+            .padding(.bottom, 8)
+        }
     }
 
     @ViewBuilder
     private var buyButtons: some View {
         if viewModel.canUseApplePay {
-            ApplePayButton {
+            ApplePayButton(type: viewModel.applePayButtonType) {
                 viewModel.openApplePayCheckout()
             }
             .frame(height: 46)
@@ -176,10 +175,17 @@ struct ShopView: View {
             Button {
                 viewModel.openWebCheckout()
             } label: {
-                Text(Localization.shopBuyNow)
+                Text(viewModel.buyButtonText)
             }
             .buttonStyle(TangemButtonStyle(colorStyle: .black, layout: .flexibleWidth))
         }
+    }
+
+    private func soldOutText(_ preorderDeliveryDate: String) -> Text {
+        Text(Localization.shopSoldOutDescriptionPrefix) +
+            Text(" ") +
+            Text(preorderDeliveryDate).foregroundColor(Colors.Text.primary1) +
+            Text(Localization.shopSoldOutDescriptionSuffix)
     }
 }
 

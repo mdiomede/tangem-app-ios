@@ -12,7 +12,20 @@ import TangemSdk
 import Kingfisher
 
 struct CardImageProvider {
-    private static var cardArtworkCache: [String: CardArtwork] = [:]
+    private static let cardArtworkCacheQueue = DispatchQueue(
+        label: "com.tangem.CardImageProvider.cardArtworkCacheQueue",
+        attributes: .concurrent
+    )
+
+    private static var _cardArtworkCache: [String: CardArtwork] = [:]
+    private static var cardArtworkCache: [String: CardArtwork] {
+        get {
+            return cardArtworkCacheQueue.sync { _cardArtworkCache }
+        }
+        set {
+            cardArtworkCacheQueue.async(flags: .barrier) { _cardArtworkCache = newValue }
+        }
+    }
 
     @Injected(\.cardImageLoader) private var imageLoader: CardImageLoaderProtocol
 
@@ -29,7 +42,7 @@ struct CardImageProvider {
         configuration.timeoutIntervalForRequest = 20
         configuration.timeoutIntervalForResource = 30
         let networkService = NetworkService(configuration: configuration)
-        self.cardVerifier = OnlineCardVerifier(with: networkService)
+        cardVerifier = OnlineCardVerifier(with: networkService)
     }
 
     func cardArtwork(for cardId: String) -> CardArtwork? {
@@ -45,11 +58,6 @@ extension CardImageProvider: CardImageProviding {
     }
 
     func loadImage(cardId: String, cardPublicKey: Data, artwork: CardArtwork?) -> AnyPublisher<CardImageResult, Never> {
-        if SaltPayUtil().isSaltPayCard(batchId: String(cardId.prefix(4)), cardId: cardId) { // TODO: We must use the batchId here
-            return Just(.embedded(UIImage(named: "saltpay")!))
-                .eraseToAnyPublisher()
-        }
-
         guard supportsOnlineImage else {
             return Just(.embedded(defaultImage)).eraseToAnyPublisher()
         }
@@ -104,7 +112,7 @@ private extension CardImageProvider {
                 }
                 .switchToLatest()
                 .eraseToAnyPublisher()
-        case let .artwork(artworkInfo):
+        case .artwork(let artworkInfo):
             return imageLoader
                 .loadImage(cid: cardId, cardPublicKey: cardPublicKey, artworkInfoId: artworkInfo.id)
                 .handleEvents(receiveOutput: { image in
@@ -119,13 +127,14 @@ private extension CardImageProvider {
         cardVerifier.getCardInfo(cardId: cardId, cardPublicKey: cardPublicKey)
             .map { info in
                 if let artwork = info.artwork {
-                    let cardArtwork = CardArtwork.artwork(artwork)
-                    CardImageProvider.cardArtworkCache[cardId] = cardArtwork
-                    return cardArtwork
+                    return CardArtwork.artwork(artwork)
                 } else {
                     return .noArtwork
                 }
             }
+            .handleEvents(receiveOutput: { cardArtwork in
+                CardImageProvider.cardArtworkCache[cardId] = cardArtwork
+            })
             .replaceError(with: CardArtwork.noArtwork)
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()

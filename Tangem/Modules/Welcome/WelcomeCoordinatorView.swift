@@ -13,25 +13,22 @@ struct WelcomeCoordinatorView: CoordinatorView {
     @ObservedObject var coordinator: WelcomeCoordinator
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                if let welcomeModel = coordinator.welcomeViewModel {
-                    WelcomeView(viewModel: welcomeModel)
-                        .navigationLinks(links)
-                }
-
-                sheets
+        ZStack {
+            if let welcomeModel = coordinator.welcomeViewModel {
+                WelcomeView(viewModel: welcomeModel)
+                    .navigationLinks(links)
             }
+
+            sheets
         }
-        .navigationViewStyle(.stack)
-        .accentColor(Colors.Text.primary1)
+        .navigationBarHidden(true)
     }
 
     @ViewBuilder
     private var links: some View {
         NavHolder()
             .navigation(item: $coordinator.mainCoordinator) {
-                MainCoordinatorView(coordinator: $0)
+                LegacyMainCoordinatorView(coordinator: $0)
             }
             .navigation(item: $coordinator.pushedOnboardingCoordinator) {
                 OnboardingCoordinatorView(coordinator: $0)
@@ -44,18 +41,9 @@ struct WelcomeCoordinatorView: CoordinatorView {
             .sheet(item: $coordinator.shopCoordinator) {
                 ShopCoordinatorView(coordinator: $0)
             }
-
-        NavHolder()
             .sheet(item: $coordinator.tokenListCoordinator) {
                 TokenListCoordinatorView(coordinator: $0)
             }
-
-        NavHolder()
-            .sheet(item: $coordinator.disclaimerViewModel) {
-                DisclaimerView(viewModel: $0)
-            }
-
-        NavHolder()
             .sheet(item: $coordinator.mailViewModel) {
                 MailView(viewModel: $0)
             }

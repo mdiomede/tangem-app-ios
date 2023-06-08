@@ -14,15 +14,17 @@ class AuthCoordinator: CoordinatorObject {
     let popToRootAction: ParamsAction<PopToRootOptions>
 
     // MARK: - Root view model
+
     @Published private(set) var rootViewModel: AuthViewModel?
 
     // MARK: - Child coordinators
-    @Published var mainCoordinator: MainCoordinator?
+
+    @Published var mainCoordinator: LegacyMainCoordinator?
     @Published var pushedOnboardingCoordinator: OnboardingCoordinator?
 
     // MARK: - Child view models
+
     @Published var mailViewModel: MailViewModel?
-    @Published var disclaimerViewModel: DisclaimerViewModel?
 
     required init(
         dismissAction: @escaping Action,
@@ -33,7 +35,7 @@ class AuthCoordinator: CoordinatorObject {
     }
 
     func start(with options: Options = .default) {
-        self.rootViewModel = .init(unlockOnStart: options.unlockOnStart, coordinator: self)
+        rootViewModel = .init(unlockOnStart: options.unlockOnStart, coordinator: self)
     }
 }
 
@@ -59,27 +61,18 @@ extension AuthCoordinator: AuthRoutable {
         let options = OnboardingCoordinator.Options(input: input, destination: .main)
         coordinator.start(with: options)
         pushedOnboardingCoordinator = coordinator
+        Analytics.log(.onboardingStarted)
     }
 
     func openMain(with cardModel: CardViewModel) {
-        Analytics.log(.screenOpened)
-        let coordinator = MainCoordinator(popToRootAction: popToRootAction)
-        let options = MainCoordinator.Options(cardModel: cardModel)
+        let coordinator = LegacyMainCoordinator(popToRootAction: popToRootAction)
+        let options = LegacyMainCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
         mainCoordinator = coordinator
     }
 
     func openMail(with dataCollector: EmailDataCollector, recipient: String) {
-        mailViewModel = MailViewModel(dataCollector: dataCollector, recipient: recipient, emailType: .failedToScanCard)
-    }
-
-    func openDisclaimer(at url: URL, _ handler: @escaping (Bool) -> Void) {
-        disclaimerViewModel = DisclaimerViewModel(url: url, style: .sheet, coordinator: self, acceptanceHandler: handler)
-    }
-}
-
-extension AuthCoordinator: DisclaimerRoutable {
-    func dismissDisclaimer() {
-        self.disclaimerViewModel = nil
+        let logsComposer = LogsComposer(infoProvider: dataCollector)
+        mailViewModel = MailViewModel(logsComposer: logsComposer, recipient: recipient, emailType: .failedToScanCard)
     }
 }

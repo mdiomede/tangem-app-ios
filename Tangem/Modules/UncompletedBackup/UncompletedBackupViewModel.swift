@@ -15,12 +15,9 @@ final class UncompletedBackupViewModel: ObservableObject {
     @Published var discardAlert: ActionSheetBinder?
     @Published var error: AlertBinder?
 
-    // MARK: - Dependencies
-
-    @Injected(\.backupServiceProvider) private var backupServiceProvider: BackupServiceProviding
-
     private unowned let coordinator: UncompletedBackupRoutable
-    private var backupService: BackupService { backupServiceProvider.backupService }
+
+    private lazy var backupHelper = BackupHelper()
 
     init(
         coordinator: UncompletedBackupRoutable
@@ -33,20 +30,24 @@ final class UncompletedBackupViewModel: ObservableObject {
     }
 
     private func showAlert() {
-        let alert = Alert(title: Text(Localization.commonWarning),
-                          message: Text(Localization.welcomeInterruptedBackupAlertMessage),
-                          primaryButton: .default(Text(Localization.welcomeInterruptedBackupAlertResume), action: continueBackup),
-                          secondaryButton: .destructive(Text(Localization.welcomeInterruptedBackupAlertDiscard), action: showExtraDiscardAlert))
+        let alert = Alert(
+            title: Text(Localization.commonWarning),
+            message: Text(Localization.welcomeInterruptedBackupAlertMessage),
+            primaryButton: .default(Text(Localization.welcomeInterruptedBackupAlertResume), action: continueBackup),
+            secondaryButton: .destructive(Text(Localization.welcomeInterruptedBackupAlertDiscard), action: showExtraDiscardAlert)
+        )
 
-        self.error = AlertBinder(alert: alert)
+        error = AlertBinder(alert: alert)
     }
 
     private func showExtraDiscardAlert() {
         let buttonResume: ActionSheet.Button = .cancel(Text(Localization.welcomeInterruptedBackupDiscardResume), action: continueBackup)
         let buttonDiscard: ActionSheet.Button = .destructive(Text(Localization.welcomeInterruptedBackupDiscardDiscard), action: discardBackup)
-        let sheet = ActionSheet(title: Text(Localization.welcomeInterruptedBackupDiscardTitle),
-                                message: Text(Localization.welcomeInterruptedBackupDiscardMessage),
-                                buttons: [buttonDiscard, buttonResume])
+        let sheet = ActionSheet(
+            title: Text(Localization.welcomeInterruptedBackupDiscardTitle),
+            message: Text(Localization.welcomeInterruptedBackupDiscardMessage),
+            buttons: [buttonDiscard, buttonResume]
+        )
 
         DispatchQueue.main.async {
             self.discardAlert = ActionSheetBinder(sheet: sheet)
@@ -54,25 +55,24 @@ final class UncompletedBackupViewModel: ObservableObject {
     }
 
     private func continueBackup() {
-        guard let primaryCardId = backupService.primaryCard?.cardId else {
+        guard let cardId = backupHelper.cardId else {
             return
         }
 
-        let input = OnboardingInput(steps: .wallet(WalletOnboardingStep.resumeBackupSteps),
-                                    cardInput: .cardId(primaryCardId),
-                                    welcomeStep: nil,
-                                    twinData: nil,
-                                    currentStepIndex: 0,
-                                    isStandalone: true)
+        let backupServiceFactory = GenericBackupServiceFactory(isAccessCodeSet: false)
 
-        openBackup(with: input)
+        let factory = ResumeBackupInputFactory(
+            cardId: cardId,
+            tangemSdkFactory: TangemSdkDefaultFactory(),
+            backupServiceFactory: backupServiceFactory
+        )
+        openBackup(with: factory.makeBackupInput())
     }
 
     private func discardBackup() {
-        backupService.discardIncompletedBackup()
+        backupHelper.discardIncompletedBackup()
         dismiss()
     }
-
 }
 
 // MARK: - Navigation

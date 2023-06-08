@@ -7,7 +7,6 @@
 import XCTest
 import BlockchainSdk
 import TangemSdk
-
 @testable import Tangem
 
 class EIP712TypedDataTests: XCTestCase {
@@ -23,6 +22,14 @@ class EIP712TypedDataTests: XCTestCase {
         let jsonData = try jsonData(for: fileName)
         let typedData = try JSONDecoder().decode(EIP712TypedData.self, from: jsonData)
         return typedData
+    }
+
+    func testSeaportData() throws {
+        let fileName = "seaportTypedData"
+        let jsonTypedData = try typedData(for: fileName)
+        let hashToTest = jsonTypedData.signHash
+        let expectedResult = "54140d99a864932cbc40fd8a2d1d1706c3923a79c183a3b151e929ac468064db"
+        XCTAssertEqual(hashToTest.hex.lowercased(), expectedResult)
     }
 
     func testDecode() {
@@ -60,7 +67,7 @@ class EIP712TypedDataTests: XCTestCase {
     func testEncodeType() throws {
         let typedData = try typedData(for: "simpleDecode")
         let result = "Mail(Person from,Person to,string contents)Person(string name,address wallet)"
-        XCTAssertEqual(typedData.encodeType(primaryType: "Mail"), result.data(using: .utf8)!)
+        XCTAssertEqual(typedData.makeTypeData(primaryType: "Mail"), result.data(using: .utf8)!)
     }
 
     func testEncodedTypeHash() throws {
@@ -91,7 +98,6 @@ class EIP712TypedDataTests: XCTestCase {
         let jsonTypedData = try typedData(for: "hashEncode")
         XCTAssertEqual(jsonTypedData.signHash.hexString.lowercased(), "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2")
     }
-
 
     func testAnotherTypedData1() throws {
         let jsonTypedData = try typedData(for: "hashEncode2")

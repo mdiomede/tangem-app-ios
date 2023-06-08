@@ -12,10 +12,10 @@ struct StoriesBottomButtons: View {
     let scanColorStyle: MainButton.Style
     let orderColorStyle: MainButton.Style
 
-    let isScanning: Bool
+    @Binding var isScanning: Bool
 
-    let scanCard: (() -> Void)
-    let orderCard: (() -> Void)
+    let scanCard: () -> Void
+    let orderCard: () -> Void
 
     var body: some View {
         HStack {
@@ -38,10 +38,6 @@ struct StoriesBottomButtons: View {
 
 struct StoriesBottomButtons_Previews: PreviewProvider {
     static var previews: some View {
-        StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: false) {
-
-        } orderCard: {
-
-        }
+        StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: .constant(false)) {} orderCard: {}
     }
 }

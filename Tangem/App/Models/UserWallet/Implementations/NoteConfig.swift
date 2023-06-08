@@ -10,8 +10,8 @@ import Foundation
 import TangemSdk
 import BlockchainSdk
 
-struct NoteConfig {
-    private let card: CardDTO
+struct NoteConfig: CardContainer {
+    let card: CardDTO
     private let noteData: WalletData
 
     init(card: CardDTO, noteData: WalletData) {
@@ -39,29 +39,8 @@ extension NoteConfig: UserWalletConfig {
         "Note"
     }
 
-    var defaultCurve: EllipticCurve? {
-        defaultBlockchain.curve
-    }
-
-    var onboardingSteps: OnboardingSteps {
-        if card.wallets.isEmpty {
-            return .singleWallet([.createWallet] + userWalletSavingSteps + [.topup, .successTopup])
-        } else {
-            if !AppSettings.shared.cardsStartedActivation.contains(card.cardId) {
-                return .singleWallet([])
-            }
-
-            return .singleWallet(userWalletSavingSteps + [.topup, .successTopup])
-        }
-    }
-
-    var backupSteps: OnboardingSteps? {
-        nil
-    }
-
-    var userWalletSavingSteps: [SingleCardOnboardingStep] {
-        guard needUserWalletSavingSteps else { return [] }
-        return [.saveUserWallet]
+    var mandatoryCurves: [EllipticCurve] {
+        [defaultBlockchain.curve]
     }
 
     var supportedBlockchains: Set<Blockchain> {
@@ -86,7 +65,7 @@ extension NoteConfig: UserWalletConfig {
         WarningEventsFactory().makeWarningEvents(for: card)
     }
 
-    var tangemSigner: TangemSigner { .init(with: card.cardId) }
+    var tangemSigner: TangemSigner { .init(with: card.cardId, sdk: makeTangemSdk()) }
 
     var emailData: [EmailCollectedData] {
         CardEmailDataFactory().makeEmailData(for: card, walletData: noteData)
@@ -96,6 +75,10 @@ extension NoteConfig: UserWalletConfig {
         card.wallets.first?.publicKey
     }
 
+    var productType: Analytics.ProductType {
+        .note
+    }
+
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
         switch feature {
         case .accessCode:
@@ -103,7 +86,7 @@ extension NoteConfig: UserWalletConfig {
         case .passcode:
             return .hidden
         case .longTap:
-            return card.settings.isResettingUserCodesAllowed ? .available : .hidden
+            return card.settings.isRemovingUserCodesAllowed ? .available : .hidden
         case .send:
             return .available
         case .longHashes:
@@ -123,8 +106,6 @@ extension NoteConfig: UserWalletConfig {
         case .walletConnect:
             return .hidden
         case .multiCurrency:
-            return .hidden
-        case .tokensSearch:
             return .hidden
         case .resetToFactory:
             return .available
@@ -146,6 +127,14 @@ extension NoteConfig: UserWalletConfig {
             return .hidden
         case .swapping:
             return .hidden
+        case .displayHashesCount:
+            return .available
+        case .transactionHistory:
+            return .hidden
+        case .seedPhrase:
+            return .hidden
+        case .accessCodeRecoverySettings:
+            return .hidden
         }
     }
 
@@ -157,9 +146,15 @@ extension NoteConfig: UserWalletConfig {
         }
 
         let factory = WalletModelFactory()
-        return try factory.makeSingleWallet(walletPublicKey: walletPublicKey,
-                                            blockchain: blockchain,
-                                            token: token.tokens.first,
-                                            derivationStyle: card.derivationStyle)
+        return try factory.makeSingleWallet(
+            walletPublicKey: walletPublicKey,
+            blockchain: blockchain,
+            token: token.tokens.first,
+            derivationStyle: card.derivationStyle
+        )
     }
 }
+
+// MARK: - NoteCardOnboardingStepsBuilderFactory
+
+extension NoteConfig: NoteCardOnboardingStepsBuilderFactory {}

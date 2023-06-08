@@ -8,20 +8,21 @@
 
 import Combine
 import SwiftUI
+import TangemSdk
 
 final class ScanCardSettingsViewModel: ObservableObject, Identifiable {
-    @Injected(\.tangemSdkProvider) private var sdkProvider: TangemSdkProviding
-
     let id = UUID()
 
     @Published var isLoading: Bool = false
     @Published var alert: AlertBinder?
 
     private let expectedUserWalletId: Data
+    private let sdk: TangemSdk
     private unowned let coordinator: ScanCardSettingsRoutable
 
-    init(expectedUserWalletId: Data, coordinator: ScanCardSettingsRoutable) {
+    init(expectedUserWalletId: Data, sdk: TangemSdk, coordinator: ScanCardSettingsRoutable) {
         self.expectedUserWalletId = expectedUserWalletId
+        self.sdk = sdk
         self.coordinator = coordinator
     }
 }
@@ -34,27 +35,23 @@ extension ScanCardSettingsViewModel {
             guard let self = self else { return }
 
             switch result {
-            case let .success(cardInfo):
-                let config = UserWalletConfigFactory(cardInfo).makeConfig()
-                let cardModel = CardViewModel(cardInfo: cardInfo, config: config)
+            case .success(let cardInfo):
                 self.processSuccessScan(for: cardInfo)
-            case let .failure(error):
+            case .failure(let error):
                 self.showErrorAlert(error: error)
             }
         }
     }
 
     private func processSuccessScan(for cardInfo: CardInfo) {
-        let cardModel = CardViewModel(cardInfo: cardInfo, config: UserWalletConfigFactory(cardInfo).makeConfig())
-        guard
-            let userWalletId = cardModel.userWalletId,
-            userWalletId == expectedUserWalletId
-        else {
+        guard let cardModel = CardViewModel(cardInfo: cardInfo) else { return }
+
+        guard cardModel.userWalletId.value == expectedUserWalletId else {
             showErrorAlert(error: AppError.wrongCardWasTapped)
             return
         }
 
-        self.coordinator.openCardSettings(cardModel: cardModel)
+        coordinator.openCardSettings(cardModel: cardModel)
     }
 }
 
@@ -64,16 +61,16 @@ extension ScanCardSettingsViewModel {
     func scan(completion: @escaping (Result<CardInfo, Error>) -> Void) {
         isLoading = true
         let task = AppScanTask(shouldAskForAccessCode: true)
-        sdkProvider.sdk.startSession(with: task) { [weak self] result in
+        sdk.startSession(with: task) { [weak self] result in
             self?.isLoading = false
 
             switch result {
-            case let .failure(error):
+            case .failure(let error):
                 guard !error.isUserCancelled else {
                     return
                 }
 
-                Analytics.logCardSdkError(error, for: .scan)
+                AppLog.shared.error(error)
                 completion(.failure(error))
             case .success(let response):
                 completion(.success(response.getCardInfo()))
@@ -82,6 +79,6 @@ extension ScanCardSettingsViewModel {
     }
 
     func showErrorAlert(error: Error) {
-        self.alert = AlertBuilder.makeOkErrorAlert(message: error.localizedDescription)
+        alert = AlertBuilder.makeOkErrorAlert(message: error.localizedDescription)
     }
 }

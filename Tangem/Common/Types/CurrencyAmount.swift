@@ -6,9 +6,10 @@
 //  Copyright © 2022 Tangem AG. All rights reserved.
 //
 
-import TangemExchange
+import TangemSwapping
+import Foundation
 
-struct CurrencyAmount {
+struct CurrencyAmount: Hashable {
     let value: Decimal
     let currency: Currency
 

@@ -11,44 +11,10 @@ import TangemSdk
 import BlockchainSdk
 
 struct GenericConfig {
-    @Injected(\.backupServiceProvider) private var backupServiceProvider: BackupServiceProviding
-
-    private let card: CardDTO
-
-    private var _backupSteps: [WalletOnboardingStep] {
-        if card.backupStatus?.isActive == true {
-            return []
-        }
-
-        if !card.settings.isBackupAllowed {
-            return []
-        }
-
-        var steps: [WalletOnboardingStep] = .init()
-
-        steps.append(.backupIntro)
-
-        if !card.wallets.isEmpty && !backupServiceProvider.backupService.primaryCardIsSet {
-            steps.append(.scanPrimaryCard)
-        }
-
-        if backupServiceProvider.backupService.addedBackupCardsCount < BackupService.maxBackupCardsCount {
-            steps.append(.selectBackupCards)
-        }
-
-        steps.append(.backupCards)
-
-        return steps
-    }
-
-    var userWalletSavingSteps: [WalletOnboardingStep] {
-        guard needUserWalletSavingSteps else { return [] }
-        return [.saveUserWallet]
-    }
+    let card: CardDTO
 
     init(card: CardDTO) {
         self.card = card
-        backupServiceProvider.backupService.skipCompatibilityChecks = false
     }
 }
 
@@ -73,24 +39,12 @@ extension GenericConfig: UserWalletConfig {
         "Wallet"
     }
 
-    var defaultCurve: EllipticCurve? {
-        return nil
+    var mandatoryCurves: [EllipticCurve] {
+        [.secp256k1, .ed25519]
     }
 
-    var onboardingSteps: OnboardingSteps {
-        if card.wallets.isEmpty {
-            return .wallet([.createWallet] + _backupSteps + userWalletSavingSteps + [.success])
-        } else {
-            if !AppSettings.shared.cardsStartedActivation.contains(card.cardId) {
-                return .wallet([])
-            }
-
-            return .wallet(_backupSteps + userWalletSavingSteps + [.success])
-        }
-    }
-
-    var backupSteps: OnboardingSteps? {
-        .wallet(_backupSteps + [.success])
+    var canSkipBackup: Bool {
+        card.firmwareVersion < .keysImportAvailable
     }
 
     var supportedBlockchains: Set<Blockchain> {
@@ -101,7 +55,7 @@ extension GenericConfig: UserWalletConfig {
     }
 
     var defaultBlockchains: [StorageEntry] {
-        if let persistentBlockchains = self.persistentBlockchains {
+        if let persistentBlockchains = persistentBlockchains {
             return persistentBlockchains
         }
 
@@ -133,7 +87,7 @@ extension GenericConfig: UserWalletConfig {
     var warningEvents: [WarningEvent] {
         var warnings = WarningEventsFactory().makeWarningEvents(for: card)
 
-        if hasFeature(.hdWallets) && card.derivationStyle == .legacy {
+        if hasFeature(.hdWallets), card.derivationStyle == .legacy {
             warnings.append(.legacyDerivation)
         }
 
@@ -145,15 +99,17 @@ extension GenericConfig: UserWalletConfig {
     }
 
     var tangemSigner: TangemSigner {
-        if let backupStatus = card.backupStatus, backupStatus.isActive {
-            return .init(with: nil)
-        } else {
-            return .init(with: card.cardId)
-        }
+        let shouldSkipCardId = card.backupStatus?.isActive ?? false
+        let cardId = shouldSkipCardId ? nil : card.cardId
+        return .init(with: cardId, sdk: makeTangemSdk())
     }
 
     var userWalletIdSeed: Data? {
         card.wallets.first?.publicKey
+    }
+
+    var productType: Analytics.ProductType {
+        card.firmwareVersion.doubleValue >= 4.39 ? .wallet : .other
     }
 
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
@@ -167,7 +123,7 @@ extension GenericConfig: UserWalletConfig {
         case .passcode:
             return .hidden
         case .longTap:
-            return card.settings.isResettingUserCodesAllowed ? .available : .hidden
+            return card.settings.isRemovingUserCodesAllowed ? .available : .hidden
         case .send:
             return .available
         case .longHashes:
@@ -192,8 +148,6 @@ extension GenericConfig: UserWalletConfig {
             return .available
         case .multiCurrency:
             return .available
-        case .tokensSearch:
-            return .hidden
         case .resetToFactory:
             return .available
         case .receive:
@@ -214,6 +168,14 @@ extension GenericConfig: UserWalletConfig {
             return .available
         case .swapping:
             return .available
+        case .displayHashesCount:
+            return .available
+        case .transactionHistory:
+            return .hidden
+        case .seedPhrase:
+            return card.settings.isKeysImportAllowed ? .available : .hidden
+        case .accessCodeRecoverySettings:
+            return card.firmwareVersion >= .keysImportAvailable ? .available : .hidden
         }
     }
 
@@ -228,24 +190,31 @@ extension GenericConfig: UserWalletConfig {
                 partialResult[cardWallet.curve] = cardWallet.derivedKeys
             }
 
-            return try factory.makeMultipleWallet(seedKeys: walletPublicKeys,
-                                                  entry: token,
-                                                  derivedKeys: derivedKeys,
-                                                  derivationStyle: card.derivationStyle)
+            return try factory.makeMultipleWallet(
+                seedKeys: walletPublicKeys,
+                entry: token,
+                derivedKeys: derivedKeys,
+                derivationStyle: card.derivationStyle
+            )
         } else {
-            return try factory.makeMultipleWallet(walletPublicKeys: walletPublicKeys,
-                                                  entry: token,
-                                                  derivationStyle: card.derivationStyle)
+            return try factory.makeMultipleWallet(
+                walletPublicKeys: walletPublicKeys,
+                entry: token,
+                derivationStyle: card.derivationStyle
+            )
         }
     }
 }
 
+// MARK: - WalletOnboardingStepsBuilderFactory
+
+extension GenericConfig: WalletOnboardingStepsBuilderFactory {}
 
 // MARK: - Private extensions
 
 fileprivate extension Card.BackupStatus {
     var backupCardsCount: Int? {
-        if case let .active(backupCards) = self {
+        if case .active(let backupCards) = self {
             return backupCards
         }
 

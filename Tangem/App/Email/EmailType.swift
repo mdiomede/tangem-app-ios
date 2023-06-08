@@ -22,7 +22,7 @@ enum EmailType {
         case .failedToSendTx: return Localization.feedbackSubjectTxFailed
         case .appFeedback(let subject):
             return subject
-        case .failedToPushTx: return  Localization.feedbackSubjectTxPushFailed
+        case .failedToPushTx: return Localization.feedbackSubjectTxPushFailed
         }
     }
 
@@ -33,14 +33,6 @@ enum EmailType {
         case .failedToSendTx: return Localization.feedbackPrefaceTxFailed
         case .appFeedback: return Localization.feedbackPrefaceSupport
         case .failedToPushTx: return Localization.feedbackPrefaceTxFailed
-        }
-    }
-
-    var dataCollectionMessage: String {
-        switch self {
-        case .failedToScanCard: return ""
-        default:
-            return Localization.feedbackDataCollectionMessage
         }
     }
 
@@ -65,7 +57,6 @@ enum EmailType {
     func failedToSendAlertMessage(_ error: Error?) -> String {
         Localization.alertFailedToSendTransactionMessage(error?.localizedDescription ?? "Unknown error")
     }
-
 }
 
 struct EmailCollectedData {
@@ -113,6 +104,7 @@ enum EmailCollectedDataType {
         case walletManagerHost = "Host"
         case outputsCount = "Outputs count"
         case derivationPath = "Derivation path"
+        case xpub = "XPUB"
     }
 
     enum TokenData: String {

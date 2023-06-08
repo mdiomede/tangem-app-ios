@@ -15,9 +15,11 @@ class SendCoordinator: CoordinatorObject {
     var popToRootAction: ParamsAction<PopToRootOptions>
 
     // MARK: - Main view model
+
     @Published private(set) var sendViewModel: SendViewModel? = nil
 
     // MARK: - Child view models
+
     @Published var mailViewModel: MailViewModel? = nil
     @Published var qrScanViewModel: QRScanViewModel? = nil
 
@@ -28,16 +30,20 @@ class SendCoordinator: CoordinatorObject {
 
     func start(with options: SendCoordinator.Options) {
         if let destination = options.destination {
-            sendViewModel = SendViewModel(amountToSend: options.amountToSend,
-                                          destination: destination,
-                                          blockchainNetwork: options.blockchainNetwork,
-                                          cardViewModel: options.cardViewModel,
-                                          coordinator: self)
+            sendViewModel = SendViewModel(
+                amountToSend: options.amountToSend,
+                destination: destination,
+                blockchainNetwork: options.blockchainNetwork,
+                cardViewModel: options.cardViewModel,
+                coordinator: self
+            )
         } else {
-            sendViewModel = SendViewModel(amountToSend: options.amountToSend,
-                                          blockchainNetwork: options.blockchainNetwork,
-                                          cardViewModel: options.cardViewModel,
-                                          coordinator: self)
+            sendViewModel = SendViewModel(
+                amountToSend: options.amountToSend,
+                blockchainNetwork: options.blockchainNetwork,
+                cardViewModel: options.cardViewModel,
+                coordinator: self
+            )
         }
     }
 }
@@ -53,7 +59,8 @@ extension SendCoordinator {
 
 extension SendCoordinator: SendRoutable {
     func openMail(with dataCollector: EmailDataCollector, recipient: String) {
-        mailViewModel = MailViewModel(dataCollector: dataCollector, recipient: recipient, emailType: .failedToSendTx)
+        let logsComposer = LogsComposer(infoProvider: dataCollector)
+        mailViewModel = MailViewModel(logsComposer: logsComposer, recipient: recipient, emailType: .failedToSendTx)
     }
 
     func closeModule() {

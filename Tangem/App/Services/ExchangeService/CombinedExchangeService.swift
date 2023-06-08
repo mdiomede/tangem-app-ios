@@ -10,16 +10,25 @@ import Foundation
 import BlockchainSdk
 
 class CombinedExchangeService {
-    private let buyService: ExchangeService
+    private var buyService: ExchangeService
     private let sellService: ExchangeService
 
-    init(buyService: ExchangeService, sellService: ExchangeService) {
-        self.buyService = buyService
+    private let mercuryoService: MercuryoService
+    private let utorgService: UtorgService?
+
+    init(mercuryoService: MercuryoService, utorgService: UtorgService?, sellService: ExchangeService) {
+        buyService = mercuryoService
+        self.mercuryoService = mercuryoService
+        self.utorgService = utorgService
         self.sellService = sellService
     }
 }
 
 extension CombinedExchangeService: ExchangeService {
+    var initializationPublisher: Published<Bool>.Publisher {
+        buyService.initializationPublisher
+    }
+
     var successCloseUrl: String {
         buyService.successCloseUrl
     }
@@ -49,7 +58,9 @@ extension CombinedExchangeService: ExchangeService {
     }
 
     func initialize() {
-        buyService.initialize()
+        mercuryoService.initialize()
         sellService.initialize()
+        utorgService?.initialize()
+        AppLog.shared.debug("CombinedExchangeService initialized")
     }
 }

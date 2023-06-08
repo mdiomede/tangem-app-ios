@@ -22,7 +22,7 @@ class DetailsViewModel: ObservableObject {
     @Published var environmentSetupViewModel: DefaultRowViewModel?
 
     @Published var cardModel: CardViewModel
-    @Published var error: AlertBinder?
+    @Published var alert: AlertBinder?
 
     var canCreateBackup: Bool {
         cardModel.canCreateBackup
@@ -44,7 +44,7 @@ class DetailsViewModel: ObservableObject {
     }
 
     deinit {
-        print("DetailsViewModel deinit")
+        AppLog.shared.debug("DetailsViewModel deinit")
     }
 
     // MARK: - Private
@@ -67,7 +67,7 @@ class DetailsViewModel: ObservableObject {
     func prepareBackup() {
         Analytics.log(.buttonCreateBackup)
         if let input = cardModel.backupInput {
-            self.openOnboarding(with: input)
+            openOnboarding(with: input)
         }
     }
 
@@ -80,7 +80,6 @@ class DetailsViewModel: ObservableObject {
 
 extension DetailsViewModel {
     func openOnboarding(with input: OnboardingInput) {
-        Analytics.log(.backupScreenOpened)
         coordinator.openOnboardingModal(with: input)
     }
 
@@ -89,47 +88,48 @@ extension DetailsViewModel {
 
         guard let emailConfig = cardModel.emailConfig else { return }
 
-        let dataCollector = DetailsFeedbackDataCollector(cardModel: cardModel,
-                                                         userWalletEmailData: cardModel.emailData)
+        let dataCollector = DetailsFeedbackDataCollector(
+            walletModels: cardModel.walletModels,
+            userWalletEmailData: cardModel.emailData
+        )
 
-        coordinator.openMail(with: dataCollector,
-                             recipient: emailConfig.recipient,
-                             emailType: .appFeedback(subject: emailConfig.subject))
+        coordinator.openMail(
+            with: dataCollector,
+            recipient: emailConfig.recipient,
+            emailType: .appFeedback(subject: emailConfig.subject)
+        )
     }
 
     func openWalletConnect() {
+        Analytics.log(.buttonWalletConnect)
         coordinator.openWalletConnect(with: cardModel)
     }
 
     func openCardSettings() {
-        guard let userWalletId = cardModel.userWalletId else {
-            // This shouldn't be the case, because currently user can't reach this screen
-            // with card that doesn't have a wallet.
-            return
-        }
-
         Analytics.log(.buttonCardSettings)
-        coordinator.openScanCardSettings(with: userWalletId)
+        coordinator.openScanCardSettings(with: cardModel.userWalletId.value, sdk: cardModel.makeTangemSdk()) // TODO: refactor.
     }
 
     func openAppSettings() {
-        guard let userWallet = cardModel.userWallet else { return }
-
         Analytics.log(.buttonAppSettings)
-        coordinator.openAppSettings(userWallet: userWallet)
+        coordinator.openAppSettings(userWallet: cardModel)
     }
 
     func openSupportChat() {
-        Analytics.log(.buttonChat)
-        let dataCollector = DetailsFeedbackDataCollector(cardModel: cardModel,
-                                                         userWalletEmailData: cardModel.emailData)
+        Analytics.log(.settingsButtonChat)
 
-        coordinator.openSupportChat(cardId: cardModel.cardId,
-                                    dataCollector: dataCollector)
+        let dataCollector = DetailsFeedbackDataCollector(
+            walletModels: cardModel.walletModels,
+            userWalletEmailData: cardModel.emailData
+        )
+
+        coordinator.openSupportChat(input: .init(
+            logsComposer: .init(infoProvider: dataCollector)
+        ))
     }
 
     func openDisclaimer() {
-        coordinator.openDisclaimer(at: cardModel.cardTouURL)
+        coordinator.openDisclaimer(at: cardModel.cardDisclaimer.url)
     }
 
     func openSocialNetwork(network: SocialNetwork) {
@@ -137,7 +137,9 @@ extension DetailsViewModel {
             return
         }
 
-        Analytics.log(.buttonSocialNetwork)
+        Analytics.log(event: .buttonSocialNetwork, params: [
+            .network: network.name,
+        ])
         coordinator.openInSafari(url: url)
     }
 
@@ -146,13 +148,16 @@ extension DetailsViewModel {
     }
 
     func openReferral() {
-        guard let userWalletId = cardModel.userWalletId else {
-            // This shouldn't be the case, because currently user can't reach this screen
-            // with card that doesn't have a wallet.
+        if let disabledLocalizedReason = cardModel.getDisabledLocalizedReason(for: .referralProgram) {
+            alert = AlertBuilder.makeDemoAlert(disabledLocalizedReason)
             return
         }
 
-        coordinator.openReferral(with: cardModel, userWalletId: userWalletId)
+        coordinator.openReferral(with: cardModel, userWalletId: cardModel.userWalletId.value)
+    }
+
+    func onAppear() {
+        Analytics.log(.settingsScreenOpened)
     }
 }
 
@@ -199,11 +204,14 @@ extension DetailsViewModel {
     func setupSupportSectionModels() {
         supportSectionModels = [
             DefaultRowViewModel(title: Localization.detailsChat, action: openSupportChat),
-            DefaultRowViewModel(title: Localization.detailsRowTitleSendFeedback, action: openMail),
         ]
 
-        if cardModel.canParticipateInReferralProgram && FeatureProvider.isAvailable(.referralProgram) {
+        if cardModel.canParticipateInReferralProgram {
             supportSectionModels.append(DefaultRowViewModel(title: Localization.detailsReferralTitle, action: openReferral))
+        }
+
+        if cardModel.emailConfig != nil {
+            supportSectionModels.append(DefaultRowViewModel(title: Localization.detailsRowTitleSendFeedback, action: openMail))
         }
     }
 

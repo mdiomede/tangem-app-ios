@@ -21,6 +21,7 @@ class CardSettingsViewModel: ObservableObject {
 
     @Published var cardInfoSection: [DefaultRowViewModel] = []
     @Published var securityModeSection: [DefaultRowViewModel] = []
+    @Published var accessCodeRecoverySection: DefaultRowViewModel?
     @Published var resetToFactoryViewModel: DefaultRowViewModel?
 
     var isResetToFactoryAvailable: Bool {
@@ -53,6 +54,7 @@ class CardSettingsViewModel: ObservableObject {
     private var isChangeAccessCodeVisible: Bool {
         cardModel.currentSecurityOption == .accessCode
     }
+
     private var bag: Set<AnyCancellable> = []
 
     init(
@@ -70,10 +72,7 @@ class CardSettingsViewModel: ObservableObject {
     }
 
     func didResetCard() {
-        if let userWallet = cardModel.userWallet {
-            deleteWallet(userWallet)
-        }
-
+        deleteWallet(cardModel.userWallet)
         navigateAwayAfterReset()
     }
 }
@@ -86,6 +85,12 @@ private extension CardSettingsViewModel {
             .receiveValue { [weak self] newMode in
                 self?.securityModeTitle = newMode.titleForDetails
                 self?.setupSecurityOptions()
+            }
+            .store(in: &bag)
+
+        cardModel.$accessCodeRecoveryEnabled
+            .receiveValue { [weak self] enabled in
+                self?.setupAccessCodeRecoveryModel(enabled: enabled)
             }
             .store(in: &bag)
     }
@@ -101,11 +106,17 @@ private extension CardSettingsViewModel {
         cardInfoSection = [
             DefaultRowViewModel(title: Localization.detailsRowTitleCid, detailsType: .text(cardModel.cardIdFormatted)),
             DefaultRowViewModel(title: Localization.detailsRowTitleIssuer, detailsType: .text(cardModel.cardIssuer)),
-            DefaultRowViewModel(title: Localization.detailsRowTitleSignedHashes,
-                                detailsType: .text(Localization.detailsRowSubtitleSignedHashesFormat("\(cardModel.cardSignedHashes)"))),
         ]
 
+        if cardModel.canDisplayHashesCount {
+            cardInfoSection.append(DefaultRowViewModel(
+                title: Localization.detailsRowTitleSignedHashes,
+                detailsType: .text(Localization.detailsRowSubtitleSignedHashesFormat("\(cardModel.cardSignedHashes)"))
+            ))
+        }
+
         setupSecurityOptions()
+        setupAccessCodeRecoveryModel(enabled: cardModel.accessCodeRecoveryEnabled)
 
         if isResetToFactoryAvailable {
             resetToFactoryViewModel = DefaultRowViewModel(
@@ -133,8 +144,18 @@ private extension CardSettingsViewModel {
         }
     }
 
+    func setupAccessCodeRecoveryModel(enabled: Bool) {
+        if cardModel.canChangeAccessCodeRecoverySettings, FeatureProvider.isAvailable(.accessCodeRecoverySettings) {
+            accessCodeRecoverySection = DefaultRowViewModel(
+                title: Localization.cardSettingsAccessCodeRecoveryTitle,
+                detailsType: .text(enabled ? Localization.commonEnabled : Localization.commonDisabled),
+                action: openAccessCodeSettings
+            )
+        }
+    }
+
     func deleteWallet(_ userWallet: UserWallet) {
-        self.userWalletRepository.delete(userWallet)
+        userWalletRepository.delete(userWallet, logoutIfNeeded: true)
     }
 
     func navigateAwayAfterReset() {
@@ -180,7 +201,16 @@ extension CardSettingsViewModel {
         if cardModel.canTwin {
             prepareTwinOnboarding()
         } else {
-            coordinator.openResetCardToFactoryWarning(cardModel: cardModel)
+            let input = ResetToFactoryViewModel.Input(
+                cardInteractor: cardModel.cardInteractor,
+                hasBackupCards: cardModel.hasBackupCards
+            )
+            coordinator.openResetCardToFactoryWarning(with: input)
         }
+    }
+
+    func openAccessCodeSettings() {
+        Analytics.log(.cardSettingsButtonAccessCodeRecovery)
+        coordinator.openAccessCodeRecoverySettings(using: cardModel)
     }
 }

@@ -9,7 +9,6 @@
 import Foundation
 
 enum StorageType: String {
-    case scannedCards = "tangem_tap_scanned_cards"
     case oldDeviceOldCardAlert = "tangem_tap_oldDeviceOldCard_shown"
     case selectedCurrencyCode = "tangem_tap_selected_currency_code"
     case termsOfServiceAccepted = "tangem_tap_terms_of_service_accepted"
@@ -23,8 +22,6 @@ enum StorageType: String {
     case positiveBalanceAppearanceDate = "tangem_tap_positive_balace_appearance_date"
     case positiveBalanceAppearanceLaunch = "tangem_tap_positive_balance_appearance_launch"
     case searchedCards = "tangem_tap_searched_cards" // for tokens search
-    case scannedNdefs = "tangem_tap_scanned_ndefs"
-    case lastScannedNdef = "tangem_tap_last_scanned_ndef"
     case isMigratedToNewUserDefaults = "tangem_tap_migrate_to_new_defaults"
     case cardsStartedActivation = "tangem_cards_started_activation"
     case cardsFinishedActivation = "tangem_cards_finished_activation"
@@ -34,6 +31,7 @@ enum StorageType: String {
     case saveUserWallets = "tangem_save_user_wallets"
     case selectedUserWalletId = "tangem_selected_user_wallet_id"
     case saveAccessCodes = "tangem_save_access_codes"
+    case systemDeprecationWarningDismissDate = "tangem_system_deprecation_warning_dismiss_date"
 
     // Temp migrated cards storage. Remove with LegacyCardMigrator
     case migratedCardsWithDefaultTokens = "tangem_migrated_cards_default_tokens"

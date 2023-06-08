@@ -15,20 +15,23 @@ class WelcomeCoordinator: CoordinatorObject {
     var popToRootAction: ParamsAction<PopToRootOptions>
 
     // MARK: - Main view model
+
     @Published private(set) var welcomeViewModel: WelcomeViewModel? = nil
 
     // MARK: - Child coordinators
-    @Published var mainCoordinator: MainCoordinator? = nil
+
+    @Published var mainCoordinator: LegacyMainCoordinator? = nil
     @Published var pushedOnboardingCoordinator: OnboardingCoordinator? = nil
     @Published var shopCoordinator: ShopCoordinator? = nil
     @Published var tokenListCoordinator: TokenListCoordinator? = nil
 
     // MARK: - Child view models
+
     @Published var mailViewModel: MailViewModel? = nil
-    @Published var disclaimerViewModel: DisclaimerViewModel? = nil
 
     // MARK: - Private
-    private var welcomeLifecycleSubscription: AnyCancellable? = nil
+
+    private var welcomeLifecycleSubscription: AnyCancellable?
 
     private var lifecyclePublisher: AnyPublisher<Bool, Never> {
         // Only modals, because the modal presentation will not trigger onAppear/onDissapear events
@@ -36,7 +39,6 @@ class WelcomeCoordinator: CoordinatorObject {
         publishers.append($mailViewModel.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
         publishers.append($shopCoordinator.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
         publishers.append($tokenListCoordinator.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
-        publishers.append($disclaimerViewModel.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
 
         return Publishers.MergeMany(publishers)
             .eraseToAnyPublisher()
@@ -48,7 +50,7 @@ class WelcomeCoordinator: CoordinatorObject {
     }
 
     func start(with options: WelcomeCoordinator.Options) {
-        self.welcomeViewModel = .init(shouldScanOnAppear: options.shouldScan, coordinator: self)
+        welcomeViewModel = .init(shouldScanOnAppear: options.shouldScan, coordinator: self)
         subscribeToWelcomeLifecycle()
     }
 
@@ -82,22 +84,19 @@ extension WelcomeCoordinator: WelcomeRoutable {
         let options = OnboardingCoordinator.Options(input: input, destination: .main)
         coordinator.start(with: options)
         pushedOnboardingCoordinator = coordinator
+        Analytics.log(.onboardingStarted)
     }
 
     func openMain(with cardModel: CardViewModel) {
-        Analytics.log(.screenOpened)
-        let coordinator = MainCoordinator(popToRootAction: popToRootAction)
-        let options = MainCoordinator.Options(cardModel: cardModel)
+        let coordinator = LegacyMainCoordinator(popToRootAction: popToRootAction)
+        let options = LegacyMainCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
         mainCoordinator = coordinator
     }
 
     func openMail(with dataCollector: EmailDataCollector, recipient: String) {
-        mailViewModel = MailViewModel(dataCollector: dataCollector, recipient: recipient, emailType: .failedToScanCard)
-    }
-
-    func openDisclaimer(at url: URL, _ handler: @escaping (Bool) -> Void) {
-        disclaimerViewModel = DisclaimerViewModel(url: url, style: .sheet, coordinator: self, acceptanceHandler: handler)
+        let logsComposer = LogsComposer(infoProvider: dataCollector)
+        mailViewModel = MailViewModel(logsComposer: logsComposer, recipient: recipient, emailType: .failedToScanCard)
     }
 
     func openTokensList() {
@@ -106,18 +105,12 @@ extension WelcomeCoordinator: WelcomeRoutable {
         }
         let coordinator = TokenListCoordinator(dismissAction: dismissAction)
         coordinator.start(with: .show)
-        self.tokenListCoordinator = coordinator
+        tokenListCoordinator = coordinator
     }
 
     func openShop() {
         let coordinator = ShopCoordinator()
         coordinator.start()
-        self.shopCoordinator = coordinator
-    }
-}
-
-extension WelcomeCoordinator: DisclaimerRoutable {
-    func dismissDisclaimer() {
-        self.disclaimerViewModel = nil
+        shopCoordinator = coordinator
     }
 }

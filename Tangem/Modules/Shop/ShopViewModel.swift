@@ -9,6 +9,7 @@
 import Foundation
 import Combine
 import MobileBuySDK
+import PassKit
 import SwiftUI
 
 class ShopViewModel: ObservableObject {
@@ -21,6 +22,7 @@ class ShopViewModel: ObservableObject {
     var bag = Set<AnyCancellable>()
 
     // MARK: - Input
+
     @Published var selectedBundle: Bundle = .threeCards
     @Published var discountCode = ""
     @Published var canUseApplePay = true
@@ -37,14 +39,26 @@ class ShopViewModel: ObservableObject {
 
     @Published var error: AlertBinder?
 
+    var applePayButtonType: PKPaymentButtonType {
+        preorderDeliveryDateFormatted == nil ? .buy : .order
+    }
+
+    var buyButtonText: String {
+        preorderDeliveryDateFormatted == nil ? Localization.shopBuyNow : Localization.shopPreOrderNow
+    }
+
+    let preorderDeliveryDateFormatted: String?
+
     private var shopifyProductVariants: [ProductVariant] = []
-    private var currentVariantID: GraphQL.ID = GraphQL.ID(rawValue: "")
+    private var currentVariantID: GraphQL.ID = .init(rawValue: "")
     private var checkoutByVariantID: [GraphQL.ID: Checkout] = [:]
     private var initialized = false
     private unowned let coordinator: ShopViewRoutable
 
     init(coordinator: ShopViewRoutable) {
         self.coordinator = coordinator
+
+        preorderDeliveryDateFormatted = Self.preorderDeliveryDateFormatted()
     }
 
     deinit {
@@ -52,8 +66,6 @@ class ShopViewModel: ObservableObject {
     }
 
     func didAppear() {
-        Analytics.log(.shopScreenOpened)
-
         closeWebCheckout()
 
         fetchProduct()
@@ -74,9 +86,7 @@ class ShopViewModel: ObservableObject {
     }
 
     func didEnterDiscountCode() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // Fix iOS13 keyboard layout glitch
-            self.setDiscountCode(self.discountCode.isEmpty ? nil : self.discountCode)
-        }
+        setDiscountCode(discountCode.isEmpty ? nil : discountCode)
     }
 
     func openApplePayCheckout() {
@@ -93,10 +103,10 @@ class ShopViewModel: ObservableObject {
                 return self.shopifyService.checkout(pollUntilOrder: true, checkoutID: checkoutID)
             }
             .sink { completion in
-                print("Finished Apple Pay session", completion)
+                AppLog.shared.debug("Finished Apple Pay session with completion: \(completion)")
                 self.pollingForOrder = false
             } receiveValue: { [weak self] checkout in
-                print("Checkout after Apple Pay session", checkout)
+                AppLog.shared.debug("Checkout after Apple Pay session with checkout: \(checkout)")
                 if let order = checkout.order {
                     self?.didPlaceOrder(order)
                 }
@@ -159,7 +169,7 @@ class ShopViewModel: ObservableObject {
             return
         }
 
-        self.currentVariantID = variant.id
+        currentVariantID = variant.id
         updatePrice()
         createCheckouts()
     }
@@ -220,7 +230,7 @@ class ShopViewModel: ObservableObject {
         }
 
         let isCurrentVariantID = (variantID == currentVariantID)
-        if isCurrentVariantID && discountCode != nil {
+        if isCurrentVariantID, discountCode != nil {
             checkingDiscountCode = true
         }
 
@@ -257,7 +267,6 @@ class ShopViewModel: ObservableObject {
             return
         }
 
-
         let totalAmount: Decimal
         if let checkout = checkoutByVariantID[currentVariantID] {
             totalAmount = checkout.total
@@ -265,15 +274,29 @@ class ShopViewModel: ObservableObject {
             totalAmount = currentVariant.amount
         }
 
-
         let formatter = moneyFormatter(currentVariant.currencyCode)
 
         self.totalAmount = formatter.string(from: NSDecimalNumber(decimal: totalAmount)) ?? ""
         if let originalAmount = currentVariant.originalAmount {
-            self.totalAmountWithoutDiscount = formatter.string(from: NSDecimalNumber(decimal: originalAmount))
+            totalAmountWithoutDiscount = formatter.string(from: NSDecimalNumber(decimal: originalAmount))
         } else {
-            self.totalAmountWithoutDiscount = nil
+            totalAmountWithoutDiscount = nil
         }
+    }
+
+    private static func preorderDeliveryDateFormatted() -> String? {
+        let lastKnownPreorderDeliveryDate = DateComponents(calendar: Calendar(identifier: .gregorian), year: 2023, month: 6, day: 10).date!
+
+        let today = Date()
+        let calendar = Calendar.current
+        let canPreorder = calendar.compare(today, to: lastKnownPreorderDeliveryDate, toGranularity: .day) == .orderedAscending
+        guard canPreorder else {
+            return nil
+        }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d MMMM"
+        return dateFormatter.string(from: lastKnownPreorderDeliveryDate)
     }
 }
 
@@ -296,6 +319,7 @@ extension ShopViewModel {
 }
 
 // MARK: - Navigation
+
 extension ShopViewModel {
     func openWebCheckout() {
         guard let checkoutID = checkoutByVariantID[currentVariantID]?.id else {

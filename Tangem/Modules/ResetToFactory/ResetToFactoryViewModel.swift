@@ -12,20 +12,17 @@ class ResetToFactoryViewModel: ObservableObject {
     @Published var actionSheet: ActionSheetBinder?
     @Published var alert: AlertBinder?
 
-    var message: String {
-        if cardModel.hasBackupCards {
-            return Localization.resetCardWithBackupToFactoryMessage
-        } else {
-            return Localization.resetCardWithoutBackupToFactoryMessage
-        }
-    }
+    let message: String
 
-    private let cardModel: CardViewModel
+    private let cardInteractor: CardResettable
     private unowned let coordinator: ResetToFactoryViewRoutable
 
-    init(cardModel: CardViewModel, coordinator: ResetToFactoryViewRoutable) {
-        self.cardModel = cardModel
+    init(input: ResetToFactoryViewModel.Input, coordinator: ResetToFactoryViewRoutable) {
+        cardInteractor = input.cardInteractor
         self.coordinator = coordinator
+
+        message = input.hasBackupCards ? Localization.resetCardWithBackupToFactoryMessage
+            : Localization.resetCardWithoutBackupToFactoryMessage
     }
 
     func didTapMainButton() {
@@ -42,18 +39,21 @@ private extension ResetToFactoryViewModel {
                     self?.resetCardToFactory()
                 },
                 .cancel(Text(Localization.commonCancel)),
-            ])
+            ]
+        )
 
-        self.actionSheet = ActionSheetBinder(sheet: sheet)
+        actionSheet = ActionSheetBinder(sheet: sheet)
     }
 
     func resetCardToFactory() {
-        cardModel.resetToFactory { [weak self] result in
+        cardInteractor.resetCard { [weak self] result in
             switch result {
             case .success:
+                Analytics.log(.factoryResetFinished)
                 self?.coordinator.didResetCard()
-            case let .failure(error):
+            case .failure(let error):
                 if !error.isUserCancelled {
+                    AppLog.shared.error(error, params: [.action: .purgeWallet])
                     self?.alert = error.alertBinder
                 }
             }

@@ -9,10 +9,6 @@
 import Foundation
 
 class AppSettings {
-    @available(*, deprecated, message: "Use termsOfServicesAccepted instead")
-    @AppStorageCompat(StorageType.termsOfServiceAccepted)
-    var isTermsOfServiceAccepted = false
-
     @AppStorageCompat(StorageType.twinCardOnboardingDisplayed)
     var isTwinCardOnboardingWasDisplayed: Bool = false
 
@@ -30,15 +26,6 @@ class AppSettings {
 
     @AppStorageCompat(StorageType.positiveBalanceAppearanceLaunch)
     var positiveBalanceAppearanceLaunch: Int? = nil
-
-    @AppStorageCompat(StorageType.searchedCards)
-    var searchedCards: [String] = []
-
-    @AppStorageCompat(StorageType.scannedNdefs)
-    var scannedNdefs: [String] = []
-
-    @AppStorageCompat(StorageType.lastScannedNdef)
-    var lastScannedNdef: String = ""
 
     @AppStorageCompat(StorageType.cardsStartedActivation)
     var cardsStartedActivation: [String] = []
@@ -58,6 +45,7 @@ class AppSettings {
 
     @AppStorageCompat(StorageType.termsOfServiceAccepted)
     var termsOfServicesAccepted: [String] = []
+
     @AppStorageCompat(StorageType.askedToSaveUserWallets)
     var askedToSaveUserWallets: Bool = false
 
@@ -65,16 +53,19 @@ class AppSettings {
     var saveUserWallets: Bool = false
 
     @AppStorageCompat(StorageType.selectedUserWalletId)
-    var selectedUserWalletId: Data = Data()
+    var selectedUserWalletId: Data = .init()
 
     @AppStorageCompat(StorageType.saveAccessCodes)
     var saveAccessCodes: Bool = false
 
-    static let shared: AppSettings = { .init() }()
+    @AppStorageCompat(StorageType.systemDeprecationWarningDismissDate)
+    var systemDeprecationWarningDismissalDate: Date? = nil
+
+    static let shared: AppSettings = .init()
 
     private init() {}
 
     deinit {
-        print("AppSettings deinit")
+        AppLog.shared.debug("AppSettings deinit")
     }
 }

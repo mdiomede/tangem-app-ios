@@ -15,9 +15,8 @@ struct OnboardingCoordinatorView: CoordinatorView {
     var body: some View {
         ZStack {
             content
-                .transition(.withoutOpacity)
-                .navigationBarTitle("", displayMode: .inline)
                 .navigationBarHidden(true)
+                .transition(.withoutOpacity)
                 .navigationLinks(links)
 
             sheets
@@ -39,7 +38,7 @@ struct OnboardingCoordinatorView: CoordinatorView {
     private var links: some View {
         NavHolder()
             .navigation(item: $coordinator.mainCoordinator) {
-                MainCoordinatorView(coordinator: $0)
+                LegacyMainCoordinatorView(coordinator: $0)
             }
             .emptyNavigationLink()
     }
@@ -50,10 +49,15 @@ struct OnboardingCoordinatorView: CoordinatorView {
             .sheet(item: $coordinator.buyCryptoModel) {
                 WebViewContainer(viewModel: $0)
             }
-
-        NavHolder()
             .sheet(item: $coordinator.accessCodeModel) {
                 OnboardingAccessCodeView(viewModel: $0)
+            }
+            .sheet(item: $coordinator.supportChatViewModel) {
+                SupportChatView(viewModel: $0)
+                    .edgesIgnoringSafeArea(.vertical)
+            }
+            .sheet(item: $coordinator.modalWebViewModel) {
+                WebViewContainer(viewModel: $0)
             }
 
         NavHolder()
@@ -62,20 +66,11 @@ struct OnboardingCoordinatorView: CoordinatorView {
             }
 
         NavHolder()
-            .sheet(item: $coordinator.supportChatViewModel) {
-                SupportChatView(viewModel: $0)
-                    .edgesIgnoringSafeArea(.vertical)
-            }
-
-        NavHolder()
-            .bottomSheet(item: $coordinator.warningBankCardViewModel,
-                         viewModelSettings: .warning) {
+            .bottomSheet(
+                item: $coordinator.warningBankCardViewModel,
+                viewModelSettings: .warning
+            ) {
                 WarningBankCardView(viewModel: $0)
-            }
-
-        NavHolder()
-            .sheet(item: $coordinator.modalWebViewModel) {
-                WebViewContainer(viewModel: $0)
             }
     }
 }

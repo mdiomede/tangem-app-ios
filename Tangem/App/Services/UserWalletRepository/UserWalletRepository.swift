@@ -10,8 +10,7 @@ import Foundation
 import Combine
 
 protocol UserWalletRepository: Initializable {
-    var delegate: UserWalletRepositoryDelegate? { get set }
-    var models: [CardViewModel] { get }
+    var models: [UserWalletModel] { get }
     var selectedModel: CardViewModel? { get }
     var selectedUserWalletId: Data? { get }
     var isEmpty: Bool { get }
@@ -20,16 +19,17 @@ protocol UserWalletRepository: Initializable {
 
     func unlock(with method: UserWalletRepositoryUnlockMethod, completion: @escaping (UserWalletRepositoryResult?) -> Void)
     func setSelectedUserWalletId(_ userWalletId: Data?, reason: UserWalletRepositorySelectionChangeReason)
+    func updateSelection()
+    func logoutIfNeeded()
 
     func add(_ completion: @escaping (UserWalletRepositoryResult?) -> Void)
+    // use this method for saving. TODO: refactor
+    func save(_ cardViewModel: CardViewModel)
     func contains(_ userWallet: UserWallet) -> Bool
+    // use this method for updating. TODO: refactor
     func save(_ userWallet: UserWallet)
-    func delete(_ userWallet: UserWallet)
+    func delete(_ userWallet: UserWallet, logoutIfNeeded shouldAutoLogout: Bool)
     func clear()
-}
-
-protocol UserWalletRepositoryDelegate: AnyObject {
-    func showTOS(at url: URL, _ completion: @escaping (Bool) -> Void)
 }
 
 private struct UserWalletRepositoryKey: InjectionKey {
@@ -48,6 +48,16 @@ enum UserWalletRepositoryResult {
     case onboarding(OnboardingInput)
     case troubleshooting
     case error(Error)
+    case partial(CardViewModel, Error)
+
+    var isSuccess: Bool {
+        switch self {
+        case .success:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 enum UserWalletRepositoryEvent {
@@ -75,17 +85,20 @@ enum UserWalletRepositoryUnlockMethod {
     case card(userWallet: UserWallet?)
 }
 
-enum UserWalletRepositoryError: String, Error, LocalizedError {
+enum UserWalletRepositoryError: String, Error, LocalizedError, BindableError {
     case duplicateWalletAdded
+    case biometricsChanged
 
     var errorDescription: String? {
-        self.rawValue
+        rawValue
     }
 
     var alertBinder: AlertBinder {
         switch self {
         case .duplicateWalletAdded:
             return .init(title: "", message: Localization.userWalletListErrorWalletAlreadySaved)
+        case .biometricsChanged:
+            return .init(title: Localization.commonAttention, message: Localization.keyInvalidatedWarningDescription)
         }
     }
 }
