@@ -5,7 +5,7 @@ on:
     types:
       - opened
     branches:
-      - 'IOS-2808'
+      - 'IOS-2808-Create-iOS-CI/CD'
   
 jobs:
  prepare:
