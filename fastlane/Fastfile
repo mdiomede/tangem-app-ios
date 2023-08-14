@@ -20,6 +20,7 @@ lane :test do
   )
 end
 
+
 desc """
 This lane builds a \"Tangem Alpha\" scheme binary. And upload dSYMs to Firebase Crashlytics. Result binary can be used only for ad-hoc distribution.
 Using enviroment: Test
@@ -27,15 +28,16 @@ Options:
 - version: App version
 - build: [optional] Build number. If not set build number will be taken from Google Distribution and incremented.
 """
-lane :alpha do |options|
+lane :build_alpha do |options|
   clean_artifacts
   cocoapods(
     try_repo_update_on_error:true
   )
   increment_version_number(version_number: options[:version])
-  increment_firebase_build_number(app_id: ENV["APP_ID_ALPHA"], build: options[:build])
+  increment_build_number(build_number: options[:build])
   build(scheme: ALPHA_SCHEME, export_method: "ad-hoc")
 end
+
 
 desc """
 A lane that builds a \"Tangem Beta\" scheme and uploads the archive to Firebase for testing.
@@ -45,22 +47,14 @@ Options:
 - build: optional build number
 - changelog: string for description archive
 """
-lane :beta do |options|
-  increment_version_number(version_number: options[:version])
-  increment_firebase_build_number(app_id: ENV["APP_ID_BETA"], build: options[:build])
-  build(scheme: BETA_SCHEME, export_method: "ad-hoc")
-
-  upload_dsyms(app_id: ENV["APP_ID_BETA"], name: BETA_SCHEME)
-  upload_firebase(
-    name: BETA_SCHEME,
-    app_id: ENV["APP_ID_BETA"],
-    changelog: options[:changelog]
-  )
+lane :build_beta do |options|
   clean_artifacts
-  slack_message(
-    message: "Tangem Beta successfully uploaded to Firebase",
-    changelog: options[:changelog]
+  cocoapods(
+    try_repo_update_on_error:true
   )
+  increment_version_number(version_number: options[:version])
+  increment_build_number(build_number: options[:build])
+  build(scheme: BETA_SCHEME, export_method: "ad-hoc")
 end
 
 desc """
@@ -71,7 +65,7 @@ desc """
   - build: optional build number
   - changelog: string for description archive
   """
-lane :release do |options|
+lane :build_rc do |options|
   app_store_connect_api_key(duration: 1200, is_key_content_base64: true)
   increment_version_number(version_number: options[:version])
   increment_testflight_build_number(version: options[:version], build: options[:build])
@@ -100,10 +94,9 @@ Options:
 - changelog: [optional] Changelog will be added to Google Distribution release notes along with the last commit hash.
 """
 
-lane :deploy_to_firebase do |options|
+lane :deploy_firebase do |options|
   path = options[:path]
   release_notes = "#{options[:changelog]}\nGitHash: #{last_git_commit[:commit_hash]}"
-
   firebase_app_distribution(
     app: options[:app_id],
     ipa_path: path,
