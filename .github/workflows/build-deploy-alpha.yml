@@ -2,6 +2,9 @@ name: Alpha - Build and Deploy
 
 on:
   workflow_dispatch:
+
+env:
+  STAGE: Alpha
   
 jobs:
  prepare:
@@ -31,10 +34,10 @@ jobs:
    needs: prepare
    uses: tangem/actions/.github/workflows/build.yml@main
    with:
-    stage: "Alpha"
+    stage: $STAGE
     version: "${{needs.prepare.outputs.version}}"
     build_number: ${{needs.prepare.outputs.build_number}}
-    app_name: "Tangem-alpha-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
+    app_name: "Tangem-$STAGE-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
    secrets:
     GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
      
@@ -43,11 +46,11 @@ jobs:
    needs: [prepare,build]
    uses: tangem/actions/.github/workflows/deploy.yml@main
    with:
-    stage: "Alpha"
+    stage: $STAGE
     version: "${{needs.prepare.outputs.version}}"
     build_number: ${{needs.prepare.outputs.build_number}}
     changelog: "${{needs.prepare.outputs.changelog}}"
-    app_name: "Tangem-alpha-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
+    app_name: "Tangem-$STAGE-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
    secrets:
     FIREBASE_APP_ID: ${{ secrets.FIREBASE_IOS_ALPHA_ID}}
     FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN}}
