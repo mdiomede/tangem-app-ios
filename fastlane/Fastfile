@@ -6,6 +6,8 @@ BETA_SCHEME = "Tangem Beta"
 ALPHA_SCHEME = "Tangem Alpha"
 FIREBASE_TESTERS_GROUP = "testers"
 
+
+
 desc """
   This lane builds and run unit-tests for the \"RC\" scheme.
 """
@@ -19,6 +21,7 @@ lane :test do
     code_coverage: true
   )
 end
+
 
 
 desc """
@@ -35,8 +38,9 @@ lane :build_alpha do |options|
   )
   increment_version_number(version_number: options[:version])
   increment_build_number(build_number: options[:build])
-  build(scheme: ALPHA_SCHEME, export_method: "ad-hoc")
+  build(scheme: ALPHA_SCHEME, export_method: "ad-hoc", filename: options[:filename], path: options[:path])
 end
+
 
 
 desc """
@@ -54,8 +58,10 @@ lane :build_beta do |options|
   )
   increment_version_number(version_number: options[:version])
   increment_build_number(build_number: options[:build])
-  build(scheme: BETA_SCHEME, export_method: "ad-hoc")
+  build(scheme: BETA_SCHEME, export_method: "ad-hoc", filename: options[:filename], path: options[:path])
 end
+
+
 
 desc """
   A lane that builds a \"Tangem\" scheme and uploads the archive to TestFlight for release.
@@ -70,7 +76,7 @@ lane :build_rc do |options|
   increment_version_number(version_number: options[:version])
   increment_testflight_build_number(version: options[:version], build: options[:build])
 
-  build(scheme: PRODUCTION_SCHEME, version: options[:version])
+  build(scheme: PRODUCTION_SCHEME, version: options[:version], filename: options[:filename], path: options[:path])
   upload_dsyms(app_id: ENV["APP_ID_PRODUCTION"], name: PRODUCTION_SCHEME)
   
   upload_testflight(
@@ -150,8 +156,8 @@ private_lane :build do |options|
   app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
   build_app(
     xcargs: "-allowProvisioningUpdates",
-    output_directory: BUILD_PATH,
-    output_name: "Tangem.ipa",
+    output_directory: options[:path],
+    output_name: options[:filename],
     scheme: options[:scheme],
     clean: true,
     silent: false,
@@ -164,32 +170,6 @@ private_lane :build do |options|
   )
 end
 
-private_lane :increment_firebase_build_number do |options|
-  if options[:build].nil?
-    latest_release = firebase_app_distribution_get_latest_release(
-      app: options[:app_id],
-      firebase_cli_token: ENV["FIREBASE_CREDITIONAL_KEY"]
-    )
-
-    if latest_release.nil?
-      latest_build_number = 0
-    else 
-      latest_build_number = latest_release[:buildVersion].to_i
-    end
-    increment_build_number({ build_number: latest_build_number + 1 })
-  else 
-    increment_build_number(build_number: options[:build])
-  end
-end
-
-private_lane :increment_testflight_build_number do |options|
-  if options[:build].nil?
-    latest_build_number = latest_testflight_build_number(version: options[:version])
-    increment_build_number({ build_number: latest_build_number + 1 })
-  else
-    increment_build_number(build_number: options[:build])
-  end
-end
 
 private_lane :upload_dsyms do |options|
   filename = options[:name] + ".app.dSYM.zip"
