@@ -1,11 +1,6 @@
 default_platform(:ios)
 
-PRODUCTION_SCHEME = "Tangem"
-BETA_SCHEME = "Tangem Beta"
-ALPHA_SCHEME = "Tangem Alpha"
 FIREBASE_TESTERS_GROUP = "testers"
-
-
 
 desc """
   This lane builds and run unit-tests for the \"RC\" scheme.
@@ -22,44 +17,26 @@ lane :test do
 end
 
 
-
 desc """
-This lane builds a \"Tangem Alpha\" scheme binary. And upload dSYMs to Firebase Crashlytics. Result binary can be used only for ad-hoc distribution.
-Using enviroment: Test
+This lane builds a \"Tangem Alpha\" scheme binary. Result binary can be used only for ad-hoc distribution.
 Options:
 - version: App version
-- build: [optional] Build number. If not set build number will be taken from Google Distribution and incremented.
+- build: Build number
 """
 lane :build_alpha do |options|
-  clean_artifacts
-  cocoapods(
-    try_repo_update_on_error:true
-  )
-  increment_version_number(version_number: options[:version])
-  increment_build_number(build_number: options[:build])
-  build(scheme: ALPHA_SCHEME, export_method: "ad-hoc", filename: options[:filename], path: options[:path])
+  build(version: export_method: "ad-hoc", options[:version],build: options[:build], filename: options[:filename], path: options[:path])
 end
-
 
 
 desc """
-A lane that builds a \"Tangem Beta\" scheme and uploads the archive to Firebase for testing.
-Using enviroment: Production
+A lane that builds a \"Tangem Beta\" scheme binary. Result binary can be used only for ad-hoc distribution.
 Options:
-- version: app version
-- build: optional build number
-- changelog: string for description archive
+- version: App version
+- build: Build number
 """
 lane :build_beta do |options|
-  clean_artifacts
-  cocoapods(
-    try_repo_update_on_error:true
-  )
-  increment_version_number(version_number: options[:version])
-  increment_build_number(build_number: options[:build])
-  build(scheme: BETA_SCHEME, export_method: "ad-hoc", filename: options[:filename], path: options[:path])
+   build(version: export_method: "ad-hoc", options[:version],build: options[:build], filename: options[:filename], path: options[:path])
 end
-
 
 
 desc """
@@ -84,11 +61,39 @@ lane :build_rc do |options|
     changelog: options[:changelog]
   )
   clean_artifacts
-  slack_message(
-    message: "Tangem Release successfully uploaded to TestFlight",
-    changelog: options[:changelog]
+end
+
+
+private_lane :build do |options|
+  clean_artifacts
+  cocoapods(
+    try_repo_update_on_error:true
+  )
+  increment_version_number(version_number: options[:version])
+  increment_build_number(build_number: options[:build])
+  xcode_select("/Applications/Xcode.app")
+  Dir.chdir("..") do
+    sh("./bootstrap.sh") 
+  end
+  app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:scheme)
+  scheme = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+
+  build_app(
+    xcargs: "-allowProvisioningUpdates",
+    output_directory: options[:path],
+    output_name: options[:filename],
+    scheme: scheme,
+    clean: true,
+    silent: false,
+    export_method: options[:export_method],
+    destination: "generic/platform=iOS",
+    export_options: {
+      distributionBundleIdentifier: app_identifier,
+      iCloudContainerEnvironment: "Production"
+    }
   )
 end
+
 
 desc """
 This lane deploy binary to Google Distribution
@@ -145,29 +150,6 @@ lane :refresh_dsyms do |options|
   )
   upload_symbols_to_crashlytics(app_id: ENV["PRODUCTION_SCHEME"])
   clean_build_artifacts
-end
-
-private_lane :build do |options|
-  xcode_select("/Applications/Xcode.app")
-  Dir.chdir("..") do
-    sh("./bootstrap.sh") 
-  end
-  app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:scheme)
-  scheme = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
-  build_app(
-    xcargs: "-allowProvisioningUpdates",
-    output_directory: options[:path],
-    output_name: options[:filename],
-    scheme: scheme,
-    clean: true,
-    silent: false,
-    export_method: options[:export_method],
-    destination: "generic/platform=iOS",
-    export_options: {
-      distributionBundleIdentifier: app_identifier,
-      iCloudContainerEnvironment: "Production"
-    }
-  )
 end
 
 
