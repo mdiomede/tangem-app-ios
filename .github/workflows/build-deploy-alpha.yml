@@ -51,7 +51,7 @@ jobs:
     version: "${{needs.prepare.outputs.version}}"
     build_number: ${{needs.prepare.outputs.build_number}}
     changelog: "${{needs.prepare.outputs.changelog}}"
-    app_name: "Tangem-$STAGE-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
+    filename: "Tangem-$STAGE-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
    secrets:
     FIREBASE_APP_ID: ${{ secrets.FIREBASE_IOS_ALPHA_ID}}
     FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN}}
