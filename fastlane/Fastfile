@@ -75,8 +75,8 @@ private_lane :build do |options|
   Dir.chdir("..") do
     sh("./bootstrap.sh") 
   end
-  app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:scheme)
-  scheme = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+  app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+  scheme = CredentialsManager::AppfileConfig.try_fetch_value(:scheme)
 
   build_app(
     xcargs: "-allowProvisioningUpdates",
