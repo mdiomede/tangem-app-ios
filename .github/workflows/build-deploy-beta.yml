@@ -13,6 +13,7 @@ jobs:
    runs-on: ubuntu-latest
    outputs:
      version: "Develop"
+     stage: "Beta"
      build_number: ${{ github.run_number }}
      changelog: ${{ steps.jira.outputs.summary }}
    steps:
