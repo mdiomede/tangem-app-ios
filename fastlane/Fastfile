@@ -2,6 +2,10 @@ default_platform(:ios)
 
 FIREBASE_TESTERS_GROUP = "testers"
 
+PRODUCTION_SCHEME = "Tangem"
+BETA_SCHEME = "Tangem Beta"
+ALPHA_SCHEME = "Tangem Alpha"
+
 desc """
   This lane builds and run unit-tests for the \"RC\" scheme.
 """
@@ -24,7 +28,8 @@ Options:
 - build: Build number
 """
 lane :build_alpha do |options|
-  build(export_method: "ad-hoc", version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
+  scheme = 
+  build(export_method: "ad-hoc", scheme:ALPHA_SCHEME, version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
 
@@ -35,7 +40,7 @@ Options:
 - build: Build number
 """
 lane :build_beta do |options|
-   build(export_method: "ad-hoc", version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
+   build(export_method: "ad-hoc", scheme:BETA_SCHEME, version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
 
@@ -75,14 +80,14 @@ private_lane :build do |options|
   Dir.chdir("..") do
     sh("./bootstrap.sh") 
   end
+
   app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
-  scheme = CredentialsManager::AppfileConfig.try_fetch_value(:scheme)
 
   build_app(
     xcargs: "-allowProvisioningUpdates",
     output_directory: options[:path],
     output_name: options[:filename],
-    scheme: scheme,
+    scheme: options[:scheme],
     clean: true,
     silent: false,
     export_method: options[:export_method],
