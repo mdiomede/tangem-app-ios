@@ -37,7 +37,8 @@ jobs:
     stage: $STAGE
     version: "${{needs.prepare.outputs.version}}"
     build_number: ${{needs.prepare.outputs.build_number}}
-    app_name: "Tangem-$STAGE-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
+    path: "fastlane/builds/"
+    filename: "Tangem-$STAGE-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
    secrets:
     GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
      
