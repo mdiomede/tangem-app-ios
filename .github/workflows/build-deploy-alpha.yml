@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  STAGE: Alpha
+  STAGE: "Alpha"
   
 jobs:
  prepare:
@@ -34,7 +34,7 @@ jobs:
    needs: prepare
    uses: tangem/actions/.github/workflows/build.yml@main
    with:
-    stage: ${{env.STAGE}}
+    stage: ${{ env.STAGE }}
     version: "${{needs.prepare.outputs.version}}"
     build_number: ${{needs.prepare.outputs.build_number}}
     path: "fastlane/builds/"
