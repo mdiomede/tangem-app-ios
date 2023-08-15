@@ -1,6 +1,5 @@
 default_platform(:ios)
 
-BUILD_PATH = "./fastlane/builds/"
 PRODUCTION_SCHEME = "Tangem"
 BETA_SCHEME = "Tangem Beta"
 ALPHA_SCHEME = "Tangem Alpha"
@@ -153,12 +152,13 @@ private_lane :build do |options|
   Dir.chdir("..") do
     sh("./bootstrap.sh") 
   end
-  app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+  app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:scheme)
+  scheme = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
   build_app(
     xcargs: "-allowProvisioningUpdates",
     output_directory: options[:path],
     output_name: options[:filename],
-    scheme: options[:scheme],
+    scheme: scheme,
     clean: true,
     silent: false,
     export_method: options[:export_method],
