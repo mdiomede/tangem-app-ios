@@ -8,7 +8,7 @@ desc """
 lane :test do
   run_tests(
     workspace: "TangemApp.xcworkspace",
-    scheme: PRODUCTION_SCHEME,
+    scheme: Tangem,
     device: "iPhone 13 Pro",
     clean: true,
     build_for_testing: true,
