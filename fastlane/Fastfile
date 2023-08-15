@@ -24,7 +24,7 @@ Options:
 - build: Build number
 """
 lane :build_alpha do |options|
-  build(version: export_method: "ad-hoc", options[:version],build: options[:build], filename: options[:filename], path: options[:path])
+  build(export_method: "ad-hoc", version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
 
@@ -35,7 +35,7 @@ Options:
 - build: Build number
 """
 lane :build_beta do |options|
-   build(version: export_method: "ad-hoc", options[:version],build: options[:build], filename: options[:filename], path: options[:path])
+   build(export_method: "ad-hoc", version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
 
