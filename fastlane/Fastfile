@@ -28,7 +28,6 @@ Options:
 - build: Build number
 """
 lane :build_alpha do |options|
-  scheme = 
   build(export_method: "ad-hoc", scheme:ALPHA_SCHEME, version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
