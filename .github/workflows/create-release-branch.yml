@@ -1,10 +1,17 @@
-name: Create release branch
+name: Create release
 on:
   workflow_dispatch:
     inputs:
       versionName:
         description: 'Name of version  (ie 1.3.0)'
         required: true
+      versionType:
+        type: choice
+        description: 'Release or Hotfix'
+        required: true
+        options: 
+        - release
+        - hotfix
 
 jobs:
   createrelease:
