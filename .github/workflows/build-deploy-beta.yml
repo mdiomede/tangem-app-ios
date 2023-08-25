@@ -56,7 +56,7 @@ jobs:
        version: "Next Release"
        issues: ${{ steps.github-issues.outputs.issues }}
  build:
-   name: Tangem Alpha
+   name: Tangem Beta
    needs: prepare
    uses: tangem/actions/.github/workflows/build.yml@main
    with:
