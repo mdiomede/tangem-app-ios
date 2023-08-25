@@ -53,21 +53,8 @@ desc """
   - changelog: string for description archive
   """
 lane :build_rc do |options|
-  app_store_connect_api_key(duration: 1200, is_key_content_base64: true)
-  increment_version_number(version_number: options[:version])
-  increment_testflight_build_number(version: options[:version], build: options[:build])
-
   build(scheme: PRODUCTION_SCHEME, version: options[:version], filename: options[:filename], path: options[:path])
-  upload_dsyms(app_id: ENV["APP_ID_PRODUCTION"], name: PRODUCTION_SCHEME)
-  
-  upload_testflight(
-    name: PRODUCTION_SCHEME,
-    version: options[:version],
-    changelog: options[:changelog]
-  )
-  clean_artifacts
 end
-
 
 private_lane :build do |options|
   clean_artifacts
@@ -103,7 +90,7 @@ end
 desc """
 This lane deploy binary to Google Distribution
 Options:
-- app_id: Appstore Connect App ID
+- app_id: Firebase App ID
 - path: Path to binary
 - firebase_token: Firebase CLI Token
 - changelog: [optional] Changelog will be added to Google Distribution release notes along with the last commit hash.
@@ -128,14 +115,22 @@ Options:
 - changelog: [optional] Changelog will be added to TestFlight release notes along with the last commit hash.
 """
 lane :upload_store do |options|
-  path = options[:path]
-  release_notes = "#{options[:changelog]}\nGitHash: #{last_git_commit[:commit_hash]}"
+  # Get AppStore API Key
+  api_key = app_store_connect_api_key(
+     key_id: options[:asc_key_id],
+     issuer_id: options[:asc_issuer_id],
+     key_content: options[:asc_key],
+     is_key_content_base64: true,
+     in_house: false # detecting this via ASC private key not currently supported
+  )
 
+  # Upload binary to TestFlight
   upload_to_testflight(
+    api_key:api_key
     skip_waiting_for_build_processing: true,
-    ipa: path,
+    ipa: options[:binary_path],
     app_version: options[:version],
-    changelog: release_notes
+    changelog: options[:changelog]
   )
 end
 
