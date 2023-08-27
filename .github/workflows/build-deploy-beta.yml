@@ -71,7 +71,7 @@ jobs:
  deploy:
    name: Google Distribution
    needs: [prepare,build]
-   uses: tangem/actions/.github/workflows/deploy.yml@main
+   uses: tangem/actions/.github/workflows/deploy-firebase.yml@main
    with:
     stage: ${{needs.prepare.outputs.stage}}
     version: "${{needs.prepare.outputs.version}}"
