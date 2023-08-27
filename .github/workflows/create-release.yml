@@ -37,7 +37,7 @@ jobs:
     GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
      
  deploy:
-   name: Google Distribution
+   name: TestFlight
    needs: [prepare,build]
    uses: tangem/actions/.github/workflows/deploy.yml@main
    with:
