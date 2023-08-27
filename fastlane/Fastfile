@@ -27,7 +27,7 @@ Options:
 - version: App version
 - build: Build number
 """
-lane :build_alpha do |options|
+lane :build_Alpha do |options|
   build(export_method: "ad-hoc", scheme:ALPHA_SCHEME, version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
@@ -38,7 +38,7 @@ Options:
 - version: App version
 - build: Build number
 """
-lane :build_beta do |options|
+lane :build_Beta do |options|
    build(export_method: "ad-hoc", scheme:BETA_SCHEME, version: options[:version], build: options[:build], filename: options[:filename], path: options[:path])
 end
 
@@ -51,7 +51,7 @@ desc """
   - build: optional build number
   - changelog: string for description archive
   """
-lane :build_rc do |options|
+lane :build_RC do |options|
   build(scheme: PRODUCTION_SCHEME, version: options[:version], filename: options[:filename], path: options[:path])
 end
 
