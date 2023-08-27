@@ -39,7 +39,7 @@ jobs:
  deploy:
    name: TestFlight
    needs: [prepare,build]
-   uses: tangem/actions/.github/workflows/deploy.yml@main
+   uses: tangem/actions/.github/workflows/deploy-testflight.yml@main
    with:
     stage: ${{needs.prepare.outputs.stage}}
     version: "${{needs.prepare.outputs.version}}"
