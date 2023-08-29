@@ -81,6 +81,7 @@ jobs:
    secrets:
     FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID}}
     FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN}}
+    GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
    
  notification:
    name: Deploy Notification
