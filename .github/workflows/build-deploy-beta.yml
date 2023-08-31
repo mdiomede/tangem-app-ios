@@ -25,7 +25,7 @@ jobs:
       head: 'develop'
 
    - name: Output issues
-     run: echo ${{ steps.changelog.outputs.result }}
+     run: echo ${{ steps.git-diff.outputs.result }}
    
    - name: Jira Login
      uses: atlassian/gajira-login@master
@@ -40,6 +40,9 @@ jobs:
      with:
       action: getIssuesSummary
       issues: ${{ steps.git-diff.outputs.issues }}
+
+   - name: Output changelog
+     run: echo ${{ steps.changelog.outputs.results }}
   
  build:
    name: Tangem Beta
