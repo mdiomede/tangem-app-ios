@@ -23,6 +23,9 @@ jobs:
       github-token: ${{ secrets.GH_MOBILE_PAT}}
       base: 'master'
       head: 'develop'
+
+   - name: Output issues
+     run: echo ${{ steps.changelog.outputs.result }}
    
    - name: Jira Login
      uses: atlassian/gajira-login@master
