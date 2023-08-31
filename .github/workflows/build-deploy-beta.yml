@@ -21,8 +21,8 @@ jobs:
      uses: tangem/github-action@main
      with:
       github-token: ${{ secrets.GH_MOBILE_PAT}}
-      base: 'master'
-      head: 'develop'
+      base: 'develop'
+      head: 'master'
    
    - name: Jira Login
      uses: atlassian/gajira-login@master
