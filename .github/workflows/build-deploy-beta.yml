@@ -24,8 +24,8 @@ jobs:
       base: 'master'
       head: 'develop'
 
-   - name: Output issues
-     run: echo ${{ steps.git-diff.outputs.result }}
+   - name: Print issues
+     run: echo ${{ steps.git-diff.outputs.issues }}
    
    - name: Jira Login
      uses: atlassian/gajira-login@master
@@ -41,7 +41,7 @@ jobs:
       action: getIssuesSummary
       issues: ${{ steps.git-diff.outputs.issues }}
 
-   - name: Output changelog
+   - name: Print changelog
      run: echo ${{ steps.changelog.outputs.results }}
   
  build:
