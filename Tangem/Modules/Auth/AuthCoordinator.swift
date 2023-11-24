@@ -10,8 +10,10 @@ import Foundation
 import Combine
 
 class AuthCoordinator: CoordinatorObject {
-    let dismissAction: Action
-    let popToRootAction: ParamsAction<PopToRootOptions>
+    // MARK: - Dependencies
+
+    let dismissAction: Action<Void>
+    let popToRootAction: Action<PopToRootOptions>
 
     // MARK: - Root view model
 
@@ -19,7 +21,8 @@ class AuthCoordinator: CoordinatorObject {
 
     // MARK: - Child coordinators
 
-    @Published var mainCoordinator: LegacyMainCoordinator?
+    @Published var legacyMainCoordinator: LegacyMainCoordinator?
+    @Published var mainCoordinator: MainCoordinator?
     @Published var pushedOnboardingCoordinator: OnboardingCoordinator?
 
     // MARK: - Child view models
@@ -27,8 +30,8 @@ class AuthCoordinator: CoordinatorObject {
     @Published var mailViewModel: MailViewModel?
 
     required init(
-        dismissAction: @escaping Action,
-        popToRootAction: @escaping ParamsAction<PopToRootOptions>
+        dismissAction: @escaping Action<Void>,
+        popToRootAction: @escaping Action<PopToRootOptions>
     ) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
@@ -53,7 +56,7 @@ extension AuthCoordinator {
 
 extension AuthCoordinator: AuthRoutable {
     func openOnboarding(with input: OnboardingInput) {
-        let dismissAction: Action = { [weak self] in
+        let dismissAction: Action<OnboardingCoordinator.OutputOptions> = { [weak self] _ in
             self?.pushedOnboardingCoordinator = nil
         }
 
@@ -61,14 +64,21 @@ extension AuthCoordinator: AuthRoutable {
         let options = OnboardingCoordinator.Options(input: input, destination: .main)
         coordinator.start(with: options)
         pushedOnboardingCoordinator = coordinator
-        Analytics.log(.onboardingStarted)
     }
 
     func openMain(with cardModel: CardViewModel) {
+        if FeatureProvider.isAvailable(.mainV2) {
+            let coordinator = MainCoordinator(popToRootAction: popToRootAction)
+            let options = MainCoordinator.Options(userWalletModel: cardModel)
+            coordinator.start(with: options)
+            mainCoordinator = coordinator
+            return
+        }
+
         let coordinator = LegacyMainCoordinator(popToRootAction: popToRootAction)
         let options = LegacyMainCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
-        mainCoordinator = coordinator
+        legacyMainCoordinator = coordinator
     }
 
     func openMail(with dataCollector: EmailDataCollector, recipient: String) {

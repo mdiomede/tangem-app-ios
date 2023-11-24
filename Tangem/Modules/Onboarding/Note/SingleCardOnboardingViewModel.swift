@@ -27,7 +27,7 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
 
     override var subtitle: String? {
         if currentStep == .topup,
-           case .xrp = cardModel?.walletModels.first?.blockchainNetwork.blockchain {
+           case .xrp = cardModel?.walletModelsManager.walletModels.first?.blockchainNetwork.blockchain {
             return Localization.onboardingTopUpBodyNoAccountError("10", "XRP")
         } else {
             return super.subtitle
@@ -94,7 +94,7 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
     private var scheduledUpdate: DispatchWorkItem?
 
     private var canBuyCrypto: Bool {
-        if let blockchain = cardModel?.walletModels.first?.blockchainNetwork.blockchain,
+        if let blockchain = cardModel?.walletModelsManager.walletModels.first?.blockchainNetwork.blockchain,
            exchangeService.canBuy(blockchain.currencySymbol, amountType: .coin, blockchain: blockchain) {
             return true
         }
@@ -111,7 +111,7 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
             fatalError("Wrong onboarding steps passed to initializer")
         }
 
-        if let walletModel = cardModel?.walletModels.first {
+        if let walletModel = cardModel?.walletModelsManager.walletModels.first {
             updateCardBalanceText(for: walletModel)
         }
 
@@ -132,17 +132,17 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
             .delay(for: 0.1, scheduler: DispatchQueue.main)
             .receiveValue { [weak self] index in
                 guard let self,
-                      index < self.steps.count else { return }
+                      index < steps.count else { return }
 
-                let currentStep = self.steps[index]
+                let currentStep = steps[index]
 
                 switch currentStep {
                 case .topup:
-                    if let walletModel = self.cardModel?.walletModels.first {
-                        self.updateCardBalanceText(for: walletModel)
+                    if let walletModel = cardModel?.walletModelsManager.walletModels.first {
+                        updateCardBalanceText(for: walletModel)
                     }
 
-                    if self.walletCreatedWhileOnboarding {
+                    if walletCreatedWhileOnboarding {
                         return
                     }
 
@@ -150,14 +150,14 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
                         self.isBalanceRefresherVisible = true
                     }
 
-                    self.updateCardBalance()
+                    updateCardBalance()
                 case .successTopup:
                     withAnimation {
                         self.refreshButtonState = .doneCheckmark
                     }
                     fallthrough
                 case .success:
-                    self.fireConfetti()
+                    fireConfetti()
                 default:
                     break
                 }
@@ -241,13 +241,13 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
         Analytics.log(.buttonCreateWallet)
         isMainButtonBusy = true
 
-        cardInitializer.initializeCard(seed: nil) { [weak self] result in
+        cardInitializer.initializeCard(mnemonic: nil) { [weak self] result in
             guard let self else { return }
 
             switch result {
             case .success(let cardInfo):
-                self.initializeUserWallet(from: cardInfo)
-                self.walletCreatedWhileOnboarding = true
+                initializeUserWallet(from: cardInfo)
+                walletCreatedWhileOnboarding = true
 
                 Analytics.log(.walletCreatedSuccessfully, params: [.creationType: .walletCreationTypePrivateKey])
 
@@ -261,7 +261,7 @@ class SingleCardOnboardingViewModel: OnboardingTopupViewModel<SingleCardOnboardi
                 }
             }
 
-            self.isMainButtonBusy = false
+            isMainButtonBusy = false
         }
     }
 }

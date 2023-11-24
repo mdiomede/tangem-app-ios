@@ -10,22 +10,10 @@ import Combine
 import UIKit
 import TangemSdk
 import Kingfisher
+import class TangemSwapping.ThreadSafeContainer
 
 struct CardImageProvider {
-    private static let cardArtworkCacheQueue = DispatchQueue(
-        label: "com.tangem.CardImageProvider.cardArtworkCacheQueue",
-        attributes: .concurrent
-    )
-
-    private static var _cardArtworkCache: [String: CardArtwork] = [:]
-    private static var cardArtworkCache: [String: CardArtwork] {
-        get {
-            return cardArtworkCacheQueue.sync { _cardArtworkCache }
-        }
-        set {
-            cardArtworkCacheQueue.async(flags: .barrier) { _cardArtworkCache = newValue }
-        }
-    }
+    private static let cardArtworkCache: ThreadSafeContainer<[String: CardArtwork]> = [:]
 
     @Injected(\.cardImageLoader) private var imageLoader: CardImageLoaderProtocol
 
@@ -59,7 +47,7 @@ extension CardImageProvider: CardImageProviding {
 
     func loadImage(cardId: String, cardPublicKey: Data, artwork: CardArtwork?) -> AnyPublisher<CardImageResult, Never> {
         guard supportsOnlineImage else {
-            return Just(.embedded(defaultImage)).eraseToAnyPublisher()
+            return .just(output: .embedded(defaultImage))
         }
 
         let cardArtwork = artwork ?? cardArtwork(for: cardId) ?? .notLoaded
@@ -74,8 +62,7 @@ extension CardImageProvider: CardImageProviding {
         let cacheKey = "twin_\(number)"
 
         if let image = getImageFromCache(for: cacheKey) {
-            return Just(.cached(image))
-                .eraseToAnyPublisher()
+            return .just(output: .cached(image))
         }
 
         return imageLoader.loadTwinImage(for: number)
@@ -133,7 +120,9 @@ private extension CardImageProvider {
                 }
             }
             .handleEvents(receiveOutput: { cardArtwork in
-                CardImageProvider.cardArtworkCache[cardId] = cardArtwork
+                CardImageProvider.cardArtworkCache.mutate { value in
+                    value[cardId] = cardArtwork
+                }
             })
             .replaceError(with: CardArtwork.noArtwork)
             .receive(on: DispatchQueue.main)

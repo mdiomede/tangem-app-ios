@@ -15,23 +15,27 @@ struct FocusedDecimalNumberTextField<ToolbarButton: View>: View {
     @Binding private var decimalValue: DecimalNumberTextField.DecimalValue?
     @FocusState private var isInputActive: Bool
     private var maximumFractionDigits: Int
+    private let font: Font
 
     private let toolbarButton: () -> ToolbarButton
 
     init(
         decimalValue: Binding<DecimalNumberTextField.DecimalValue?>,
         maximumFractionDigits: Int,
+        font: Font,
         @ViewBuilder toolbarButton: @escaping () -> ToolbarButton
     ) {
         _decimalValue = decimalValue
         self.maximumFractionDigits = maximumFractionDigits
+        self.font = font
         self.toolbarButton = toolbarButton
     }
 
     var body: some View {
         DecimalNumberTextField(
             decimalValue: $decimalValue,
-            decimalNumberFormatter: DecimalNumberFormatter(maximumFractionDigits: maximumFractionDigits)
+            decimalNumberFormatter: DecimalNumberFormatter(maximumFractionDigits: maximumFractionDigits),
+            font: font
         )
         .maximumFractionDigits(maximumFractionDigits)
         .focused($isInputActive)
@@ -44,8 +48,9 @@ struct FocusedDecimalNumberTextField<ToolbarButton: View>: View {
                 Button {
                     isInputActive = false
                 } label: {
-                    Image(systemName: "keyboard.chevron.compact.down")
-                        .resizable()
+                    Assets.hideKeyboard.image
+                        .renderingMode(.template)
+                        .foregroundColor(Colors.Icon.primary1)
                 }
             }
         }
@@ -69,7 +74,7 @@ struct FocusedNumberTextField_Previews: PreviewProvider {
 
     static var previews: some View {
         if #available(iOS 15.0, *) {
-            FocusedDecimalNumberTextField(decimalValue: $decimalValue, maximumFractionDigits: 8) {}
+            FocusedDecimalNumberTextField(decimalValue: $decimalValue, maximumFractionDigits: 8, font: Fonts.Regular.title1) {}
         }
     }
 }

@@ -9,8 +9,10 @@
 import Foundation
 
 class OnboardingCoordinator: CoordinatorObject {
-    var dismissAction: Action
-    var popToRootAction: ParamsAction<PopToRootOptions>
+    // MARK: - Dependencies
+
+    var dismissAction: Action<OutputOptions>
+    var popToRootAction: Action<PopToRootOptions>
 
     // MARK: - Main view models
 
@@ -20,7 +22,8 @@ class OnboardingCoordinator: CoordinatorObject {
 
     // MARK: - Child coordinators
 
-    @Published var mainCoordinator: LegacyMainCoordinator? = nil
+    @Published var legacyMainCoordinator: LegacyMainCoordinator? = nil
+    @Published var mainCoordinator: MainCoordinator? = nil
 
     // MARK: - Child view models
 
@@ -31,12 +34,16 @@ class OnboardingCoordinator: CoordinatorObject {
     @Published var addressQrBottomSheetContentViewModel: AddressQrBottomSheetContentViewModel? = nil
     @Published var supportChatViewModel: SupportChatViewModel? = nil
 
+    // MARK: - Helpers
+
     // For non-dismissable presentation
     var onDismissalAttempt: () -> Void = {}
 
+    // MARK: - Private
+
     private var options: OnboardingCoordinator.Options!
 
-    required init(dismissAction: @escaping Action, popToRootAction: @escaping ParamsAction<PopToRootOptions>) {
+    required init(dismissAction: @escaping Action<OutputOptions>, popToRootAction: @escaping Action<PopToRootOptions>) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
     }
@@ -58,8 +65,12 @@ class OnboardingCoordinator: CoordinatorObject {
             onDismissalAttempt = model.backButtonAction
             walletViewModel = model
         }
+
+        Analytics.log(.onboardingStarted)
     }
 }
+
+// MARK: - Options
 
 extension OnboardingCoordinator {
     enum DestinationOnFinish {
@@ -72,7 +83,13 @@ extension OnboardingCoordinator {
         let input: OnboardingInput
         let destination: DestinationOnFinish
     }
+
+    struct OutputOptions {
+        let isSuccessful: Bool
+    }
 }
+
+// MARK: - OnboardingTopupRoutable
 
 extension OnboardingCoordinator: OnboardingTopupRoutable {
     func openCryptoShop(at url: URL, closeUrl: String, action: @escaping (String) -> Void) {
@@ -120,6 +137,8 @@ extension OnboardingCoordinator: OnboardingTopupRoutable {
     }
 }
 
+// MARK: - WalletOnboardingRoutable
+
 extension OnboardingCoordinator: WalletOnboardingRoutable {
     func openAccessCodeView(callback: @escaping (String) -> Void) {
         accessCodeModel = .init(successHandler: { [weak self] code in
@@ -137,10 +156,13 @@ extension OnboardingCoordinator: WalletOnboardingRoutable {
         modalWebViewModel = WebViewContainerViewModel(
             url: url,
             title: "",
-            addLoadingIndicator: true
+            addLoadingIndicator: true,
+            withCloseButton: true
         )
     }
 }
+
+// MARK: - OnboardingRoutable
 
 extension OnboardingCoordinator: OnboardingRoutable {
     func onboardingDidFinish(userWallet: CardViewModel?) {
@@ -151,22 +173,30 @@ extension OnboardingCoordinator: OnboardingRoutable {
                 return
             }
 
-            closeOnboarding()
+            dismiss(with: .init(isSuccessful: true))
         case .root:
             popToRoot()
         case .dismiss:
-            closeOnboarding()
+            dismiss(with: .init(isSuccessful: true))
         }
     }
 
     func closeOnboarding() {
-        dismiss()
+        dismiss(with: .init(isSuccessful: false))
     }
 
     private func openMain(with cardModel: CardViewModel) {
+        if FeatureProvider.isAvailable(.mainV2) {
+            let coordinator = MainCoordinator(popToRootAction: popToRootAction)
+            let options = MainCoordinator.Options(userWalletModel: cardModel)
+            coordinator.start(with: options)
+            mainCoordinator = coordinator
+            return
+        }
+
         let coordinator = LegacyMainCoordinator(popToRootAction: popToRootAction)
         let options = LegacyMainCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
-        mainCoordinator = coordinator
+        legacyMainCoordinator = coordinator
     }
 }

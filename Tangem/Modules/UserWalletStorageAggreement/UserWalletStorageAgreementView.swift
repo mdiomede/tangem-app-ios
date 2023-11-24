@@ -21,6 +21,8 @@ struct UserWalletStorageAgreementView: View {
 
             VStack(spacing: 0) {
                 BiometryLogoImage.image.image
+                    .renderingMode(.template)
+                    .foregroundColor(Colors.Icon.inactive)
 
                 FlexibleSpacer(maxHeight: 28)
 
@@ -70,7 +72,7 @@ struct UserWalletStorageAgreementView: View {
     }
 }
 
-fileprivate extension UserWalletStorageAgreementView {
+private extension UserWalletStorageAgreementView {
     struct FlexibleSpacer: View {
         let maxHeight: CGFloat
 

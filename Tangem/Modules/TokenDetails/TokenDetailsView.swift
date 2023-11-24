@@ -2,154 +2,119 @@
 //  TokenDetailsView.swift
 //  Tangem
 //
-//  Created by Alexander Osokin on 25.02.2021.
-//  Copyright © 2021 Tangem AG. All rights reserved.
+//  Created by Andrew Son on 09/06/23.
+//  Copyright © 2023 Tangem AG. All rights reserved.
 //
 
 import SwiftUI
-import BlockchainSdk
 
 struct TokenDetailsView: View {
     @ObservedObject var viewModel: TokenDetailsViewModel
 
-    var pendingTransactionViews: [LegacyPendingTxView] {
-        let incTx = viewModel.incomingTransactions.map {
-            LegacyPendingTxView(pendingTx: $0)
-        }
+    @State private var contentOffset: CGPoint = .zero
 
-        let outgTx = viewModel.outgoingTransactions.enumerated().map { index, pendingTx in
-            LegacyPendingTxView(pendingTx: pendingTx) {
-                viewModel.openPushTx(for: index)
-            }
-        }
+    private let tokenIconSizeSettings: IconViewSizeSettings = .tokenDetails
+    private let headerTopPadding: CGFloat = 14
+    private let coorditateSpaceName = "token_details_scroll_space"
 
-        return incTx + outgTx
-    }
+    private var toolbarIconOpacity: Double {
+        let iconSize = tokenIconSizeSettings.iconSize
+        let startAppearingOffset = headerTopPadding + iconSize.height
 
-    @ViewBuilder var bottomButtons: some View {
-        HStack(alignment: .center) {
-            exchangeButton
-            sendButton
-        }
+        let fullAppearanceDistance = iconSize.height / 2
+        let fullAppearanceOffset = startAppearingOffset + fullAppearanceDistance
+
+        return clamp(
+            (contentOffset.y - startAppearingOffset) / (fullAppearanceOffset - startAppearingOffset),
+            min: 0,
+            max: 1
+        )
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(viewModel.title)
-                .font(Font.system(size: 36, weight: .bold, design: .default))
-                .padding(.horizontal, 16)
-                .animation(nil)
+        RefreshableScrollView(onRefresh: viewModel.onPullToRefresh(completionHandler:)) {
+            VStack(spacing: 14) {
+                TokenDetailsHeaderView(viewModel: viewModel.tokenDetailsHeaderModel)
 
-            if let subtitle = viewModel.tokenSubtitle {
-                Text(subtitle)
-                    .font(.system(size: 14, weight: .regular, design: .default))
-                    .foregroundColor(.tangemGrayDark)
-                    .padding(.bottom, 8)
-                    .padding(.horizontal, 16)
-                    .animation(nil)
-            }
+                BalanceWithButtonsView(viewModel: viewModel.balanceWithButtonsModel)
 
-            GeometryReader { geometry in
-                RefreshableScrollView(onRefresh: { viewModel.onRefresh($0) }) {
-                    VStack(spacing: 8.0) {
-                        ForEach(self.pendingTransactionViews) { $0 }
-
-                        if let walletModel = viewModel.walletModel {
-                            BalanceAddressView(
-                                walletModel: walletModel,
-                                amountType: viewModel.amountType,
-                                isRefreshing: viewModel.isRefreshing,
-                                showExplorerURL: viewModel.showExplorerURL
-                            )
-                        }
-
-                        bottomButtons
-                            .padding(.top, 16)
-
-                        if let sendBlockedReason = viewModel.sendBlockedReason {
-                            AlertCardView(title: "", message: sendBlockedReason)
-                        }
-
-                        if let existentialDepositWarning = viewModel.existentialDepositWarning {
-                            AlertCardView(title: Localization.commonWarning, message: existentialDepositWarning)
-                        }
-
-                        if let transactionLengthWarning = viewModel.transactionLengthWarning {
-                            AlertCardView(title: Localization.commonWarning, message: transactionLengthWarning)
-                        }
-
-                        if let solanaRentWarning = viewModel.solanaRentWarning {
-                            AlertCardView(title: Localization.commonWarning, message: solanaRentWarning)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 32)
-                    .frame(width: geometry.size.width)
+                ForEach(viewModel.tokenNotificationInputs) { input in
+                    NotificationView(input: input)
+                        .transition(viewModel.shouldShowNotificationsWithAnimation ? .notificationTransition : .identity)
                 }
+
+                if viewModel.isMarketPriceAvailable {
+                    MarketPriceView(
+                        currencySymbol: viewModel.currencySymbol,
+                        price: viewModel.rateFormatted,
+                        priceChangeState: viewModel.priceChangeState,
+                        tapAction: nil
+                    )
+                }
+
+                PendingTransactionsListView(
+                    items: viewModel.pendingTransactionViews,
+                    exploreTransactionAction: viewModel.openTransactionExplorer
+                )
+
+                TransactionsListView(
+                    state: viewModel.transactionHistoryState,
+                    exploreAction: viewModel.openExplorer,
+                    exploreTransactionAction: viewModel.openTransactionExplorer,
+                    reloadButtonAction: viewModel.reloadHistory,
+                    isReloadButtonBusy: viewModel.isReloadingTransactionHistory,
+                    fetchMore: viewModel.fetchMoreHistory()
+                )
+                .padding(.bottom, 40)
             }
+            .padding(.top, headerTopPadding)
+            .readContentOffset(
+                inCoordinateSpace: .named(coorditateSpaceName),
+                bindTo: $contentOffset
+            )
         }
+        .animation(.default, value: viewModel.tokenNotificationInputs)
+        .padding(.horizontal, 16)
         .edgesIgnoringSafeArea(.bottom)
-        .navigationBarTitle("", displayMode: .inline)
-        .navigationBarItems(trailing: trailingButton)
-        .background(Color.tangemBgGray.edgesIgnoringSafeArea(.all))
+        .background(Colors.Background.secondary.edgesIgnoringSafeArea(.all))
         .ignoresSafeArea(.keyboard)
         .onAppear(perform: viewModel.onAppear)
+        .onDidAppear(viewModel.onDidAppear)
         .alert(item: $viewModel.alert) { $0.alert }
-    }
-
-    @ViewBuilder
-    private var trailingButton: some View {
-        Button(action: viewModel.onRemove) {
-            Text(Localization.tokenDetailsHideToken)
-                .foregroundColor(.tangemGrayDark6)
-                .font(.system(size: 17))
-        }
-        .animation(nil)
-    }
-
-    @ViewBuilder
-    var exchangeButton: some View {
-        switch viewModel.exchangeButtonState {
-        case .single(let option):
-            MainButton(
-                title: option.title,
-                icon: .leading(option.icon),
-                isDisabled: !viewModel.isAvailable(type: option)
-            ) {
-                viewModel.didTapExchangeButtonAction(type: option)
+        .actionSheet(item: $viewModel.actionSheet) { $0.sheet }
+        .coordinateSpace(name: coorditateSpaceName)
+        .toolbar(content: {
+            ToolbarItem(placement: .principal) {
+                TokenIcon(
+                    tokenIconInfo: .init(
+                        name: "",
+                        blockchainIconName: nil,
+                        imageURL: viewModel.iconUrl,
+                        isCustom: false,
+                        customTokenColor: viewModel.customTokenColor
+                    ),
+                    size: IconViewSizeSettings.tokenDetailsToolbar.iconSize
+                )
+                .opacity(toolbarIconOpacity)
             }
 
-        case .multi:
-            MainButton(
-                title: Localization.walletButtonActions,
-                icon: .leading(Assets.exchangeIcon),
-                action: viewModel.openExchangeActionSheet
-            )
-            .actionSheet(item: $viewModel.exchangeActionSheet, content: { $0.sheet })
-        }
+            ToolbarItem(placement: .navigationBarTrailing) { navbarTrailingButton }
+        })
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     @ViewBuilder
-    var sendButton: some View {
-        MainButton(
-            title: Localization.commonSend,
-            icon: .leading(Assets.arrowRightMini),
-            isDisabled: !viewModel.canSend,
-            action: viewModel.openSend
-        )
-    }
-}
-
-struct TokenDetailsView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            TokenDetailsView(viewModel: TokenDetailsViewModel(
-                cardModel: PreviewCard.cardanoNote.cardModel,
-                blockchainNetwork: PreviewCard.cardanoNote.blockchainNetwork!,
-                amountType: .coin,
-                coordinator: TokenDetailsCoordinator()
-            ))
-            .deviceForPreviewZoomed(.iPhone7)
+    private var navbarTrailingButton: some View {
+        if viewModel.canHideToken {
+            Menu {
+                if #available(iOS 15.0, *) {
+                    Button(Localization.tokenDetailsHideToken, role: .destructive, action: viewModel.hideTokenButtonAction)
+                } else {
+                    Button(Localization.tokenDetailsHideToken, action: viewModel.hideTokenButtonAction)
+                }
+            } label: {
+                NavbarDotsImage()
+            }
         }
     }
 }

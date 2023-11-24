@@ -10,26 +10,42 @@ import Foundation
 import Combine
 
 protocol UserWalletRepository: Initializable {
+    var hasSavedWallets: Bool { get }
     var models: [UserWalletModel] { get }
+    var userWallets: [UserWallet] { get }
     var selectedModel: CardViewModel? { get }
     var selectedUserWalletId: Data? { get }
+    var selectedIndexUserWalletModel: Int? { get }
     var isEmpty: Bool { get }
+    var count: Int { get }
     var isLocked: Bool { get }
     var eventProvider: AnyPublisher<UserWalletRepositoryEvent, Never> { get }
 
     func unlock(with method: UserWalletRepositoryUnlockMethod, completion: @escaping (UserWalletRepositoryResult?) -> Void)
-    func setSelectedUserWalletId(_ userWalletId: Data?, reason: UserWalletRepositorySelectionChangeReason)
+    func setSelectedUserWalletId(_ userWalletId: Data?, unlockIfNeeded: Bool, reason: UserWalletRepositorySelectionChangeReason)
     func updateSelection()
     func logoutIfNeeded()
 
+    func add(_ userWalletModel: UserWalletModel)
     func add(_ completion: @escaping (UserWalletRepositoryResult?) -> Void)
     // use this method for saving. TODO: refactor
-    func save(_ cardViewModel: CardViewModel)
+    func save(_ cardViewModel: UserWalletModel)
     func contains(_ userWallet: UserWallet) -> Bool
     // use this method for updating. TODO: refactor
     func save(_ userWallet: UserWallet)
-    func delete(_ userWallet: UserWallet, logoutIfNeeded shouldAutoLogout: Bool)
-    func clear()
+    func delete(_ userWalletId: UserWalletId, logoutIfNeeded shouldAutoLogout: Bool)
+    func clearNonSelectedUserWallets()
+    func initializeServices(for cardModel: CardViewModel, cardInfo: CardInfo)
+    func initialClean()
+    func setSaving(_ enabled: Bool)
+    func addOrScan(completion: @escaping (UserWalletRepositoryResult?) -> Void)
+}
+
+extension UserWalletRepository {
+    /// Selecting UserWallet with specified Id and unlocking it if needed
+    func setSelectedUserWalletId(_ userWalletId: Data?, reason: UserWalletRepositorySelectionChangeReason) {
+        setSelectedUserWalletId(userWalletId, unlockIfNeeded: true, reason: reason)
+    }
 }
 
 private struct UserWalletRepositoryKey: InjectionKey {
@@ -65,8 +81,9 @@ enum UserWalletRepositoryEvent {
     case scan(isScanning: Bool)
     case inserted(userWallet: UserWallet)
     case updated(userWalletModel: UserWalletModel)
-    case deleted(userWalletId: Data)
+    case deleted(userWalletIds: [Data])
     case selected(userWallet: UserWallet, reason: UserWalletRepositorySelectionChangeReason)
+    case replaced(userWallet: UserWallet)
 }
 
 enum UserWalletRepositorySelectionChangeReason {
@@ -88,6 +105,7 @@ enum UserWalletRepositoryUnlockMethod {
 enum UserWalletRepositoryError: String, Error, LocalizedError, BindableError {
     case duplicateWalletAdded
     case biometricsChanged
+    case cardWithWrongUserWalletIdScanned
 
     var errorDescription: String? {
         rawValue
@@ -99,6 +117,8 @@ enum UserWalletRepositoryError: String, Error, LocalizedError, BindableError {
             return .init(title: "", message: Localization.userWalletListErrorWalletAlreadySaved)
         case .biometricsChanged:
             return .init(title: Localization.commonAttention, message: Localization.keyInvalidatedWarningDescription)
+        case .cardWithWrongUserWalletIdScanned:
+            return .init(title: Localization.commonWarning, message: Localization.errorWrongWalletTapped)
         }
     }
 }

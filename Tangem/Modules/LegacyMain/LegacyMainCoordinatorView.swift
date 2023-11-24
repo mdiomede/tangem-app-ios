@@ -29,6 +29,9 @@ struct LegacyMainCoordinatorView: CoordinatorView {
             .navigation(item: $coordinator.pushedWebViewModel) {
                 WebViewContainer(viewModel: $0)
             }
+            .navigation(item: $coordinator.legacyTokenDetailsCoordinator) {
+                LegacyTokenDetailsCoordinatorView(coordinator: $0)
+            }
             .navigation(item: $coordinator.tokenDetailsCoordinator) {
                 TokenDetailsCoordinatorView(coordinator: $0)
             }
@@ -43,8 +46,8 @@ struct LegacyMainCoordinatorView: CoordinatorView {
     @ViewBuilder
     private var sheets: some View {
         NavHolder()
-            .sheet(item: $coordinator.sendCoordinator) {
-                SendCoordinatorView(coordinator: $0)
+            .sheet(item: $coordinator.legacySendCoordinator) {
+                LegacySendCoordinatorView(coordinator: $0)
             }
             .sheet(item: $coordinator.pushTxCoordinator) {
                 PushTxCoordinatorView(coordinator: $0)
@@ -52,8 +55,8 @@ struct LegacyMainCoordinatorView: CoordinatorView {
             .sheet(item: $coordinator.modalWebViewModel) {
                 WebViewContainer(viewModel: $0)
             }
-            .sheet(item: $coordinator.tokenListCoordinator) {
-                TokenListCoordinatorView(coordinator: $0)
+            .sheet(item: $coordinator.legacyTokenListCoordinator) {
+                LegacyTokenListCoordinatorView(coordinator: $0)
             }
             .sheet(item: $coordinator.mailViewModel) {
                 MailView(viewModel: $0)
@@ -67,6 +70,9 @@ struct LegacyMainCoordinatorView: CoordinatorView {
             }
             .sheet(item: $coordinator.userWalletListCoordinator) {
                 UserWalletListCoordinatorView(coordinator: $0)
+            }
+            .sheet(item: $coordinator.promotionCoordinator) {
+                PromotionCoordinatorView(coordinator: $0)
             }
 
         NavHolder()

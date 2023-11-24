@@ -10,6 +10,15 @@ import BlockchainSdk
 import TangemSwapping
 
 struct CurrencyMapper: CurrencyMapping {
+    func mapToCurrency(amountType: Amount.AmountType, in blockchain: Blockchain) -> Currency? {
+        switch amountType {
+        case .token(let token):
+            return mapToCurrency(token: token, blockchain: blockchain)
+        default:
+            return mapToCurrency(blockchain: blockchain)
+        }
+    }
+
     func mapToCurrency(token: Token, blockchain: Blockchain) -> Currency? {
         guard let swappingBlockchain = SwappingBlockchain(networkId: blockchain.networkId) else {
             assertionFailure("SwappingBlockchain don't support")
@@ -38,7 +47,7 @@ struct CurrencyMapper: CurrencyMapping {
         }
 
         return Currency(
-            id: blockchain.id,
+            id: blockchain.coinId,
             blockchain: swappingBlockchain,
             name: blockchain.displayName,
             symbol: blockchain.currencySymbol,
@@ -48,9 +57,9 @@ struct CurrencyMapper: CurrencyMapping {
     }
 
     func mapToCurrency(coinModel: CoinModel) -> Currency? {
-        let coinType = coinModel.items.first
+        let tokenItem = coinModel.items.first?.tokenItem
 
-        switch coinType {
+        switch tokenItem {
         case .blockchain(let blockchain):
             return mapToCurrency(blockchain: blockchain)
         case .token(let token, let blockchain):

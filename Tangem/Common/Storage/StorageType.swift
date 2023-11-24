@@ -25,14 +25,17 @@ enum StorageType: String {
     case isMigratedToNewUserDefaults = "tangem_tap_migrate_to_new_defaults"
     case cardsStartedActivation = "tangem_cards_started_activation"
     case cardsFinishedActivation = "tangem_cards_finished_activation"
-    case didDisplayMainScreenStories = "tangem_tap_did_display_main_screen_stories"
     case termsOfServicesAccepted = "tangem_tap_terms_of_services_accepted"
     case askedToSaveUserWallets = "tangem_asked_to_save_user_wallets"
     case saveUserWallets = "tangem_save_user_wallets"
     case selectedUserWalletId = "tangem_selected_user_wallet_id"
     case saveAccessCodes = "tangem_save_access_codes"
     case systemDeprecationWarningDismissDate = "tangem_system_deprecation_warning_dismiss_date"
-
-    // Temp migrated cards storage. Remove with LegacyCardMigrator
-    case migratedCardsWithDefaultTokens = "tangem_migrated_cards_default_tokens"
+    case understandsAddressNetworkRequirements = "tangem_understands_address_network_requirements"
+    case promotionQuestionnaireFinished = "promotion_questionnaire_finished"
+    case hideSensitiveInformation = "hide_sensitive_information"
+    case hideSensitiveAvailable = "hide_sensitive_available"
+    case shouldHidingSensitiveInformationSheetShowing = "should_hiding_sensitive_information_sheet_showing"
+    case appTheme = "app_theme"
+    case userDidSwipeWalletsOnMainScreen = "user_did_swipe_wallets_on_main_screen"
 }

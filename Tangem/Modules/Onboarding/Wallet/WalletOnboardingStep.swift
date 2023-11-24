@@ -37,7 +37,7 @@ enum WalletOnboardingStep: Equatable {
         case .createWalletSelector:
             return Localization.walletTitle
         case .seedPhraseIntro, .seedPhraseGeneration, .seedPhraseUserValidation:
-            return Localization.walletButtonCreateWallet
+            return Localization.onboardingCreateWalletButtonCreateWallet
         case .seedPhraseImport:
             return Localization.onboardingSeedIntroButtonImport
         }
@@ -52,16 +52,9 @@ enum WalletOnboardingStep: Equatable {
         case .disclaimer, .success, .backupCards:
             return .zero
         default:
-            let cardFrame = WalletOnboardingCardLayout.origin.frame(for: self, containerSize: containerSize)
+            let cardFrame = WalletOnboardingCardLayout.origin.frame(for: .createWallet, containerSize: containerSize)
             let diameter = cardFrame.height * 1.242
             return .init(width: diameter, height: diameter)
-        }
-    }
-
-    func cardBackgroundCornerRadius(containerSize: CGSize) -> CGFloat {
-        switch self {
-        case .disclaimer, .success, .backupCards: return 0
-        default: return cardBackgroundFrame(containerSize: containerSize).height / 2
         }
     }
 
@@ -78,7 +71,7 @@ extension WalletOnboardingStep: OnboardingMessagesProvider, SuccessStep {
         switch self {
         case .createWallet: return Localization.onboardingCreateWalletButtonCreateWallet
         case .scanPrimaryCard: return Localization.onboardingTitleScanOriginCard
-        case .backupIntro: return Localization.onboardingTitleBackupCard
+        case .backupIntro: return nil
         case .selectBackupCards: return Localization.onboardingTitleNoBackupCards
         case .backupCards, .disclaimer: return ""
         case .saveUserWallet: return nil
@@ -94,11 +87,11 @@ extension WalletOnboardingStep: OnboardingMessagesProvider, SuccessStep {
         switch self {
         case .createWallet: return Localization.onboardingCreateWalletBody
         case .scanPrimaryCard: return Localization.onboardingSubtitleScanPrimary
-        case .backupIntro: return Localization.onboardingSubtitleBackupCard
+        case .backupIntro: return nil
         case .selectBackupCards: return Localization.onboardingSubtitleNoBackupCards
         case .backupCards, .disclaimer: return ""
         case .saveUserWallet: return nil
-        case .success: return Localization.onboardingSubtitleSuccessBackup
+        case .success: return Localization.onboardingSubtitleSuccessTangemWalletOnboarding
         case .createWalletSelector:
             return Localization.onboardingCreateWalletOptionsMessage
         case .seedPhraseIntro, .seedPhraseGeneration, .seedPhraseImport, .seedPhraseUserValidation:
@@ -117,7 +110,7 @@ extension WalletOnboardingStep: OnboardingMessagesProvider, SuccessStep {
 extension WalletOnboardingStep: OnboardingButtonsInfoProvider {
     var mainButtonTitle: String {
         switch self {
-        case .createWallet, .createWalletSelector: return Localization.walletButtonCreateWallet
+        case .createWallet, .createWalletSelector: return Localization.onboardingCreateWalletButtonCreateWallet
         case .scanPrimaryCard: return Localization.onboardingButtonScanOriginCard
         case .backupIntro: return Localization.onboardingButtonBackupNow
         case .selectBackupCards: return Localization.onboardingButtonAddBackupCard
@@ -125,6 +118,15 @@ extension WalletOnboardingStep: OnboardingButtonsInfoProvider {
         case .success: return Localization.onboardingButtonContinueWallet
         case .seedPhraseIntro: return Localization.onboardingSeedIntroButtonGenerate
         default: return ""
+        }
+    }
+
+    var mainButtonIcon: ImageType? {
+        switch self {
+        case .createWallet, .createWalletSelector, .scanPrimaryCard, .selectBackupCards, .backupCards:
+            return Assets.tangemIcon
+        default:
+            return nil
         }
     }
 

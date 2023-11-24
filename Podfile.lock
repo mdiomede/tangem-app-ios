@@ -28,22 +28,23 @@ PODS:
   - BinanceChain/Util (1.0.1-beta)
   - BitcoinCore.swift (0.15.4)
   - BlockchainSdk (0.0.1):
-    - AnyCodable-FlightSchool
-    - BigInt
+    - AnyCodable-FlightSchool (= 0.6.7)
+    - BigInt (= 5.2.0)
     - BinanceChain
     - BitcoinCore.swift
     - HDWalletKit
-    - Moya
-    - ScaleCodec
-    - Sodium
+    - Moya (= 15.0.0)
+    - ScaleCodec (= 0.2.1)
+    - Sodium (= 0.9.1)
     - Solana.Swift
     - stellar-ios-mac-sdk (= 2.3.2)
     - SwiftCBOR (= 0.4.5)
-    - SwiftProtobuf
-    - SwiftyJSON
+    - SwiftProtobuf (= 1.21.0)
+    - SwiftyJSON (= 5.0.1)
     - TangemSdk
     - TangemWalletCore
     - web3swift
+  - CombineExt (1.8.0)
   - CryptoSwift (1.5.1)
   - Firebase/Analytics (10.7.0):
     - Firebase/Core
@@ -148,8 +149,7 @@ PODS:
   - HDWalletKit (0.3.6):
     - CryptoSwift
     - secp256k1.swift
-  - Kingfisher (6.3.1)
-  - Mobile-Buy-SDK (7.1.0)
+  - Kingfisher (7.9.1)
   - Moya (15.0.0):
     - Moya/Core (= 15.0.0)
   - Moya/Core (15.0.0):
@@ -182,6 +182,7 @@ PODS:
     - secp256k1.swift
     - Starscream (~> 4.0.0)
     - TweetNacl (~> 1.0.2)
+  - SPRMessengerClient (3.6.2)
   - Starscream (4.0.4)
   - stellar-ios-mac-sdk (2.3.2)
   - SwiftCBOR (0.4.5)
@@ -189,34 +190,46 @@ PODS:
   - SwiftProtobuf (1.21.0)
   - SwiftyJSON (5.0.1)
   - TangemSdk (3.8.0)
-  - TangemWalletCore (3.1.9-tangem1):
+  - TangemWalletCore (3.2.4-tangem1):
     - SwiftProtobuf
   - TweetNacl (1.0.2)
-  - WalletConnectSwift (1.7.0):
-    - CryptoSwift (~> 1.5)
-  - WalletConnectSwiftV2 (1.6.6):
-    - WalletConnectSwiftV2/WalletConnect (= 1.6.6)
-  - WalletConnectSwiftV2/Commons (1.6.6)
-  - WalletConnectSwiftV2/HTTPClient (1.6.6)
-  - WalletConnectSwiftV2/JSONRPC (1.6.6):
+  - WalletConnectSwiftV2 (1.8.4):
+    - WalletConnectSwiftV2/WalletConnect (= 1.8.4)
+  - WalletConnectSwiftV2/Commons (1.8.4)
+  - WalletConnectSwiftV2/HTTPClient (1.8.4)
+  - WalletConnectSwiftV2/JSONRPC (1.8.4):
     - WalletConnectSwiftV2/Commons
-  - WalletConnectSwiftV2/WalletConnect (1.6.6):
-    - WalletConnectSwiftV2/WalletConnectPairing
+  - WalletConnectSwiftV2/WalletConnect (1.8.4):
+    - WalletConnectSwiftV2/WalletConnectAuth
+    - WalletConnectSwiftV2/WalletConnectPush
+    - WalletConnectSwiftV2/WalletConnectSign
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectJWT (1.6.6):
+  - WalletConnectSwiftV2/WalletConnectAuth (1.8.4):
+    - WalletConnectSwiftV2/WalletConnectPairing
+    - WalletConnectSwiftV2/WalletConnectSigner
+    - WalletConnectSwiftV2/WalletConnectVerify
+  - WalletConnectSwiftV2/WalletConnectJWT (1.8.4):
     - WalletConnectSwiftV2/WalletConnectKMS
-  - WalletConnectSwiftV2/WalletConnectKMS (1.6.6):
+  - WalletConnectSwiftV2/WalletConnectKMS (1.8.4):
     - WalletConnectSwiftV2/WalletConnectUtils
-  - WalletConnectSwiftV2/WalletConnectNetworking (1.6.6):
+  - WalletConnectSwiftV2/WalletConnectNetworking (1.8.4):
     - WalletConnectSwiftV2/HTTPClient
     - WalletConnectSwiftV2/WalletConnectRelay
-  - WalletConnectSwiftV2/WalletConnectPairing (1.6.6):
+  - WalletConnectSwiftV2/WalletConnectPairing (1.8.4):
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectRelay (1.6.6):
+  - WalletConnectSwiftV2/WalletConnectPush (1.8.4):
     - WalletConnectSwiftV2/WalletConnectJWT
-  - WalletConnectSwiftV2/WalletConnectUtils (1.6.6):
+    - WalletConnectSwiftV2/WalletConnectNetworking
+  - WalletConnectSwiftV2/WalletConnectRelay (1.8.4):
+    - WalletConnectSwiftV2/WalletConnectJWT
+  - WalletConnectSwiftV2/WalletConnectSign (1.8.4):
+    - WalletConnectSwiftV2/WalletConnectPairing
+    - WalletConnectSwiftV2/WalletConnectVerify
+  - WalletConnectSwiftV2/WalletConnectSigner (1.8.4):
+    - WalletConnectSwiftV2/WalletConnectNetworking
+  - WalletConnectSwiftV2/WalletConnectUtils (1.8.4):
     - WalletConnectSwiftV2/JSONRPC
-  - WalletConnectSwiftV2/WalletConnectVerify (1.6.6):
+  - WalletConnectSwiftV2/WalletConnectVerify (1.8.4):
     - WalletConnectSwiftV2/WalletConnectNetworking
     - WalletConnectSwiftV2/WalletConnectUtils
   - web3swift (2.2.1):
@@ -229,23 +242,6 @@ PODS:
     - XCGLogger/Core (= 7.0.1)
   - XCGLogger/Core (7.0.1):
     - ObjcExceptionBridging
-  - ZendeskChatProvidersSDK (2.12.0)
-  - ZendeskChatSDK (2.12.0):
-    - ZendeskChatProvidersSDK (= 2.12.0)
-    - ZendeskMessagingSDK (= 3.8.5)
-  - ZendeskCommonUISDK (6.1.4)
-  - ZendeskCoreSDK (2.7.0)
-  - ZendeskMessagingAPISDK (3.8.5):
-    - ZendeskSDKConfigurationsSDK (= 1.1.11)
-  - ZendeskMessagingSDK (3.8.5):
-    - ZendeskCommonUISDK (= 6.1.4)
-    - ZendeskMessagingAPISDK (= 3.8.5)
-  - ZendeskSDKConfigurationsSDK (1.1.11)
-  - ZendeskSupportProvidersSDK (5.5.0):
-    - ZendeskCoreSDK (= 2.7.0)
-  - ZendeskSupportSDK (5.5.0):
-    - ZendeskMessagingSDK (= 3.8.5)
-    - ZendeskSupportProvidersSDK (= 5.5.0)
 
 DEPENDENCIES:
   - AlertToast (from `https://github.com/elai950/AlertToast`, commit `a437862bb6605080a5816e866cbd4ac8c8657b49`)
@@ -253,21 +249,19 @@ DEPENDENCIES:
   - AppsFlyerFramework
   - BinanceChain (from `https://github.com/tangem/swiftbinancechain.git`, tag `0.0.9`)
   - BitcoinCore.swift (from `https://github.com/tangem/bitcoincore.git`, tag `0.0.19`)
-  - BlockchainSdk (from `https://github.com/tangem/blockchain-sdk-swift.git`, tag `develop-302`)
+  - BlockchainSdk (from `https://github.com/tangem/blockchain-sdk-swift.git`, tag `develop-412`)
+  - CombineExt (~> 1.8.0)
   - Firebase/Analytics
   - Firebase/Crashlytics
   - HDWalletKit (from `https://github.com/tangem/hdwallet.git`, tag `0.3.12`)
-  - Kingfisher (from `https://github.com/onevcat/Kingfisher.git`, branch `version6-xcode13`)
-  - Mobile-Buy-SDK
+  - Kingfisher (~> 7.9.0)
   - Moya
-  - Solana.Swift (from `https://github.com/tangem/Solana.Swift`, tag `add-external-signer-7`)
-  - TangemSdk (from `https://github.com/Tangem/tangem-sdk-ios.git`, tag `develop-248`)
-  - TangemWalletCore (from `https://github.com/tangem/wallet-core-binaries-ios.git`, tag `3.1.9-tangem4`)
-  - WalletConnectSwift (from `https://github.com/WalletConnect/WalletConnectSwift`, tag `1.7.0`)
-  - WalletConnectSwiftV2 (from `https://github.com/WalletConnect/WalletConnectSwiftV2`, tag `1.6.6`)
+  - Solana.Swift (from `https://github.com/tangem/Solana.Swift`, tag `add-external-signer-8`)
+  - SPRMessengerClient (from `https://github.com/tangem/SPRMessengerClient-binaries-ios.git`, tag `sprinklr-3.6.2-tangem1`)
+  - TangemSdk (from `https://github.com/Tangem/tangem-sdk-ios.git`, tag `develop-272`)
+  - TangemWalletCore (from `https://github.com/tangem/wallet-core-binaries-ios.git`, tag `3.2.4-tangem1`)
+  - WalletConnectSwiftV2 (from `https://github.com/WalletConnect/WalletConnectSwiftV2`, tag `1.8.4`)
   - web3swift (from `https://github.com/tangem/web3swift.git`, tag `2.2.12`)
-  - ZendeskChatSDK (~> 2.12.0)
-  - ZendeskSupportSDK (~> 5.5.0)
 
 SPEC REPOS:
   trunk:
@@ -277,6 +271,7 @@ SPEC REPOS:
     - AnyCodable-FlightSchool
     - AppsFlyerFramework
     - BigInt
+    - CombineExt
     - CryptoSwift
     - Firebase
     - FirebaseAnalytics
@@ -289,7 +284,7 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
-    - Mobile-Buy-SDK
+    - Kingfisher
     - Moya
     - nanopb
     - ObjcExceptionBridging
@@ -307,15 +302,6 @@ SPEC REPOS:
     - SwiftyJSON
     - TweetNacl
     - XCGLogger
-    - ZendeskChatProvidersSDK
-    - ZendeskChatSDK
-    - ZendeskCommonUISDK
-    - ZendeskCoreSDK
-    - ZendeskMessagingAPISDK
-    - ZendeskMessagingSDK
-    - ZendeskSDKConfigurationsSDK
-    - ZendeskSupportProvidersSDK
-    - ZendeskSupportSDK
 
 EXTERNAL SOURCES:
   AlertToast:
@@ -329,28 +315,25 @@ EXTERNAL SOURCES:
     :tag: 0.0.19
   BlockchainSdk:
     :git: https://github.com/tangem/blockchain-sdk-swift.git
-    :tag: develop-302
+    :tag: develop-412
   HDWalletKit:
     :git: https://github.com/tangem/hdwallet.git
     :tag: 0.3.12
-  Kingfisher:
-    :branch: version6-xcode13
-    :git: https://github.com/onevcat/Kingfisher.git
   Solana.Swift:
     :git: https://github.com/tangem/Solana.Swift
-    :tag: add-external-signer-7
+    :tag: add-external-signer-8
+  SPRMessengerClient:
+    :git: https://github.com/tangem/SPRMessengerClient-binaries-ios.git
+    :tag: sprinklr-3.6.2-tangem1
   TangemSdk:
     :git: https://github.com/Tangem/tangem-sdk-ios.git
-    :tag: develop-248
+    :tag: develop-272
   TangemWalletCore:
     :git: https://github.com/tangem/wallet-core-binaries-ios.git
-    :tag: 3.1.9-tangem4
-  WalletConnectSwift:
-    :git: https://github.com/WalletConnect/WalletConnectSwift
-    :tag: 1.7.0
+    :tag: 3.2.4-tangem1
   WalletConnectSwiftV2:
     :git: https://github.com/WalletConnect/WalletConnectSwiftV2
-    :tag: 1.6.6
+    :tag: 1.8.4
   web3swift:
     :git: https://github.com/tangem/web3swift.git
     :tag: 2.2.12
@@ -367,28 +350,25 @@ CHECKOUT OPTIONS:
     :tag: 0.0.19
   BlockchainSdk:
     :git: https://github.com/tangem/blockchain-sdk-swift.git
-    :tag: develop-302
+    :tag: develop-412
   HDWalletKit:
     :git: https://github.com/tangem/hdwallet.git
     :tag: 0.3.12
-  Kingfisher:
-    :commit: 2742b4de5036f9352d94c891495a3af3b9bdb67c
-    :git: https://github.com/onevcat/Kingfisher.git
   Solana.Swift:
     :git: https://github.com/tangem/Solana.Swift
-    :tag: add-external-signer-7
+    :tag: add-external-signer-8
+  SPRMessengerClient:
+    :git: https://github.com/tangem/SPRMessengerClient-binaries-ios.git
+    :tag: sprinklr-3.6.2-tangem1
   TangemSdk:
     :git: https://github.com/Tangem/tangem-sdk-ios.git
-    :tag: develop-248
+    :tag: develop-272
   TangemWalletCore:
     :git: https://github.com/tangem/wallet-core-binaries-ios.git
-    :tag: 3.1.9-tangem4
-  WalletConnectSwift:
-    :git: https://github.com/WalletConnect/WalletConnectSwift
-    :tag: 1.7.0
+    :tag: 3.2.4-tangem1
   WalletConnectSwiftV2:
     :git: https://github.com/WalletConnect/WalletConnectSwiftV2
-    :tag: 1.6.6
+    :tag: 1.8.4
   web3swift:
     :git: https://github.com/tangem/web3swift.git
     :tag: 2.2.12
@@ -403,7 +383,8 @@ SPEC CHECKSUMS:
   BigInt: f668a80089607f521586bbe29513d708491ef2f7
   BinanceChain: b77d4c0e496efbf13bdb1f428621480fd52f4ba1
   BitcoinCore.swift: 64ac4e69d9a6ef917bcbb0c23f1324cf57a822fb
-  BlockchainSdk: 595295c1d028307a0473d7ef4641589eed7e5c78
+  BlockchainSdk: 9e0a05467275f2f85aa8de3ce7b59bfd3a76419f
+  CombineExt: c4daa97ef75754d8ef319bd79edeef82652f3eea
   CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
   Firebase: 0219acf760880eeec8ce479895bd7767466d9f81
   FirebaseAnalytics: f8133442ee6f8512e28ff19e62ce15398bfaeace
@@ -417,8 +398,7 @@ SPEC CHECKSUMS:
   GoogleDataTransport: ea169759df570f4e37bdee1623ec32a7e64e67c4
   GoogleUtilities: c2bdc4cf2ce786c4d2e6b3bcfd599a25ca78f06f
   HDWalletKit: 602ec664633cc6bae1c697e4e17af42efb69bfad
-  Kingfisher: 8b783c3d7be73a99b2172a743a5bc0a4dd331d79
-  Mobile-Buy-SDK: 29812838f06cbf78fd80728d9f84e9eaf49c7843
+  Kingfisher: 1d14e9f59cbe19389f591c929000332bf70efd32
   Moya: 138f0573e53411fb3dc17016add0b748dfbd78ee
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   ObjcExceptionBridging: c30e00eb3700467e695faeea30e26e18bd445001
@@ -429,29 +409,20 @@ SPEC CHECKSUMS:
   secp256k1.swift: a7e7a214f6db6ce5db32cc6b2b45e5c4dd633634
   Sodium: 23d11554ecd556196d313cf6130d406dfe7ac6da
   Solana.Swift: 81d52fee263fded11b0d4e7859863ae489fe753e
+  SPRMessengerClient: 6c1ab0a60e254ef17515f1433f95c9ee951f0395
   Starscream: 5178aed56b316f13fa3bc55694e583d35dd414d9
   stellar-ios-mac-sdk: d8ab1ff49ac48e25ac3097da4deebcef77af6047
   SwiftCBOR: ac340b74d3b2cf1f8884bb748bd09875848e3873
   SwiftDate: 72d28954e8e1c6c1c0f917ccc8005e4f83c7d4b2
   SwiftProtobuf: afced68785854575756db965e9da52bbf3dc45e7
   SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
-  TangemSdk: 467241af06c09b4fb14980a985413bef48672a25
-  TangemWalletCore: 87a4637456e46c2aa3d49a6a1dc07a8054783183
+  TangemSdk: f3adf8d0c18bf7a76406462fa31c0efa9f2efa93
+  TangemWalletCore: 8495b203106e8246aaa2a51ff99dd19f29209942
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  WalletConnectSwift: 6309bf3011b0b30e3e9d1e7449535302a9240f71
-  WalletConnectSwiftV2: d8cf002f96b4b3ca23c2c3019711ecef93f2d2ed
+  WalletConnectSwiftV2: c1c2c2fbd0495860baf71515be1b943f0c5dce0c
   web3swift: 93f68f5430c11a78bba2351c139d2d22f2c04b5e
   XCGLogger: 1943831ef907df55108b0b18657953f868de973b
-  ZendeskChatProvidersSDK: b3f5a914ed9d518770c994f0f04683952087b00a
-  ZendeskChatSDK: 12fbe34d67b73895882786736329236e7e092b67
-  ZendeskCommonUISDK: ba160fe413b491af9e7bfcb9808afcd494dc83a5
-  ZendeskCoreSDK: 4236eb56f9386cf0770900df04c857b9b4d79d03
-  ZendeskMessagingAPISDK: 410f9bcf07c79fe98d6f251da102368d6b356c54
-  ZendeskMessagingSDK: 95d396c981dacfab83cc7b9736e8561d51a3052b
-  ZendeskSDKConfigurationsSDK: ebced171fd1f4eb57760e8537d8cfa6a450122be
-  ZendeskSupportProvidersSDK: 77a62fe6bacc05bb10ff20edce75612fa109fd61
-  ZendeskSupportSDK: ba72e90e327635b5fde3d023a3de33242a6ee8ab
 
-PODFILE CHECKSUM: a7df7eb8dd2c6b7bf7bf9685d45fdab68a8b4b86
+PODFILE CHECKSUM: a6657ba6e3da2c98a112233955cd10c6456c6cd8
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.14.3

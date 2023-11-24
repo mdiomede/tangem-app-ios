@@ -88,6 +88,10 @@ extension Start2CoinConfig: UserWalletConfig {
         .start2coin
     }
 
+    var cardHeaderImage: ImageType? {
+        Assets.Cards.s2c
+    }
+
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
         switch feature {
         case .send:
@@ -140,35 +144,29 @@ extension Start2CoinConfig: UserWalletConfig {
             return .available
         case .transactionHistory:
             return .hidden
-        case .seedPhrase:
-            return .hidden
         case .accessCodeRecoverySettings:
             return .hidden
+        case .promotion:
+            return .hidden
         }
-    }
-
-    func makeWalletModel(for token: StorageEntry) throws -> WalletModel {
-        guard let walletPublicKey = card.wallets.first(where: { $0.curve == defaultBlockchain.curve })?.publicKey else {
-            throw CommonError.noData
-        }
-
-        let factory = WalletModelFactory()
-        return try factory.makeSingleWallet(
-            walletPublicKey: walletPublicKey,
-            blockchain: defaultBlockchain,
-            token: nil,
-            derivationStyle: card.derivationStyle
-        )
     }
 
     func makeOnboardingStepsBuilder(backupService: BackupService) -> OnboardingStepsBuilder {
-        return Start2CoinOnboardingStepsBuilder(card: card, touId: tou.id)
+        return Start2CoinOnboardingStepsBuilder(hasWallets: !card.wallets.isEmpty, touId: tou.id)
+    }
+
+    func makeWalletModelsFactory() -> WalletModelsFactory {
+        return CommonWalletModelsFactory(derivationStyle: nil)
+    }
+
+    func makeAnyWalletManagerFactory() throws -> AnyWalletManagerFactory {
+        return SimpleWalletManagerFactory()
     }
 }
 
 // MARK: - TOU
 
-fileprivate struct TOUBuilder {
+private struct TOUBuilder {
     func makeTOU(for cardId: String) -> TOU {
         let regionCode = regionCode(for: cardId)
         let url = TOUItem.makeFrom(languageCode: Locale.current.languageCode, regionCode: regionCode).url
@@ -192,7 +190,7 @@ fileprivate struct TOUBuilder {
     }
 }
 
-fileprivate enum TOUItem: CaseIterable {
+private enum TOUItem: CaseIterable {
     case deAt
     case deCh
     case enCh

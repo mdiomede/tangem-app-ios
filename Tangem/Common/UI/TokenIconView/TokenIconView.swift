@@ -10,30 +10,32 @@ import Foundation
 import Kingfisher
 import SwiftUI
 
+@available(*, deprecated, message: "Use `IconView` instead")
 struct TokenIconView: View {
     private let viewModel: TokenIconViewModel
     private let size: CGSize
 
-    private let networkIconSize = CGSize(width: 16, height: 16)
-    private let networkIconBorderWidth: Double = 2
+    private let networkIconSize: CGSize
+    private let networkIconBorderWidth: Double
+    private let networkIconOffset: CGSize
 
-    init(viewModel: TokenIconViewModel, size: CGSize = CGSize(width: 40, height: 40)) {
+    init(viewModel: TokenIconViewModel, sizeSettings: IconViewSizeSettings = .tokenItem) {
         self.viewModel = viewModel
-        self.size = size
+        size = sizeSettings.iconSize
+        networkIconSize = sizeSettings.networkIconSize
+        networkIconBorderWidth = sizeSettings.networkIconBorderWidth
+        networkIconOffset = sizeSettings.networkIconOffset
     }
 
     var body: some View {
         KFImage(viewModel.imageURL)
-            .setProcessor(DownsamplingImageProcessor(size: size))
             .placeholder { placeholder }
             .fade(duration: 0.3)
             .cacheOriginalImage()
-            .scaleFactor(UIScreen.main.scale)
             .resizable()
             .scaledToFit()
-            .cornerRadius(5)
             .frame(size: size)
-            .overlay(networkIcon.offset(x: 4, y: -4), alignment: .topTrailing)
+            .overlay(networkIcon.offset(networkIconOffset), alignment: .topTrailing)
     }
 
     @ViewBuilder
@@ -41,6 +43,7 @@ struct TokenIconView: View {
         if let iconName = viewModel.blockchainIconName {
             NetworkIcon(
                 imageName: iconName,
+                isActive: true,
                 isMainIndicatorVisible: false,
                 size: networkIconSize
             )
@@ -54,13 +57,23 @@ struct TokenIconView: View {
 
     @ViewBuilder
     private var placeholder: some View {
-        CircleImageTextView(name: viewModel.name, color: .tangemGrayLight4)
+        CircleImageTextView(name: viewModel.name, color: Colors.Icon.inactive, size: size)
     }
 }
 
 struct TokenIconView_Preview: PreviewProvider {
     static let viewModel = TokenIconViewModel(tokenItem: .blockchain(.gnosis))
+    static let tokenViewModel = TokenIconViewModel(id: "stellar", name: "Stellar", style: .token(Tokens.ethereumFill.name))
     static var previews: some View {
-        TokenIconView(viewModel: viewModel)
+        VStack(spacing: 16) {
+            TokenIconView(viewModel: viewModel)
+
+            TokenIconView(viewModel: tokenViewModel, sizeSettings: .tokenDetails)
+
+            TokenIconView(
+                viewModel: tokenViewModel,
+                sizeSettings: .receive
+            )
+        }
     }
 }

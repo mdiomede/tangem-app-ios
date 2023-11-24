@@ -7,11 +7,12 @@
 //
 
 import Foundation
-import TangemSdk
 import Combine
+import CombineExt
+import TangemSdk
 
 protocol CardInitializable {
-    func initializeCard(seed: Data?, completion: @escaping (Result<CardInfo, TangemSdkError>) -> Void)
+    func initializeCard(mnemonic: Mnemonic?, completion: @escaping (Result<CardInfo, TangemSdkError>) -> Void)
 }
 
 class CardInitializer {
@@ -27,15 +28,20 @@ class CardInitializer {
 }
 
 extension CardInitializer: CardInitializable {
-    func initializeCard(seed: Data?, completion: @escaping (Result<CardInfo, TangemSdkError>) -> Void) {
+    func initializeCard(mnemonic: Mnemonic?, completion: @escaping (Result<CardInfo, TangemSdkError>) -> Void) {
         let config = UserWalletConfigFactory(cardInfo).makeConfig()
-        let task = PreparePrimaryCardTask(curves: config.mandatoryCurves, seed: seed)
+        let task = PreparePrimaryCardTask(curves: config.mandatoryCurves, mnemonic: mnemonic)
         let initialMessage = Message(header: nil, body: Localization.initialMessageCreateWalletBody)
         runnableBag = task
 
+        // Ring onboarding. Set custom image
+        if let customOnboardingImage = config.customScanImage {
+            tangemSdk.config.style.scanTagImage = .image(uiImage: customOnboardingImage.uiImage, verticalOffset: 0)
+        }
+
         let didBecomeActivePublisher = NotificationCenter.didBecomeActivePublisher
             .mapError { $0.toTangemSdkError() }
-            .mapVoid()
+            .mapToVoid()
             .first()
 
         cancellable = tangemSdk.startSessionPublisher(
@@ -48,11 +54,15 @@ extension CardInitializer: CardInitializable {
             var mutableCardInfo = cardInfo
             mutableCardInfo.card = CardDTO(card: response.card)
             mutableCardInfo.primaryCard = response.primaryCard
+            mutableCardInfo.card.attestation = cardInfo.card.attestation
             return mutableCardInfo
         }
         .sink(receiveCompletion: { [weak self] completionResult in
             self?.runnableBag = nil
             self?.cancellable = nil
+
+            // Ring onboarding. Reset the image
+            self?.tangemSdk.config.style.scanTagImage = .genericCard
 
             switch completionResult {
             case .finished:

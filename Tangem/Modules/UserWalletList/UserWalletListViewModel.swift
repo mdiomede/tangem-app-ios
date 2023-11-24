@@ -26,7 +26,7 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
     // MARK: - Dependencies
 
     var unlockAllButtonTitle: String {
-        Localization.userWalletListUnlockAll(BiometricAuthorizationUtils.biometryType.name)
+        Localization.userWalletListUnlockAllWith(BiometricAuthorizationUtils.biometryType.name)
     }
 
     var isLocked: Bool {
@@ -60,11 +60,11 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
                     self?.isScanningCard = isScanning
                 case .updated(let userWalletModel):
                     self?.update(userWalletModel: userWalletModel)
-                case .deleted(let userWalletId):
-                    self?.delete(userWalletId: userWalletId)
+                case .deleted(let userWalletIds):
+                    self?.delete(userWalletIds: userWalletIds)
                 case .selected(let userWallet, let reason):
                     self?.setSelectedWallet(userWallet, reason: reason)
-                case .inserted:
+                case .inserted, .replaced:
                     break
                 }
             }
@@ -72,7 +72,7 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
     }
 
     func unlockAllWallets() {
-        Analytics.log(.buttonUnlockAllWithFaceID)
+        Analytics.log(.myWalletsButtonUnlockAllWithFaceID)
 
         userWalletRepository.unlock(with: .biometry) { [weak self] result in
             switch result {
@@ -80,10 +80,6 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
                 self?.error = error.alertBinder
             default:
                 self?.updateModels()
-                // updateModels doesn't update balances, do it manually
-                self?.userWalletRepository.models.forEach {
-                    $0.initialUpdate()
-                }
             }
         }
     }
@@ -101,9 +97,9 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
 
             switch result {
             case .troubleshooting:
-                self.showTroubleshootingView = true
+                showTroubleshootingView = true
             case .onboarding(let input):
-                self.openOnboarding(with: input)
+                openOnboarding(with: input)
             case .error(let error):
                 if let userWalletRepositoryError = error as? UserWalletRepositoryError {
                     self.error = userWalletRepositoryError.alertBinder
@@ -111,7 +107,7 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
                     self.error = error.alertBinder
                 }
             case .success(let cardModel), .partial(let cardModel, _):
-                self.add(cardModel: cardModel)
+                add(cardModel: cardModel)
             }
         }
     }
@@ -127,8 +123,12 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
         coordinator.openMail(with: failedCardScanTracker, emailType: .failedToScanCard, recipient: EmailConfig.default.recipient)
     }
 
-    func edit(_ userWallet: UserWallet) {
-        Analytics.log(.buttonEditWalletTapped)
+    func edit(_ userWalletId: Data) {
+        guard let userWalletModel = userWalletRepository.models.first(where: { $0.userWalletId.value == userWalletId }) else {
+            return
+        }
+
+        Analytics.log(.myWalletsButtonEditWalletTapped)
 
         let alert = UIAlertController(title: Localization.userWalletListRenamePopupTitle, message: nil, preferredStyle: .alert)
         let cancelAction = UIAlertAction(title: Localization.commonCancel, style: .cancel)
@@ -138,7 +138,7 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
         alert.addTextField { textField in
             nameTextField = textField
             nameTextField?.placeholder = Localization.userWalletListRenamePopupPlaceholder
-            nameTextField?.text = userWallet.name
+            nameTextField?.text = userWalletModel.userWallet.name
             nameTextField?.clearButtonMode = .whileEditing
             nameTextField?.autocapitalizationType = .sentences
         }
@@ -146,9 +146,9 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
         let acceptButton = UIAlertAction(title: Localization.commonOk, style: .default) { [weak self, nameTextField] _ in
             let newName = nameTextField?.text ?? ""
 
-            guard userWallet.name != newName else { return }
+            guard userWalletModel.userWallet.name != newName else { return }
 
-            var newUserWallet = userWallet
+            var newUserWallet = userWalletModel.userWallet
             newUserWallet.name = newName
 
             self?.userWalletRepository.save(newUserWallet)
@@ -158,11 +158,11 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
         AppPresenter.shared.show(alert)
     }
 
-    func showDeletionConfirmation(_ userWallet: UserWallet) {
-        Analytics.log(.buttonDeleteWalletTapped)
+    func showDeletionConfirmation(_ userWalletId: Data) {
+        Analytics.log(.myWalletsButtonDeleteWalletTapped)
 
         showingDeleteConfirmation = true
-        userWalletIdToBeDeleted = userWallet.userWalletId
+        userWalletIdToBeDeleted = userWalletId
     }
 
     func didCancelWalletDeletion() {
@@ -175,7 +175,7 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
             return
         }
 
-        userWalletRepository.delete(viewModel.userWallet, logoutIfNeeded: true)
+        userWalletRepository.delete(viewModel.userWalletModel.userWalletId, logoutIfNeeded: true)
     }
 
     func onAppear() {
@@ -214,11 +214,11 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
         }
     }
 
-    private func delete(userWalletId: Data) {
+    private func delete(userWalletIds: [Data]) {
         userWalletIdToBeDeleted = nil
 
-        multiCurrencyModels.removeAll { $0.userWalletId == userWalletId }
-        singleCurrencyModels.removeAll { $0.userWalletId == userWalletId }
+        multiCurrencyModels.removeAll { userWalletIds.contains($0.userWalletId) }
+        singleCurrencyModels.removeAll { userWalletIds.contains($0.userWalletId) }
     }
 
     private func updateSelectedWalletModel() {
@@ -270,9 +270,9 @@ final class UserWalletListViewModel: ObservableObject, Identifiable {
             }
             self?.userWalletRepository.setSelectedUserWalletId(userWallet.userWalletId, reason: .userSelected)
         } didEditUserWallet: { [weak self] in
-            self?.edit(userWallet)
+            self?.edit(userWallet.userWalletId)
         } didDeleteUserWallet: { [weak self] in
-            self?.showDeletionConfirmation(userWallet)
+            self?.showDeletionConfirmation(userWallet.userWalletId)
         }
     }
 }

@@ -10,17 +10,36 @@ import SwiftUI
 import Kingfisher
 
 struct TokenIcon: View {
-    let name: String
-    let imageURL: URL?
-    let blockchainIconName: String?
+    let tokenIconInfo: TokenIconInfo
+    let size: CGSize
 
-    var size = CGSize(width: 40, height: 40)
-    var networkIconSize = CGSize(width: 14, height: 14)
-    var networkIconBorderWidth: Double = 2
+    private var imageURL: URL? { tokenIconInfo.imageURL }
+    private var customTokenColor: Color? { tokenIconInfo.customTokenColor }
+    private var blockchainIconName: String? { tokenIconInfo.blockchainIconName }
+    private var isCustom: Bool { tokenIconInfo.isCustom }
+
+    private let networkIconSize = CGSize(width: 14, height: 14)
+    private let networkIconBorderWidth: Double = 2
+    private let customTokenIndicatorSize = CGSize(width: 8, height: 8)
+    private let customTokenIndicatorBorderWidth: CGFloat = 2
+    private let customTokenIconSizeRatio = 0.54
+
+    private var customTokenIndicatorBorderSize: CGSize {
+        customTokenIndicatorSize + CGSize(width: 2 * customTokenIndicatorBorderWidth, height: 2 * customTokenIndicatorBorderWidth)
+    }
 
     var body: some View {
-        IconView(url: imageURL, size: size)
-            .overlay(networkIcon.offset(x: 4, y: -4), alignment: .topTrailing)
+        if let customTokenColor {
+            customTokenIcon(background: customTokenColor)
+        } else {
+            tokenIcon
+        }
+    }
+
+    private var tokenIcon: some View {
+        IconView(url: imageURL, size: size, forceKingfisher: true)
+            .overlay(networkIcon, alignment: .topTrailing)
+            .overlay(customTokenIndicator, alignment: .bottomTrailing)
     }
 
     @ViewBuilder
@@ -28,15 +47,48 @@ struct TokenIcon: View {
         if let iconName = blockchainIconName {
             NetworkIcon(
                 imageName: iconName,
+                isActive: true,
                 isMainIndicatorVisible: false,
                 size: networkIconSize
             )
             .background(
-                Color.white
+                Colors.Background.primary
                     .clipShape(Circle())
                     .frame(size: networkIconSize + CGSize(width: 2 * networkIconBorderWidth, height: 2 * networkIconBorderWidth))
             )
+            .offset(x: 4, y: -4)
         }
+    }
+
+    @ViewBuilder
+    private var customTokenIndicator: some View {
+        if isCustom {
+            Circle()
+                .foregroundColor(Colors.Icon.informative)
+                .frame(size: customTokenIndicatorSize)
+                .background(
+                    Circle()
+                        .foregroundColor(Colors.Background.primary)
+                        .frame(size: customTokenIndicatorBorderSize)
+                )
+                .offset(x: 1, y: 1)
+        }
+    }
+
+    private func customTokenIcon(background: Color) -> some View {
+        customTokenColor
+            .clipShape(Circle())
+            .overlay(
+                Assets.customTokenStar.image
+                    .resizable()
+                    .frame(
+                        width: size.width * customTokenIconSizeRatio,
+                        height: size.height * customTokenIconSizeRatio
+                    )
+            )
+            .frame(size: size)
+            .overlay(networkIcon, alignment: .topTrailing)
+            .overlay(customTokenIndicator, alignment: .bottomTrailing)
     }
 }
 
@@ -61,11 +113,18 @@ struct TokenIcon_Preview: PreviewProvider {
             VStack {
                 ForEach(coins, id: \.id) { coin in
                     TokenIcon(
-                        name: coin.id, imageURL: TokenIconURLBuilder(baseURL: CoinsResponse.baseURL).iconURL(id: coin.id, size: .large),
-                        blockchainIconName: coin.iconName
+                        tokenIconInfo: .init(
+                            name: "",
+                            blockchainIconName: coin.iconName,
+                            imageURL: TokenIconURLBuilder().iconURL(id: coin.id, size: .large),
+                            isCustom: true,
+                            customTokenColor: nil
+                        ),
+                        size: CGSize(width: 40, height: 40)
                     )
                 }
             }
+            .infinityFrame()
         }
     }
 }

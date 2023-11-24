@@ -87,6 +87,10 @@ extension TwinConfig: UserWalletConfig {
         .twin
     }
 
+    var cardHeaderImage: ImageType? {
+        Assets.Cards.twins
+    }
+
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
         switch feature {
         case .accessCode:
@@ -139,31 +143,32 @@ extension TwinConfig: UserWalletConfig {
             return .hidden
         case .transactionHistory:
             return .hidden
-        case .seedPhrase:
-            return .hidden
         case .accessCodeRecoverySettings:
+            return .hidden
+        case .promotion:
             return .hidden
         }
     }
 
-    func makeWalletModel(for token: StorageEntry) throws -> WalletModel {
-        guard let savedPairKey = twinData.pairPublicKey,
-              let walletPublicKey = card.wallets.first?.publicKey else {
+    func makeWalletModelsFactory() -> WalletModelsFactory {
+        return CommonWalletModelsFactory(derivationStyle: nil)
+    }
+
+    func makeAnyWalletManagerFactory() throws -> AnyWalletManagerFactory {
+        guard let savedPairKey = twinData.pairPublicKey else {
             throw CommonError.noData
         }
 
-        let factory = WalletManagerFactoryProvider().factory
-        let twinManager = try factory.makeTwinWalletManager(
-            walletPublicKey: walletPublicKey,
-            pairKey: savedPairKey,
-            isTestnet: AppEnvironment.current.isTestnet
-        )
-
-        return WalletModel(walletManager: twinManager, derivationStyle: card.derivationStyle)
+        return TwinWalletManagerFactory(pairPublicKey: savedPairKey)
     }
 
     func makeOnboardingStepsBuilder(backupService: BackupService) -> OnboardingStepsBuilder {
-        return TwinOnboardingStepsBulder(card: card, twinData: twinData, touId: tou.id)
+        return TwinOnboardingStepsBulder(
+            cardId: card.cardId,
+            hasWallets: !card.wallets.isEmpty,
+            twinData: twinData,
+            touId: tou.id
+        )
     }
 
     func makeTangemSdk() -> TangemSdk {

@@ -9,6 +9,10 @@
 import Foundation
 
 extension Swift.Collection {
+    var nilIfEmpty: Self? {
+        return isEmpty ? nil : self
+    }
+
     /// Simple extension for checking process in empty collection
     /// Use `allConforms` for check each element to satisfy a condition
     /// `allSatisfy` return `true`, if collection `isEmpty`
@@ -16,9 +20,19 @@ extension Swift.Collection {
         !isEmpty && allSatisfy { predicate($0) }
     }
 
-    /// Useful for cases like `SwiftUI.ForEach` + non-zero-based collections.
+    /// Useful for cases like `SwiftUI.ForEach` + non-zero-based integer-indexed collections.
     /// See https://onmyway133.com/posts/how-to-use-foreach-with-indices-in-swiftui/ for details.
     func indexed() -> some RandomAccessCollection<(Self.Index, Self.Element)> {
-        return Array(zip(indices, self))
+        return Array(Swift.zip(indices, self))
+    }
+
+    func sorted<T>(by keyPath: KeyPath<Element, T>) -> [Element] where T: Comparable {
+        return sorted { lhs, rhs in
+            lhs[keyPath: keyPath] < rhs[keyPath: keyPath]
+        }
+    }
+
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }

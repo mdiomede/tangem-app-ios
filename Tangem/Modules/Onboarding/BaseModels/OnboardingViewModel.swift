@@ -12,7 +12,6 @@ import TangemSdk
 
 class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable> {
     @Injected(\.userWalletRepository) private var userWalletRepository: UserWalletRepository
-    @Injected(\.analyticsContext) var analyticsContext: AnalyticsContext
 
     let navbarSize: CGSize = .init(width: UIScreen.main.bounds.width, height: 44)
     let resetAnimDuration: Double = 0.3
@@ -28,6 +27,7 @@ class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable>
     @Published var isNavBarVisible: Bool = false
     @Published var alert: AlertBinder?
     @Published var cardImage: Image?
+    @Published var customOnboardingImage: Image?
     @Published var secondImage: Image?
 
     private var confettiFired: Bool = false
@@ -56,6 +56,7 @@ class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable>
     var mainButtonSettings: MainButton.Settings? {
         MainButton.Settings(
             title: mainButtonTitle,
+            icon: mainButtonIcon,
             style: .primary,
             isLoading: isMainButtonBusy,
             action: mainButtonAction
@@ -68,6 +69,14 @@ class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable>
 
     var mainButtonTitle: String {
         currentStep.mainButtonTitle
+    }
+
+    var mainButtonIcon: MainButton.Icon? {
+        if let icon = currentStep.mainButtonIcon {
+            return .trailing(icon)
+        }
+
+        return nil
     }
 
     var supplementButtonSettings: TangemButtonSettings? {
@@ -155,25 +164,19 @@ class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable>
     func initializeUserWallet(from cardInfo: CardInfo) {
         guard let userWallet = CardViewModel(cardInfo: cardInfo) else { return }
 
-        userWallet.appendDefaultBlockchains()
-        userWallet.initialUpdate()
+        userWalletRepository.initializeServices(for: userWallet, cardInfo: userWallet.cardInfo)
 
-        analyticsContext.updateContext(with: userWallet.userWalletId.value)
         Analytics.logTopUpIfNeeded(balance: 0)
 
         cardModel = userWallet
     }
 
     func handleUserWalletOnFinish() throws {
-        guard
-            AppSettings.shared.saveUserWallets,
-            let cardModel = cardModel
-        else {
+        guard let cardModel = cardModel else {
             return
         }
 
-        userWalletRepository.save(cardModel)
-        userWalletRepository.setSelectedUserWalletId(cardModel.userWalletId.value, reason: .inserted)
+        userWalletRepository.add(cardModel)
     }
 
     func loadImage(supportsOnlineImage: Bool, cardId: String?, cardPublicKey: Data?) {
@@ -288,7 +291,7 @@ class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable>
         AppSettings.shared.saveUserWallets = agreed
         AppSettings.shared.saveAccessCodes = agreed
 
-        Analytics.log(.onboardingEnableBiometric, params: [.state: Analytics.ParameterValue.state(for: agreed)])
+        Analytics.log(.onboardingEnableBiometric, params: [.state: Analytics.ParameterValue.toggleState(for: agreed)])
     }
 
     func disclaimerAccepted() {
@@ -311,7 +314,7 @@ class OnboardingViewModel<Step: OnboardingStep, Coordinator: OnboardingRoutable>
 
                 if let walletStep = currentStep as? WalletOnboardingStep {
                     switch walletStep {
-                    case .createWallet:
+                    case .createWallet, .createWalletSelector:
                         Analytics.log(.createWalletScreenOpened)
                     case .backupIntro:
                         Analytics.log(.backupScreenOpened)
@@ -361,6 +364,8 @@ extension OnboardingViewModel {
     }
 
     func closeOnboarding() {
+        // reset services before exit
+        userWalletRepository.updateSelection()
         coordinator.closeOnboarding()
     }
 
@@ -371,7 +376,7 @@ extension OnboardingViewModel {
         UIApplication.shared.endEditing()
 
         let dataCollector = DetailsFeedbackDataCollector(
-            walletModels: cardModel?.walletModels ?? [],
+            walletModels: cardModel?.walletModelsManager.walletModels ?? [],
             userWalletEmailData: input.cardInput.emailData
         )
 
@@ -401,7 +406,7 @@ extension OnboardingViewModel: UserWalletStorageAgreementRoutable {
             }
 
             Analytics.log(.allowBiometricID, params: [
-                .state: Analytics.ParameterValue.state(for: biometryAccessGranted),
+                .state: Analytics.ParameterValue.toggleState(for: biometryAccessGranted),
             ])
 
             self?.goToNextStep()

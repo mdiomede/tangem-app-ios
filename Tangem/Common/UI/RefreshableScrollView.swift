@@ -1,10 +1,18 @@
-// Authoer: The SwiftUI Lab
-// Full article: https://swiftui-lab.com/scrollview-pull-to-refresh/
+//
+//  RefreshableScrollView.swift
+//  Tangem
+//
+//  Created by Alexander Osokin on 26.08.2020.
+//  Copyright © 2020 Tangem AG. All rights reserved.
+//
+
 import SwiftUI
 
-typealias RefreshComplete = () -> Void
-typealias OnRefresh = (@escaping RefreshComplete) -> Void
+typealias RefreshCompletionHandler = () -> Void
+typealias OnRefresh = (_ completionHandler: @escaping RefreshCompletionHandler) -> Void
 
+/// Author: The SwiftUI Lab.
+/// Full article: https://swiftui-lab.com/scrollview-pull-to-refresh/.
 struct RefreshableScrollView<Content: View>: View {
     @State private var previousScrollOffset: CGFloat = 0
     @State private var scrollOffset: CGFloat = 0
@@ -17,7 +25,11 @@ struct RefreshableScrollView<Content: View>: View {
     let onRefresh: OnRefresh
     let content: Content
 
-    init(height: CGFloat = 100, onRefresh: @escaping OnRefresh, @ViewBuilder content: () -> Content) {
+    init(
+        height: CGFloat = 100,
+        onRefresh: @escaping OnRefresh,
+        @ViewBuilder content: () -> Content
+    ) {
         threshold = height
         self.onRefresh = onRefresh
         self.content = content()
@@ -34,7 +46,7 @@ struct RefreshableScrollView<Content: View>: View {
     @available(iOS 16.0, *)
     private var refreshableScrollView: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            self.content
+            content
         }
         .refreshable {
             await withCheckedContinuation { continuation in
@@ -47,53 +59,74 @@ struct RefreshableScrollView<Content: View>: View {
 
     private var scrollViewWithHacks: some View {
         return VStack {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 ZStack(alignment: .top) {
                     MovingView()
 
-                    VStack { self.content }.alignmentGuide(.top, computeValue: { d in (self.refreshing && self.frozen) ? (-self.threshold + 30) : 0.0 })
+                    VStack {
+                        content
+                    }
+                    .alignmentGuide(
+                        .top,
+                        computeValue: { _ in (refreshing && frozen) ? -threshold : 0.0 }
+                    )
 
-                    SymbolView(height: self.threshold - 30, loading: self.refreshing, frozen: self.frozen, rotation: self.rotation, alpha: alpha)
+                    SymbolView(
+                        height: threshold,
+                        loading: refreshing,
+                        frozen: frozen,
+                        rotation: rotation,
+                        alpha: alpha
+                    )
                 }
             }
             .background(FixedView())
             .onPreferenceChange(RefreshableKeyTypes.PrefKey.self) { values in
-                self.refreshLogic(values: values)
+                refreshLogic(values: values)
             }
         }
     }
 
     private func refreshLogic(values: [RefreshableKeyTypes.PrefData]) {
+        // `DispatchQueue.main.async` used here to allow publishing changes during view update
         DispatchQueue.main.async {
-            // Calculate scroll offset
+            // Calculating scroll offset
             let movingBounds = values.first { $0.vType == .movingView }?.bounds ?? .zero
             let fixedBounds = values.first { $0.vType == .fixedView }?.bounds ?? .zero
 
-            self.scrollOffset = movingBounds.minY - fixedBounds.minY
+            scrollOffset = movingBounds.minY - fixedBounds.minY
 
-            self.rotation = self.symbolRotation(self.scrollOffset)
-            self.alpha = self.symbolAlpha(self.scrollOffset)
+            rotation = symbolRotation(scrollOffset)
+            alpha = symbolAlpha(scrollOffset)
 
             // Crossing the threshold on the way down, we start the refresh process
-            if !self.refreshing, self.scrollOffset > self.threshold, self.previousScrollOffset <= self.threshold {
-                self.refreshing = true
+            if !refreshing, scrollOffset > threshold, previousScrollOffset <= threshold {
+                refreshing = true
 
-                self.onRefresh {
-                    self.refreshing = false
+                // The consumer of this view may and most likely will change view hierarchy in `onRefresh` closure,
+                // which in turn will interfere with view hierarchy changes made by changing our `frozen`/`refreshing`
+                // state variables.
+                // To prevent it, we're notifying the consumer of this view about triggered pull-to-refresh with some delay.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    onRefresh {
+                        withAnimation {
+                            refreshing = false
+                        }
+                    }
                 }
             }
-            if self.refreshing {
+            if refreshing {
                 // Crossing the threshold on the way up, we add a space at the top of the scrollview
-                if self.previousScrollOffset > self.threshold, self.scrollOffset < self.previousScrollOffset {
+                if previousScrollOffset > threshold, scrollOffset < previousScrollOffset {
                     frozen = true
                 }
             } else {
-                // remove the sapce at the top of the scroll view
-                self.frozen = false
+                // Removing the space at the top of the scroll view
+                frozen = false
             }
 
-            // Update last scroll offset
-            self.previousScrollOffset = self.scrollOffset
+            // Updating last scroll offset
+            previousScrollOffset = scrollOffset
         }
     }
 
@@ -123,13 +156,13 @@ struct RefreshableScrollView<Content: View>: View {
 
         var body: some View {
             Group {
-                if self.loading { // If loading, show the activity control
+                if loading { // If loading, show the activity control
                     VStack {
                         Spacer()
-                        ActivityRep()
+                        ProgressView()
                         Spacer()
                     }.frame(height: height).fixedSize()
-                        .offset(y: -height + (self.loading && self.frozen ? height : 0.0))
+                        .offset(y: -height + (loading && frozen ? height : 0.0))
                 } else {
                     Image(systemName: "arrow.down") // If not loading, show the arrow
                         .resizable()
@@ -147,7 +180,16 @@ struct RefreshableScrollView<Content: View>: View {
     private struct MovingView: View {
         var body: some View {
             GeometryReader { proxy in
-                Color.clear.preference(key: RefreshableKeyTypes.PrefKey.self, value: [RefreshableKeyTypes.PrefData(vType: .movingView, bounds: proxy.frame(in: .global))])
+                Color.clear
+                    .preference(
+                        key: RefreshableKeyTypes.PrefKey.self,
+                        value: [
+                            RefreshableKeyTypes.PrefData(
+                                vType: .movingView,
+                                bounds: proxy.frame(in: .global)
+                            ),
+                        ]
+                    )
             }.frame(height: 0)
         }
     }
@@ -155,13 +197,24 @@ struct RefreshableScrollView<Content: View>: View {
     private struct FixedView: View {
         var body: some View {
             GeometryReader { proxy in
-                Color.clear.preference(key: RefreshableKeyTypes.PrefKey.self, value: [RefreshableKeyTypes.PrefData(vType: .fixedView, bounds: proxy.frame(in: .global))])
+                Color.clear
+                    .preference(
+                        key: RefreshableKeyTypes.PrefKey.self,
+                        value: [
+                            RefreshableKeyTypes.PrefData(
+                                vType: .fixedView,
+                                bounds: proxy.frame(in: .global)
+                            ),
+                        ]
+                    )
             }
         }
     }
 }
 
-fileprivate enum RefreshableKeyTypes {
+// MARK: - Auxiliary types
+
+private enum RefreshableKeyTypes {
     enum ViewType: Int {
         case movingView
         case fixedView
@@ -183,17 +236,7 @@ fileprivate enum RefreshableKeyTypes {
     }
 }
 
-fileprivate struct ActivityRep: UIViewRepresentable {
-    func makeUIView(context: UIViewRepresentableContext<ActivityRep>) -> UIActivityIndicatorView {
-        return UIActivityIndicatorView()
-    }
-
-    func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<ActivityRep>) {
-        if !uiView.isAnimating {
-            uiView.startAnimating()
-        }
-    }
-}
+// MARK: - Previews
 
 struct RefreshableScrollViewView_Previews: PreviewProvider {
     struct _ScrollView: View {

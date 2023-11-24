@@ -8,73 +8,81 @@
 
 import Foundation
 import Combine
-import BlockchainSdk
 
 class LockedUserWallet: UserWalletModel {
-    private(set) var userWallet: UserWallet
+    let walletModelsManager: WalletModelsManager = LockedWalletModelsManager()
+    let userTokenListManager: UserTokenListManager = LockedUserTokenListManager()
+    let userTokensManager: UserTokensManager = LockedUserTokensManager()
+    let config: UserWalletConfig
+    var signer: TangemSigner
 
-    private let config: UserWalletConfig
+    var tokensCount: Int? { nil }
 
-    init(with userWallet: UserWallet) {
-        self.userWallet = userWallet
-        config = UserWalletConfigFactory(userWallet.cardInfo()).makeConfig()
-    }
+    var cardsCount: Int { config.cardsCount }
 
     var isMultiWallet: Bool { config.hasFeature(.multiCurrency) }
 
     var userWalletId: UserWalletId { .init(value: userWallet.userWalletId) }
 
-    var walletModels: [WalletModel] { [] }
+    var updatePublisher: AnyPublisher<Void, Never> { .just }
 
-    var userTokenListManager: UserTokenListManager { DummyUserTokenListManager() }
+    var emailData: [EmailCollectedData] {
+        var data = config.emailData
 
-    var totalBalanceProvider: TotalBalanceProviding { DummyTotalBalanceProvider() }
+        let userWalletIdItem = EmailCollectedData(type: .card(.userWalletId), data: userWalletId.stringValue)
+        data.append(userWalletIdItem)
 
-    func subscribeToWalletModels() -> AnyPublisher<[WalletModel], Never> { .just(output: []) }
+        return data
+    }
 
-    func getSavedEntries() -> [StorageEntry] { [] }
+    let backupInput: OnboardingInput? = nil
+    let twinInput: OnboardingInput? = nil
 
-    func getEntriesWithoutDerivation() -> [StorageEntry] { [] }
+    private(set) var userWallet: UserWallet
 
-    func subscribeToEntriesWithoutDerivation() -> AnyPublisher<[StorageEntry], Never> { .just(output: []) }
-
-    func canManage(amountType: BlockchainSdk.Amount.AmountType, blockchainNetwork: BlockchainNetwork) -> Bool { false }
-
-    func update(entries: [StorageEntry]) {}
-
-    func append(entries: [StorageEntry]) {}
-
-    func remove(amountType: Amount.AmountType, blockchainNetwork: BlockchainNetwork) {}
+    init(with userWallet: UserWallet) {
+        self.userWallet = userWallet
+        config = UserWalletConfigFactory(userWallet.cardInfo()).makeConfig()
+        signer = TangemSigner(with: userWallet.card.cardId, sdk: config.makeTangemSdk())
+    }
 
     func initialUpdate() {}
 
     func updateWalletName(_ name: String) {
-        userWallet.name = name
+        // Renaming locked wallets is prohibited
     }
 
-    func updateWalletModels() {}
-
-    func updateAndReloadWalletModels(silent: Bool, completion: @escaping () -> Void) {}
+    func totalBalancePublisher() -> AnyPublisher<LoadingValue<TotalBalanceProvider.TotalBalance>, Never> {
+        .just(output: .loaded(.init(balance: 0, currencyCode: "", hasError: false)))
+    }
 }
 
-extension LockedUserWallet {
-    struct DummyUserTokenListManager: UserTokenListManager {
-        var didPerformInitialLoading: Bool { false }
+extension LockedUserWallet: MainHeaderInfoProvider {
+    var isUserWalletLocked: Bool { true }
 
-        func update(userWalletId: Data) {}
-
-        func update(_ type: CommonUserTokenListManager.UpdateType) {}
-
-        func updateLocalRepositoryFromServer(result: @escaping (Result<UserTokenList, Error>) -> Void) {}
-
-        func getEntriesFromRepository() -> [StorageEntry] { [] }
-
-        func clearRepository(completion: @escaping () -> Void) {}
+    var userWalletNamePublisher: AnyPublisher<String, Never> {
+        .just(output: userWallet.name)
     }
 
-    struct DummyTotalBalanceProvider: TotalBalanceProviding {
-        func totalBalancePublisher() -> AnyPublisher<LoadingValue<TotalBalanceProvider.TotalBalance>, Never> {
-            Empty().eraseToAnyPublisher()
-        }
+    var cardHeaderImagePublisher: AnyPublisher<ImageType?, Never> {
+        .just(output: config.cardHeaderImage)
+    }
+
+    var isTokensListEmpty: Bool { false }
+}
+
+extension LockedUserWallet: AnalyticsContextDataProvider {
+    func getAnalyticsContextData() -> AnalyticsContextData? {
+        let cardInfo = userWallet.cardInfo()
+        let embeddedEntry = config.embeddedBlockchain
+        let baseCurrency = embeddedEntry?.tokens.first?.symbol ?? embeddedEntry?.blockchainNetwork.blockchain.currencySymbol
+
+        return AnalyticsContextData(
+            id: nil,
+            productType: config.productType,
+            batchId: cardInfo.card.batchId,
+            firmware: cardInfo.card.firmwareVersion.stringValue,
+            baseCurrency: baseCurrency
+        )
     }
 }

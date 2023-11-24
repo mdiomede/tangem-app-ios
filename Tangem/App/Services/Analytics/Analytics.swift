@@ -23,7 +23,7 @@ class Analytics {
 
     static func beginLoggingCardScan(source: CardScanSource) {
         analyticsContext.set(value: source, forKey: .scanSource, scope: .common)
-        logInternal(source.cardScanButtonEvent)
+        logEventInternal(source.cardScanButtonEvent)
     }
 
     static func endLoggingCardScan() {
@@ -33,7 +33,7 @@ class Analytics {
         }
 
         analyticsContext.removeValue(forKey: .scanSource, scope: .common)
-        logInternal(.cardWasScanned, params: [.commonSource: source.cardWasScannedParameterValue.rawValue])
+        logEventInternal(.cardWasScanned, params: [.commonSource: source.cardWasScannedParameterValue.rawValue])
     }
 
     // MARK: - Others
@@ -43,7 +43,7 @@ class Analytics {
 
         // Send only first topped up event. Do not send the event to analytics on following topup events.
         if balance > 0, hasPreviousPositiveBalance == false {
-            logInternal(.toppedUp)
+            logEventInternal(.toppedUp)
             analyticsContext.set(value: true, forKey: .hasPositiveBalance, scope: .userWallet)
         } else if hasPreviousPositiveBalance == nil { // Do not save in a withdrawal case
             // Register the first app launch with balance.
@@ -51,38 +51,27 @@ class Analytics {
         }
     }
 
-    static func logShopifyOrder(_ order: Order) {
-        var appsFlyerDiscountParams: [String: Any] = [:]
-        var firebaseDiscountParams: [String: Any] = [:]
-        var amplitudeDiscountParams: [ParameterKey: String] = [:]
+    static func logDestinationAddress(isAddressValid: Bool, source: DestinationAddressSource) {
+        let validationResult: Analytics.ParameterValue = isAddressValid ? .success : .fail
+        Analytics.log(
+            .addressEntered,
+            params: [
+                .commonSource: source.parameterValue,
+                .validation: validationResult,
+            ]
+        )
+    }
 
-        if let discountCode = order.discount?.code {
-            appsFlyerDiscountParams[AFEventParamCouponCode] = discountCode
-            firebaseDiscountParams[AnalyticsParameterCoupon] = discountCode
-            amplitudeDiscountParams[.couponCode] = discountCode
+    static func logPromotionEvent(_ event: Event, programName: String, newClient: Bool? = nil) {
+        var params = [
+            ParameterKey.programName: programName,
+        ]
+
+        if let newClient {
+            let clientType: ParameterValue = newClient ? .new : .old
+            params[.clientType] = clientType.rawValue
         }
-
-        let sku = order.lineItems.first?.sku ?? "unknown"
-
-        AppsFlyerLib.shared().logEvent(AFEventPurchase, withValues: appsFlyerDiscountParams.merging([
-            AFEventParamContentId: sku,
-            AFEventParamRevenue: order.total,
-            AFEventParamCurrency: order.currencyCode,
-        ], uniquingKeysWith: { $1 }))
-
-        FirebaseAnalytics.Analytics.logEvent(AnalyticsEventPurchase, parameters: firebaseDiscountParams.merging([
-            AnalyticsParameterItems: [
-                [AnalyticsParameterItemID: sku],
-            ],
-            AnalyticsParameterValue: order.total,
-            AnalyticsParameterCurrency: order.currencyCode,
-        ], uniquingKeysWith: { $1 }))
-
-        logInternal(.purchased, params: amplitudeDiscountParams.merging([
-            .sku: sku,
-            .count: "\(order.lineItems.count)",
-            .amount: "\(order.total) \(order.currencyCode)",
-        ], uniquingKeysWith: { $1 }))
+        Analytics.log(event: event, params: params)
     }
 
     // MARK: - Common
@@ -91,10 +80,22 @@ class Analytics {
         log(event: event, params: params.mapValues { $0.rawValue })
     }
 
-    static func log(event: Event, params: [ParameterKey: String]) {
+    static func log(
+        event: Event,
+        params: [ParameterKey: String],
+        analyticsSystems: [Analytics.AnalyticsSystem] = [.firebase, .appsflyer, .amplitude, .crashlytics]
+    ) {
         assert(event.canBeLoggedDirectly)
 
-        logInternal(event, params: params)
+        logEventInternal(event, params: params, analyticsSystems: analyticsSystems)
+    }
+
+    static func debugLog(eventInfo: any AnalyticsDebugEvent) {
+        logInternal(
+            eventInfo.title,
+            params: eventInfo.analyticsParams,
+            analyticsSystems: [.crashlytics]
+        )
     }
 
     // MARK: - Private
@@ -131,7 +132,7 @@ class Analytics {
         }
     }
 
-    private static func logInternal(
+    private static func logEventInternal(
         _ event: Event,
         params: [ParameterKey: String] = [:],
         analyticsSystems: [Analytics.AnalyticsSystem] = [.firebase, .appsflyer, .amplitude, .crashlytics]
@@ -140,34 +141,46 @@ class Analytics {
             return
         }
 
-        var params = params
+        logInternal(
+            event.rawValue,
+            params: params.firebaseParams,
+            analyticsSystems: analyticsSystems
+        )
+    }
 
-        if let contextualParams = analyticsContext.contextData?.analyticsParams {
-            params.merge(contextualParams, uniquingKeysWith: { _, new in new })
+    private static func logInternal(
+        _ event: String,
+        params: [String: Any] = [:],
+        analyticsSystems: [Analytics.AnalyticsSystem] = [.firebase, .appsflyer, .amplitude, .crashlytics]
+    ) {
+        if AppEnvironment.current.isXcodePreview {
+            return
         }
 
-        let key = event.rawValue
-        let values = params.firebaseParams
+        var params = params
+
+        if let contextualParams = analyticsContext.contextData?.analyticsParams.firebaseParams {
+            params.merge(contextualParams, uniquingKeysWith: { old, _ in old })
+        }
 
         for system in analyticsSystems {
             switch system {
             case .appsflyer:
-                AppsFlyerLib.shared().logEvent(key, withValues: values)
+                AppsFlyerLib.shared().logEvent(event, withValues: params)
             case .firebase:
-                FirebaseAnalytics.Analytics.logEvent(key, parameters: values)
+                FirebaseAnalytics.Analytics.logEvent(event, parameters: params)
             case .crashlytics:
-                let message = "\(key).\(values)"
+                let message = "\(event).\(params)"
                 Crashlytics.crashlytics().log(message)
             case .amplitude:
-                let convertedParams = params.reduce(into: [:]) { $0[$1.key.rawValue] = $1.value }
-                Amplitude.instance().logEvent(event.rawValue, withEventProperties: convertedParams)
+                Amplitude.instance().logEvent(event, withEventProperties: params)
             }
         }
 
-        let printableParams: [String: String] = params.reduce(into: [:]) { $0[$1.key.rawValue] = $1.value }
+        let printableParams: [String: String] = params.reduce(into: [:]) { $0[$1.key] = String(describing: $1.value) }
         if let data = try? JSONSerialization.data(withJSONObject: printableParams, options: .sortedKeys),
            let paramsString = String(data: data, encoding: .utf8)?.replacingOccurrences(of: ",\"", with: ", \"") {
-            let logMessage = "Analytics event: \(event.rawValue). Params: \(paramsString)"
+            let logMessage = "Analytics event: \(event). Params: \(paramsString)"
             AppLog.shared.debug(logMessage)
         }
     }
@@ -175,7 +188,7 @@ class Analytics {
 
 // MARK: - Private
 
-fileprivate extension Dictionary where Key == Analytics.ParameterKey, Value == String {
+private extension Dictionary where Key == Analytics.ParameterKey, Value == String {
     var firebaseParams: [String: Any] {
         var convertedParams = [String: Any]()
         forEach { convertedParams[$0.key.rawValue] = $0.value }
@@ -183,12 +196,13 @@ fileprivate extension Dictionary where Key == Analytics.ParameterKey, Value == S
     }
 }
 
-fileprivate extension Analytics.Event {
+private extension Analytics.Event {
     var canBeLoggedDirectly: Bool {
         switch self {
         case .introductionProcessButtonScanCard,
              .buttonScanCard,
-             .buttonScanNewCard,
+             .myWalletsButtonScanNewCardMyWallets,
+             .buttonScanNewCardSettings,
              .buttonCardSignIn,
              .cardWasScanned,
              .toppedUp,

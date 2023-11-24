@@ -11,8 +11,10 @@ import Combine
 import TangemSdk
 
 class WelcomeCoordinator: CoordinatorObject {
-    var dismissAction: Action
-    var popToRootAction: ParamsAction<PopToRootOptions>
+    // MARK: - Dependencies
+
+    var dismissAction: Action<Void>
+    var popToRootAction: Action<PopToRootOptions>
 
     // MARK: - Main view model
 
@@ -20,10 +22,12 @@ class WelcomeCoordinator: CoordinatorObject {
 
     // MARK: - Child coordinators
 
-    @Published var mainCoordinator: LegacyMainCoordinator? = nil
+    @Published var legacyMainCoordinator: LegacyMainCoordinator? = nil
+    @Published var mainCoordinator: MainCoordinator? = nil
     @Published var pushedOnboardingCoordinator: OnboardingCoordinator? = nil
     @Published var shopCoordinator: ShopCoordinator? = nil
-    @Published var tokenListCoordinator: TokenListCoordinator? = nil
+    @Published var legacyTokenListCoordinator: LegacyTokenListCoordinator? = nil
+    @Published var promotionCoordinator: PromotionCoordinator? = nil
 
     // MARK: - Child view models
 
@@ -38,13 +42,14 @@ class WelcomeCoordinator: CoordinatorObject {
         var publishers: [AnyPublisher<Bool, Never>] = []
         publishers.append($mailViewModel.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
         publishers.append($shopCoordinator.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
-        publishers.append($tokenListCoordinator.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
+        publishers.append($legacyTokenListCoordinator.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
+        publishers.append($promotionCoordinator.dropFirst().map { $0 == nil }.eraseToAnyPublisher())
 
         return Publishers.MergeMany(publishers)
             .eraseToAnyPublisher()
     }
 
-    required init(dismissAction: @escaping Action, popToRootAction: @escaping ParamsAction<PopToRootOptions>) {
+    required init(dismissAction: @escaping Action<Void>, popToRootAction: @escaping Action<PopToRootOptions>) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
     }
@@ -60,13 +65,15 @@ class WelcomeCoordinator: CoordinatorObject {
                 guard let self else { return }
 
                 if viewDismissed {
-                    self.welcomeViewModel?.becomeActive()
+                    welcomeViewModel?.becomeActive()
                 } else {
-                    self.welcomeViewModel?.resignActve()
+                    welcomeViewModel?.resignActve()
                 }
             }
     }
 }
+
+// MARK: - Options
 
 extension WelcomeCoordinator {
     struct Options {
@@ -74,9 +81,11 @@ extension WelcomeCoordinator {
     }
 }
 
+// MARK: - WelcomeRoutable
+
 extension WelcomeCoordinator: WelcomeRoutable {
     func openOnboarding(with input: OnboardingInput) {
-        let dismissAction: Action = { [weak self] in
+        let dismissAction: Action<OnboardingCoordinator.OutputOptions> = { [weak self] _ in
             self?.pushedOnboardingCoordinator = nil
         }
 
@@ -84,14 +93,21 @@ extension WelcomeCoordinator: WelcomeRoutable {
         let options = OnboardingCoordinator.Options(input: input, destination: .main)
         coordinator.start(with: options)
         pushedOnboardingCoordinator = coordinator
-        Analytics.log(.onboardingStarted)
     }
 
     func openMain(with cardModel: CardViewModel) {
+        if FeatureProvider.isAvailable(.mainV2) {
+            let coordinator = MainCoordinator(popToRootAction: popToRootAction)
+            let options = MainCoordinator.Options(userWalletModel: cardModel)
+            coordinator.start(with: options)
+            mainCoordinator = coordinator
+            return
+        }
+
         let coordinator = LegacyMainCoordinator(popToRootAction: popToRootAction)
         let options = LegacyMainCoordinator.Options(cardModel: cardModel)
         coordinator.start(with: options)
-        mainCoordinator = coordinator
+        legacyMainCoordinator = coordinator
     }
 
     func openMail(with dataCollector: EmailDataCollector, recipient: String) {
@@ -99,13 +115,24 @@ extension WelcomeCoordinator: WelcomeRoutable {
         mailViewModel = MailViewModel(logsComposer: logsComposer, recipient: recipient, emailType: .failedToScanCard)
     }
 
-    func openTokensList() {
-        let dismissAction: Action = { [weak self] in
-            self?.tokenListCoordinator = nil
+    func openPromotion() {
+        let dismissAction: Action<Void> = { [weak self] _ in
+            self?.promotionCoordinator = nil
         }
-        let coordinator = TokenListCoordinator(dismissAction: dismissAction)
+
+        let coordinator = PromotionCoordinator(dismissAction: dismissAction)
+        coordinator.start(with: .newUser)
+        promotionCoordinator = coordinator
+    }
+
+    func openTokensList() {
+        let dismissAction: Action<Void> = { [weak self] _ in
+            self?.legacyTokenListCoordinator = nil
+        }
+
+        let coordinator = LegacyTokenListCoordinator(dismissAction: dismissAction)
         coordinator.start(with: .show)
-        tokenListCoordinator = coordinator
+        legacyTokenListCoordinator = coordinator
     }
 
     func openShop() {

@@ -16,12 +16,13 @@ struct SwappingCoordinatorView: CoordinatorView {
     }
 
     var body: some View {
-        ZStack {
-            if let rootViewModel = coordinator.rootViewModel {
-                SwappingView(viewModel: rootViewModel)
+        NavigationView {
+            ZStack {
+                if let rootViewModel = coordinator.rootViewModel {
+                    SwappingView(viewModel: rootViewModel)
+                }
+                sheets
             }
-
-            sheets
         }
     }
 
@@ -32,17 +33,10 @@ struct SwappingCoordinatorView: CoordinatorView {
                 SwappingTokenListView(viewModel: $0)
             }
 
-        if FeatureProvider.isAvailable(.abilityChooseApproveAmount) {
-            NavHolder()
-                .bottomSheet(item: $coordinator.swappingApproveViewModel) {
-                    SwappingApproveView(viewModel: $0)
-                }
-        } else {
-            NavHolder()
-                .bottomSheet(item: $coordinator.swappingPermissionViewModel) {
-                    SwappingPermissionView(viewModel: $0)
-                }
-        }
+        NavHolder()
+            .bottomSheet(item: $coordinator.swappingApproveViewModel) {
+                SwappingApproveView(viewModel: $0)
+            }
 
         NavHolder()
             .sheet(item: $coordinator.swappingSuccessCoordinator) {

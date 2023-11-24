@@ -47,7 +47,7 @@ struct OnboardingSeedPhraseImportView: View {
 
                 MainButton(
                     title: Localization.commonImport,
-                    icon: .leading(Assets.tangemIcon),
+                    icon: .trailing(Assets.tangemIcon),
                     style: .primary,
                     isLoading: false,
                     isDisabled: !viewModel.isSeedPhraseValid,
@@ -55,17 +55,17 @@ struct OnboardingSeedPhraseImportView: View {
                 )
                 .padding(.all, 16)
             }
-            .readSize(onChange: { contentSize in
+            .readGeometry(\.size) { contentSize in
                 if self.contentSize == .zero {
                     self.contentSize = contentSize
                 }
-            })
-        }
-        .readSize(onChange: { containerSize in
-            if self.containerSize == .zero {
-                self.containerSize = containerSize
             }
-        })
+        }
+        .readGeometry(\.size) { contentSize in
+            if containerSize == .zero {
+                containerSize = containerSize
+            }
+        }
         .onAppear(perform: viewModel.onAppear)
         .onDisappear(perform: viewModel.onDisappear)
         .alert(item: $viewModel.errorAlert, content: { alertBinder in

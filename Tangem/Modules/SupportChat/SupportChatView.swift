@@ -13,9 +13,6 @@ struct SupportChatView: View {
     @ObservedObject var viewModel: SupportChatViewModel
 
     var body: some View {
-        if let zendeskViewModel = viewModel.zendeskViewModel {
-            ZendeskSupportChatView(viewModel: zendeskViewModel)
-                .actionSheet(item: $viewModel.showSupportActionSheet, content: { $0.sheet })
-        }
+        SprinklrSupportChatView(viewModel: viewModel.sprinklrViewModel)
     }
 }

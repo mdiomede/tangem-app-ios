@@ -18,7 +18,7 @@ struct LegacyConfig: CardContainer {
     private var defaultBlockchain: Blockchain? {
         guard let walletData = walletData else { return nil }
 
-        return Blockchain.from(blockchainName: walletData.blockchain, curve: card.supportedCurves[0])!
+        return Blockchain.from(blockchainName: walletData.blockchain, curve: card.supportedCurves[0])
     }
 
     private var isMultiwallet: Bool {
@@ -71,9 +71,7 @@ extension LegacyConfig: UserWalletConfig {
 
     var supportedBlockchains: Set<Blockchain> {
         if isMultiwallet || defaultBlockchain == nil {
-            let allBlockchains = AppEnvironment.current.isTestnet ? Blockchain.supportedTestnetBlockchains
-                : Blockchain.supportedBlockchains
-
+            let allBlockchains = SupportedBlockchains(version: .v1).blockchains()
             return allBlockchains.filter { card.walletCurves.contains($0.curve) }
         } else {
             return [defaultBlockchain!]
@@ -142,6 +140,24 @@ extension LegacyConfig: UserWalletConfig {
         .other
     }
 
+    var cardHeaderImage: ImageType? {
+        if walletData == nil {
+            let multiWalletWhiteBatch = "CB79"
+            let devKitBatch = "CB83"
+
+            switch card.batchId {
+            case multiWalletWhiteBatch:
+                return Assets.Cards.multiWalletWhite
+            case devKitBatch:
+                return Assets.Cards.developer
+            default:
+                break
+            }
+        }
+
+        return nil
+    }
+
     func getFeatureAvailability(_ feature: UserWalletFeature) -> UserWalletFeature.Availability {
         switch feature {
         case .accessCode:
@@ -203,40 +219,19 @@ extension LegacyConfig: UserWalletConfig {
             return .available
         case .transactionHistory:
             return .hidden
-        case .seedPhrase:
-            return .hidden
         case .accessCodeRecoverySettings:
+            return .hidden
+        case .promotion:
             return .hidden
         }
     }
 
-    func makeWalletModel(for token: StorageEntry) throws -> WalletModel {
-        let factory = WalletModelFactory()
+    func makeWalletModelsFactory() -> WalletModelsFactory {
+        return CommonWalletModelsFactory(derivationStyle: nil)
+    }
 
-        if isMultiwallet {
-            let walletPublicKeys: [EllipticCurve: Data] = card.wallets.reduce(into: [:]) { partialResult, cardWallet in
-                partialResult[cardWallet.curve] = cardWallet.publicKey
-            }
-
-            return try factory.makeMultipleWallet(
-                walletPublicKeys: walletPublicKeys,
-                entry: token,
-                derivationStyle: card.derivationStyle
-            )
-        } else {
-            let blockchain = token.blockchainNetwork.blockchain
-
-            guard let walletPublicKey = card.wallets.first(where: { $0.curve == blockchain.curve })?.publicKey else {
-                throw CommonError.noData
-            }
-
-            return try factory.makeSingleWallet(
-                walletPublicKey: walletPublicKey,
-                blockchain: blockchain,
-                token: token.tokens.first,
-                derivationStyle: card.derivationStyle
-            )
-        }
+    func makeAnyWalletManagerFactory() throws -> AnyWalletManagerFactory {
+        return SimpleWalletManagerFactory()
     }
 }
 

@@ -17,8 +17,9 @@ class AppPresenter {
 
     func showSupportChat(input: SupportChatInputModel) {
         let viewModel = SupportChatViewModel(input: input)
-        let view = SupportChatView(viewModel: viewModel)
-        let controller = UIHostingController(rootView: view)
+        let sprinklrView = SprinklrSupportChatView(viewModel: viewModel.sprinklrViewModel)
+        let controller = sprinklrView.viewController
+
         Analytics.log(.chatScreenOpened)
         show(controller)
     }

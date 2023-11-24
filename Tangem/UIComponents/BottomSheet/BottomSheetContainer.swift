@@ -40,6 +40,7 @@ struct BottomSheetContainer<ContentView: View>: View {
                         stateObject.viewDidHidden()
                     }
                 }
+                .animation(.default, value: opacity)
 
             sheetView
                 .transition(.move(edge: .bottom))
@@ -53,8 +54,6 @@ struct BottomSheetContainer<ContentView: View>: View {
                 .offset(y: -1)
         }
         .edgesIgnoringSafeArea(.all)
-        .animation(.default, value: opacity)
-        .animation(.interactiveSpring(), value: stateObject.isDragging)
     }
 
     private var sheetView: some View {
@@ -67,7 +66,7 @@ struct BottomSheetContainer<ContentView: View>: View {
         .frame(maxWidth: .infinity)
         .background(settings.backgroundColor)
         .cornerRadius(settings.cornerRadius, corners: [.topLeft, .topRight])
-        .readSize { stateObject.contentHeight = $0.height }
+        .readGeometry(\.size.height, bindTo: $stateObject.contentHeight)
         .gesture(dragGesture)
         .offset(y: stateObject.offset)
     }
@@ -77,7 +76,8 @@ struct BottomSheetContainer<ContentView: View>: View {
             Capsule(style: .continuous)
                 .fill(Colors.Icon.inactive)
                 .frame(size: indicatorSize)
-                .padding(.vertical, 10)
+                .padding(.top, 8)
+                .padding(.bottom, 10)
         }
         .frame(maxWidth: .infinity)
         .background(settings.backgroundColor)
@@ -90,19 +90,16 @@ struct BottomSheetContainer<ContentView: View>: View {
                     stateObject.isDragging = true
                 }
 
-                let dragValue = value.translation.height - stateObject.previousDragTranslation.height
                 let locationChange = value.startLocation.y - value.location.y
 
                 if locationChange > 0 {
-                    stateObject.offset += dragValue / 3
+                    // If user drags on up then reduce the dragging value
+                    stateObject.offset = 0 - locationChange / 3
                 } else {
-                    stateObject.offset += dragValue
+                    stateObject.offset = 0 - locationChange
                 }
-
-                stateObject.previousDragTranslation = value.translation
             }
             .onEnded { value in
-                stateObject.previousDragTranslation = .zero
                 stateObject.isDragging = false
 
                 // If swipe was been enough to hide view
@@ -112,7 +109,9 @@ struct BottomSheetContainer<ContentView: View>: View {
                     }
                     // Otherwise set the view to default state
                 } else {
-                    stateObject.offset = 0
+                    withAnimation(.default) {
+                        stateObject.offset = 0
+                    }
                 }
             }
     }
@@ -132,7 +131,11 @@ struct BottomSheetContainer<ContentView: View>: View {
     }
 
     func showView() {
-        stateObject.offset = 0
+        let duration = settings.animationDuration
+
+        withAnimation(.linear(duration: duration)) {
+            stateObject.offset = 0
+        }
     }
 }
 
@@ -147,7 +150,7 @@ extension BottomSheetContainer {
         let animationDuration: Double
 
         init(
-            cornerRadius: CGFloat = 16,
+            cornerRadius: CGFloat = 24,
             backgroundColor: Color = Colors.Background.secondary,
             backgroundOpacity: CGFloat = 0.5,
             distanceToHide: CGFloat = UIScreen.main.bounds.height * 0.1,
@@ -168,7 +171,6 @@ extension BottomSheetContainer {
     class StateObject: ObservableObject {
         @Published var contentHeight: CGFloat = UIScreen.main.bounds.height / 2
         @Published var isDragging: Bool = false
-        @Published var previousDragTranslation: CGSize = .zero
         @Published var offset: CGFloat = UIScreen.main.bounds.height
 
         public var dragPercentage: CGFloat {
@@ -189,7 +191,7 @@ struct BottomSheetContainer_Previews: PreviewProvider {
 
         var body: some View {
             ZStack {
-                Color.green
+                Colors.Background.primary
                     .edgesIgnoringSafeArea(.all)
 
                 Button("Bottom sheet isShowing \((coordinator.item != nil).description)") {
@@ -253,5 +255,6 @@ struct BottomSheetContainer_Previews: PreviewProvider {
 
     static var previews: some View {
         StatableContainer()
+            .preferredColorScheme(.dark)
     }
 }

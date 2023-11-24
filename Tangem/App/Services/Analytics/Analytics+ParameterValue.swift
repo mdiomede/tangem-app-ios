@@ -14,18 +14,27 @@ extension Analytics {
         case walletOnboarding = "wallet_onboarding"
         case on = "On"
         case off = "Off"
+        case yes = "Yes"
+        case no = "No"
         case full = "Full"
+        case null = "Null"
         case empty = "Empty"
+        case mainToken = "Main Token"
         case customToken = "Custom Token"
+        case noRate = "No Rate"
         case blockchainError = "Blockchain Error"
         case multicurrency = "Multicurrency"
         case accessCode = "Access Code"
         case longTap = "Long tap"
         case passcode = "Passcode"
+
+        case main = "Main"
+        case token = "Token"
+
         case scanSourceWelcome = "Introduction"
-        case scanSourceMain = "Main"
         case scanSourceAuth = "Sign In"
         case scanSourceMyWallets = "My Wallets"
+        case scanSourceSettings = "Settings"
 
         case transactionSourceSend = "Send"
         case transactionSourceSwap = "Swap"
@@ -41,17 +50,44 @@ extension Analytics {
         case signInTypeCard = "Card"
         case signInTypeBiometrics = "Biometric"
 
-        case walletCreationTypePrivateKey = "Private key"
-        case walletCreationTypeNewSeed = "New seed"
-        case walletCreationTypeSeedImport = "Seed import"
+        case walletCreationTypePrivateKey = "Private Key"
+        case walletCreationTypeNewSeed = "New Seed"
+        case walletCreationTypeSeedImport = "Seed Import"
 
         case enabled = "Enabled"
         case disabled = "Disabled"
         case reset = "Reset"
         case cancel = "Cancel"
 
+        case errorCode = "Error Code"
+
         case oneTransactionApprove = "Transaction"
         case unlimitedApprove = "Unlimited"
+
+        // destination address entered
+        case destinationAddressSourceQrCode = "QRCode"
+        case destinationAddressPasteButton = "PasteButton"
+        case destinationAddressPastePopup = "PastePopup"
+
+        case success = "Success"
+        case fail = "Fail"
+
+        // SelectedCurrency
+        case selectedCurrencyApp = "App Currency"
+
+        // Client Type
+        case old = "Old"
+        case new = "New"
+
+        case sortTypeByBalance = "By Balance"
+        case sortTypeManual = "Manually"
+
+        case balance = "Balance"
+
+        // App theme
+        case system = "System"
+        case light = "Light"
+        case dark = "Dark"
 
         // MARK: - Actions
 
@@ -70,12 +106,12 @@ extension Analytics {
         case addbackup = "add_backup"
         case proceedBackup = "proceed_backup"
 
-        static func state(for toggle: Bool) -> ParameterValue {
-            return toggle ? .on : .off
+        static func toggleState(for boolean: Bool) -> ParameterValue {
+            return boolean ? .on : .off
         }
 
-        static func state(for balance: Decimal) -> ParameterValue {
-            return balance > 0 ? .full : .empty
+        static func affirmativeOrNegative(for boolean: Bool) -> ParameterValue {
+            return boolean ? .yes : .no
         }
     }
 }

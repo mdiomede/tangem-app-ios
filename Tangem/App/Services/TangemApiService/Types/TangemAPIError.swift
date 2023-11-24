@@ -27,18 +27,29 @@ struct TangemAPIError: Decodable, Error, LocalizedError {
 }
 
 extension TangemAPIError {
-    enum ErrorCode: Int, Decodable {
+    enum ErrorCode: Int, Decodable, Equatable {
         // Internal errors
         case unknown = -1
         case decode = -2
 
         // Server-side errors
+
+        // Promotion
+        case promotionCodeNotFound = 101
+        case promotionCodeNotApplied = 102
+        case promotionCodeAlreadyUsed = 103
+        case promotionWalletAlreadyAwarded = 104
+        case promotionCardAlreadyAwarded = 105
+        case promotionProgramNotFound = 106
+        case promotionProgramEnded = 107
+
+        // Misc
         case notFound = 404
 
         /// The description for local errors, for server errors description will be gotten from api
         var description: String? {
             switch self {
-            case .notFound:
+            case .notFound, .promotionCodeNotFound, .promotionCodeNotApplied, .promotionCodeAlreadyUsed, .promotionWalletAlreadyAwarded, .promotionCardAlreadyAwarded, .promotionProgramNotFound, .promotionProgramEnded:
                 return nil
             case .decode:
                 return "Decoding error"

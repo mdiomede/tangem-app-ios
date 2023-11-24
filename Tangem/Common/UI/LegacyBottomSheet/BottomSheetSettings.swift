@@ -13,7 +13,7 @@ struct BottomSheetSettings: Identifiable {
     var showClosedButton: Bool = true
     var swipeDownToDismissEnabled: Bool = true
     var tapOutsideToDismissEnabled: Bool = true
-    var cornerRadius: CGFloat = 10
+    var cornerRadius: CGFloat = 24
     var overlayColor: Color = .init(red: 0, green: 0, blue: 0).opacity(0.7)
     var contentBackgroundColor: Color = .init(red: 1, green: 1, blue: 1)
 }
@@ -29,13 +29,5 @@ extension BottomSheetSettings {
 
     static var warning: BottomSheetSettings {
         BottomSheetSettings(showClosedButton: false)
-    }
-
-    static var swappingPermission: BottomSheetSettings {
-        BottomSheetSettings(
-            showClosedButton: false,
-            swipeDownToDismissEnabled: true,
-            contentBackgroundColor: Colors.Background.secondary
-        )
     }
 }

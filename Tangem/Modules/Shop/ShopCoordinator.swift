@@ -9,12 +9,8 @@
 import Foundation
 
 class ShopCoordinator: CoordinatorObject {
-    var dismissAction: Action
-    var popToRootAction: ParamsAction<PopToRootOptions>
-
-    // MARK: - Main view model
-
-    @Published private(set) var shopViewModel: ShopViewModel? = nil
+    var dismissAction: Action<Void>
+    var popToRootAction: Action<PopToRootOptions>
 
     // MARK: - Child view models
 
@@ -26,7 +22,7 @@ class ShopCoordinator: CoordinatorObject {
 
     @Published var emptyModel: Int? = nil // Fix single navigation link issue
 
-    required init(dismissAction: @escaping Action, popToRootAction: @escaping ParamsAction<PopToRootOptions>) {
+    required init(dismissAction: @escaping Action<Void>, popToRootAction: @escaping Action<PopToRootOptions>) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
     }
@@ -36,26 +32,10 @@ class ShopCoordinator: CoordinatorObject {
 
         if let webShopUrl = ShopWebHelper().webShopUrl {
             self.webShopUrl = webShopUrl
-        } else {
-            shopViewModel = ShopViewModel(coordinator: self)
         }
     }
 }
 
 extension ShopCoordinator {
     struct Options {}
-}
-
-extension ShopCoordinator: ShopViewRoutable {
-    func openWebCheckout(at url: URL) {
-        pushedWebViewModel = WebViewContainerViewModel(
-            url: url,
-            title: Localization.shopWebCheckoutTitle,
-            addLoadingIndicator: true
-        )
-    }
-
-    func closeWebCheckout() {
-        pushedWebViewModel = nil
-    }
 }

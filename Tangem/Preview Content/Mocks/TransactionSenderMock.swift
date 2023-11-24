@@ -10,19 +10,23 @@ import TangemSwapping
 import BlockchainSdk
 
 struct TransactionSenderMock: SwappingTransactionSender {
-    func sendTransaction(_ data: SwappingTransactionData) async throws -> TransactionSendResult { TransactionSendResult(hash: "") }
+    func sendTransaction(_ data: SwappingTransactionData) async throws -> TransactionSendResult {
+        TransactionSendResult(hash: "")
+    }
 }
 
 struct FiatRatesProviderMock: FiatRatesProviding {
-    func getSyncFiat(for currency: TangemSwapping.Currency, amount: Decimal) -> Decimal? { .zero }
-    func getSyncFiat(for blockchain: TangemSwapping.SwappingBlockchain, amount: Decimal) -> Decimal? { .zero }
-    func getFiat(for currency: TangemSwapping.Currency, amount: Decimal) async throws -> Decimal { .zero }
-    func getFiat(for blockchain: TangemSwapping.SwappingBlockchain, amount: Decimal) async throws -> Decimal { .zero }
     func hasRates(for currency: Currency) -> Bool { false }
     func hasRates(for blockchain: SwappingBlockchain) -> Bool { false }
+    func getFiat(for currency: TangemSwapping.Currency, amount: Decimal) -> Decimal? { .zero }
+    func getFiat(for blockchain: TangemSwapping.SwappingBlockchain, amount: Decimal) -> Decimal? { .zero }
+    func getFiat(for currencies: [Currency: Decimal]) async throws -> [Currency: Decimal] { [:] }
+    func getFiat(for currency: TangemSwapping.Currency, amount: Decimal) async throws -> Decimal { .zero }
+    func getFiat(for blockchain: TangemSwapping.SwappingBlockchain, amount: Decimal) async throws -> Decimal { .zero }
 }
 
 struct SwappingFeeFormatterMock: SwappingFeeFormatter {
     func format(fee: Decimal, blockchain: SwappingBlockchain) async throws -> String { "" }
     func format(fee: Decimal, blockchain: SwappingBlockchain) throws -> String { "" }
+    func format(fee: Decimal, currencySymbol: String, currencyId: String) -> String { "" }
 }

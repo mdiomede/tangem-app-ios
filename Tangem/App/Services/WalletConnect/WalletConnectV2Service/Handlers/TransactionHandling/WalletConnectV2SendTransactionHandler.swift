@@ -23,12 +23,12 @@ class WalletConnectV2SendTransactionHandler {
 
     init(
         requestParams: AnyCodable,
-        blockchain: Blockchain,
+        blockchainId: String,
         transactionBuilder: WalletConnectEthTransactionBuilder,
         messageComposer: WalletConnectV2MessageComposable,
         signer: TangemSigner,
-        uiDelegate: WalletConnectUIDelegate,
-        walletModelProvider: WalletConnectV2WalletModelProvider
+        walletModelProvider: WalletConnectWalletModelProvider,
+        uiDelegate: WalletConnectUIDelegate
     ) throws {
         do {
             let params = try requestParams.get([WalletConnectEthTransaction].self)
@@ -38,7 +38,7 @@ class WalletConnectV2SendTransactionHandler {
             }
 
             self.wcTransaction = wcTransaction
-            walletModel = try walletModelProvider.getModel(with: wcTransaction.from, in: blockchain)
+            walletModel = try walletModelProvider.getModel(with: wcTransaction.from, blockchainId: blockchainId)
         } catch {
             AppLog.shared.debug("[WC 2.0] Failed to create Send transaction handler. \(error)")
             throw error
@@ -75,14 +75,11 @@ extension WalletConnectV2SendTransactionHandler: WalletConnectMessageHandler {
             event: .success,
             message: Localization.sendTransactionSuccess,
             approveAction: { [weak self] in
-                guard
-                    let lastTx = self?.walletModel.wallet.transactions.last,
-                    let txHash = lastTx.hash
-                else {
+                guard let lastTx = self?.walletModel.wallet.pendingTransactions.last else {
                     throw WalletConnectV2Error.transactionSentButNotFoundInManager
                 }
 
-                return RPCResult.response(AnyCodable(txHash))
+                return RPCResult.response(AnyCodable(lastTx.hash))
             },
             rejectAction: { throw WalletConnectV2Error.unknown("Impossible case") }
         ))

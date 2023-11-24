@@ -44,6 +44,8 @@ extension CommonKeysManager: KeysManager {
             kaspaSecondaryApiUrl: keys.kaspaSecondaryApiUrl,
             tronGridApiKey: keys.tronGridApiKey,
             tonCenterApiKeys: .init(mainnetApiKey: keys.tonCenterApiKey.mainnet, testnetApiKey: keys.tonCenterApiKey.testnet),
+            fireAcademyApiKeys: .init(mainnetApiKey: keys.chiaFireAcademyApiKey, testnetApiKey: keys.chiaFireAcademyApiKey),
+            chiaTangemApiKeys: .init(mainnetApiKey: keys.chiaTangemApiKey),
             // TODO: rename to solana
             quickNodeSolanaCredentials: .init(apiKey: keys.quiknodeApiKey, subdomain: keys.quiknodeSubdomain),
             quickNodeBscCredentials: .init(apiKey: keys.bscQuiknodeApiKey, subdomain: keys.bscQuiknodeSubdomain),
@@ -53,12 +55,12 @@ extension CommonKeysManager: KeysManager {
         )
     }
 
-    var shopifyShop: ShopifyShop {
-        keys.shopifyShop
+    var tangemComAuthorization: String? {
+        keys.tangemComAuthorization
     }
 
-    var zendesk: ZendeskConfig {
-        keys.zendesk
+    var sprinklr: SprinklrConfig {
+        keys.sprinklr
     }
 
     var amplitudeApiKey: String {
@@ -80,6 +82,10 @@ extension CommonKeysManager: KeysManager {
     var walletConnectProjectId: String {
         keys.walletConnectProjectId
     }
+
+    var tangemExpressApiKey: String {
+        keys.tangemExpressApiKey
+    }
 }
 
 extension CommonKeysManager {
@@ -95,6 +101,8 @@ extension CommonKeysManager {
         let getBlockApiKey: String
         let kaspaSecondaryApiUrl: String
         let tonCenterApiKey: TonCenterApiKeys
+        let chiaFireAcademyApiKey: String
+        let chiaTangemApiKey: String
         let appsFlyer: AppsFlyerConfig
         let amplitudeApiKey: String
         let tronGridApiKey: String
@@ -102,9 +110,10 @@ extension CommonKeysManager {
         let quiknodeSubdomain: String
         let bscQuiknodeApiKey: String
         let bscQuiknodeSubdomain: String
-        let shopifyShop: ShopifyShop
-        let zendesk: ZendeskConfig
+        let tangemComAuthorization: String?
         let swapReferrerAccount: SwapReferrerAccount?
         let walletConnectProjectId: String
+        let sprinklr: SprinklrConfig
+        let tangemExpressApiKey: String
     }
 }

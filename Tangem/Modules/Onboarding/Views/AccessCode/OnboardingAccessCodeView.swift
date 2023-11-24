@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-fileprivate struct AccessCodeFeature {
+private struct AccessCodeFeature {
     let title: String
     let description: String
     let icon: ImageType
@@ -33,6 +33,8 @@ struct OnboardingAccessCodeView: View {
         case .intro:
             Spacer()
             Assets.Onboarding.inputWithLock.image
+                .renderingMode(.template)
+                .foregroundColor(Colors.Icon.primary1)
                 .scaleEffect(AppConstants.isSmallScreen ? 0.7 : 1)
             Spacer()
             VStack(alignment: .leading, spacing: 20) {
@@ -40,6 +42,8 @@ struct OnboardingAccessCodeView: View {
                     let feature = ViewState.featuresDescription[index]
                     HStack(alignment: .customTop, spacing: 20) {
                         feature.icon.image
+                            .renderingMode(.template)
+                            .foregroundColor(Colors.Icon.primary1)
                             .alignmentGuide(.customTop) { d in d[VerticalAlignment.top] - 4 }
                         VStack(alignment: .leading, spacing: 3) {
                             Text(feature.title)
@@ -135,7 +139,7 @@ struct OnboardingAccessCodeView: View {
         .padding(.horizontal, 40)
         .onDisappear {
             DispatchQueue.main.async {
-                self.error = .none
+                error = .none
             }
         }
     }

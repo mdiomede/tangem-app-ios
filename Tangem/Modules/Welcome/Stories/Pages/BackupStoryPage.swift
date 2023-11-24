@@ -14,6 +14,8 @@ struct BackupStoryPage: View {
     let scanCard: () -> Void
     let orderCard: () -> Void
 
+    private let descriptionFontSize: CGFloat = 16
+
     var body: some View {
         VStack {
             StoriesTangemLogo()
@@ -21,22 +23,18 @@ struct BackupStoryPage: View {
 
             VStack(spacing: 14) {
                 Text(Localization.storyBackupTitle)
-                    .font(.system(size: 36, weight: .semibold))
+                    .style(Fonts.Bold.largeTitle, color: Colors.Text.primary1)
                     .minimumScaleFactor(0.5)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal)
                     .storyTextAppearanceModifier(progress: progress, type: .title, textBlockAppearance: .almostImmediate)
 
-                Group {
-                    Text(Localization.storyBackupDescription1) + Text(" ") +
-                        Text(Localization.storyBackupDescription2Bold).bold() + Text(" ") + Text(Localization.storyBackupDescription3)
-                }
-                .font(.system(size: 24))
-                .multilineTextAlignment(.center)
-                .foregroundColor(.gray)
-                .padding(.horizontal)
-                .storyTextAppearanceModifier(progress: progress, type: .description, textBlockAppearance: .almostImmediate)
+                Text(TangemRichTextFormatter().format(Localization.storyBackupDescription, fontSize: descriptionFontSize))
+                    .font(.system(size: descriptionFontSize))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(Colors.Text.tertiary)
+                    .storyTextAppearanceModifier(progress: progress, type: .description, textBlockAppearance: .almostImmediate)
             }
+            .padding(.horizontal, 28)
             .fixedSize(horizontal: false, vertical: true)
 
             Spacer()
@@ -45,7 +43,7 @@ struct BackupStoryPage: View {
                 Color.clear
                     .background(
                         // Bottom card
-                        Assets.Onboarding.walletCard.image
+                        Assets.Stories.tangemCard.image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 0.7 * geometry.size.width)
@@ -60,7 +58,7 @@ struct BackupStoryPage: View {
                     )
                     .background(
                         // Top left
-                        Assets.Onboarding.walletCard.image
+                        Assets.Stories.tangemCard.image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 0.65 * geometry.size.width)
@@ -74,7 +72,7 @@ struct BackupStoryPage: View {
                     )
                     .background(
                         // Top right
-                        Assets.Onboarding.walletCard.image
+                        Assets.Stories.tangemCard.image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 0.5 * geometry.size.width)
@@ -91,7 +89,7 @@ struct BackupStoryPage: View {
 
             Spacer()
 
-            StoriesBottomButtons(scanColorStyle: .secondary, orderColorStyle: .primary, isScanning: $isScanning, scanCard: scanCard, orderCard: orderCard)
+            StoriesBottomButtons(scanColorStyle: .primary, orderColorStyle: .secondary, isScanning: $isScanning, scanCard: scanCard, orderCard: orderCard)
                 .padding(.horizontal)
                 .padding(.bottom)
         }
@@ -104,5 +102,39 @@ struct BackupStoryPage_Previews: PreviewProvider {
     static var previews: some View {
         BackupStoryPage(progress: .constant(1), isScanning: .constant(false)) {} orderCard: {}
             .previewGroup(devices: [.iPhone7, .iPhone12ProMax], withZoomed: false)
+    }
+}
+
+// MARK: - Rich text formatter
+
+private struct TangemRichTextFormatter {
+    // Formatting rich text as NSAttributedString
+    // Supported formats: **bold**
+    func format(_ string: String, fontSize: CGFloat) -> NSAttributedString {
+        var originalString = string
+
+        let regex = try! NSRegularExpression(pattern: "\\*{2}.+?\\*{2}")
+
+        let wholeRange = NSRange(location: 0, length: (originalString as NSString).length)
+        let matches = regex.matches(in: originalString, range: wholeRange)
+
+        let attributedString = NSMutableAttributedString(string: originalString)
+
+        if let match = matches.first {
+            let formatterTagLength = 2
+
+            let boldTextFormatted = String(originalString[Range(match.range, in: originalString)!])
+            let boldText = boldTextFormatted.dropFirst(formatterTagLength).dropLast(formatterTagLength)
+
+            originalString = originalString.replacingOccurrences(of: boldTextFormatted, with: boldText)
+            attributedString.setAttributedString(NSAttributedString(string: originalString))
+
+            // UIKit's .semibold corresponds SwiftUI bold font
+            let boldFont = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
+            let boldTextRange = NSRange(location: match.range.location, length: match.range.length - 2 * formatterTagLength)
+            attributedString.addAttribute(.font, value: boldFont, range: boldTextRange)
+        }
+
+        return attributedString
     }
 }

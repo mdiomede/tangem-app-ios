@@ -19,13 +19,14 @@ class CommonSwappingManager {
 
     // MARK: - Internal
 
-    private var swappingItems: SwappingItems
+    private let swappingItems: ThreadSafeContainer<SwappingItems>
     private var amount: Decimal?
     private var approvePolicy: SwappingApprovePolicy = .unlimited
     private var gasPricePolicy: SwappingGasPricePolicy = .normal
-    private var swappingAllowanceLimit: [Currency: Decimal] = [:]
+    private let spenderAddresses: ThreadSafeContainer<[SwappingBlockchain: String]> = [:]
+    private let swappingAllowanceLimit: ThreadSafeContainer<[Currency: Decimal]> = [:]
     // Cached addresses for check approving transactions
-    private var pendingTransactions: [Currency: PendingTransactionState] = [:]
+    private let pendingTransactions: ThreadSafeContainer<[Currency: PendingTransactionState]> = [:]
     private var bag: Set<AnyCancellable> = []
 
     private var formattedAmount: String? {
@@ -53,11 +54,11 @@ class CommonSwappingManager {
         self.walletDataProvider = walletDataProvider
         self.logger = logger
         self.referrer = referrer
-        self.swappingItems = swappingItems
+        self.swappingItems = .init(swappingItems)
         self.amount = amount
 
-        Task {
-            await refreshBalances()
+        Task { [weak self] in
+            await self?.refreshBalances()
         }
     }
 }
@@ -70,7 +71,7 @@ extension CommonSwappingManager: SwappingManager {
     }
 
     func getSwappingItems() -> SwappingItems {
-        return swappingItems
+        return swappingItems.read()
     }
 
     func getReferrerAccount() -> SwappingReferrerAccount? {
@@ -86,11 +87,20 @@ extension CommonSwappingManager: SwappingManager {
     }
 
     func isEnoughAllowance() -> Bool {
-        guard swappingItems.source.isToken, let amount, amount > 0 else {
+        // These local variables are introduced as part of the IOS-4043 bug investigation;
+        // feel free to get rid of them if the bug is fixed
+        let sourceItems = swappingItems.source
+        let allowanceLimit = swappingAllowanceLimit
+
+        guard
+            sourceItems.isToken,
+            let amount = amount,
+            amount > 0
+        else {
             return true
         }
 
-        guard let allowance = swappingAllowanceLimit[swappingItems.source] else {
+        guard let allowance = allowanceLimit[sourceItems] else {
             return false
         }
 
@@ -98,7 +108,7 @@ extension CommonSwappingManager: SwappingManager {
     }
 
     func update(swappingItems: SwappingItems) {
-        self.swappingItems = swappingItems
+        self.swappingItems.mutate { $0 = swappingItems }
     }
 
     func update(amount: Decimal?) {
@@ -115,7 +125,7 @@ extension CommonSwappingManager: SwappingManager {
 
     func refreshBalances() async -> SwappingItems {
         try? await updateSwappingItemsBalances()
-        return swappingItems
+        return swappingItems.read()
     }
 
     func refresh(type: SwappingManagerRefreshType) async -> SwappingAvailabilityState {
@@ -123,8 +133,12 @@ extension CommonSwappingManager: SwappingManager {
     }
 
     func didSendApproveTransaction(swappingTxData: SwappingTransactionData) {
-        pendingTransactions[swappingTxData.sourceCurrency] = .pending(destination: swappingTxData.destinationAddress)
-        swappingAllowanceLimit[swappingTxData.sourceCurrency] = nil
+        pendingTransactions.mutate { value in
+            value[swappingTxData.sourceCurrency] = .pending(destination: swappingTxData.destinationAddress)
+        }
+        swappingAllowanceLimit.mutate { value in
+            value[swappingTxData.sourceCurrency] = nil
+        }
     }
 }
 
@@ -155,7 +169,8 @@ private extension CommonSwappingManager {
     }
 
     func loadDataForTokenSwapping() async throws -> SwappingAvailabilityState {
-        try await updateSwappingAmountAllowance()
+        let spender = try await getSpenderAddress()
+        try await updateSwappingAmountAllowance(spender: spender)
 
         try Task.checkCancellation()
 
@@ -163,7 +178,9 @@ private extension CommonSwappingManager {
         if isEnoughAllowance() {
             // If we saved pending transaction just remove it
             if hasPendingTransaction() {
-                pendingTransactions[swappingItems.source] = nil
+                pendingTransactions.mutate { [source = swappingItems.source] value in
+                    value[source] = nil
+                }
             }
 
             return try await loadDataForCoinSwapping()
@@ -206,8 +223,9 @@ private extension CommonSwappingManager {
     func loadApproveData() async throws -> SwappingAvailabilityState {
         // We need to load quoteData for "from" and "to" amounts
         async let quoteData = getSwappingQuoteDataModel()
-        async let approvedData = getSwappingApprovedDataModel()
+        async let spender = getSpenderAddress()
 
+        let approvedData = try await getSwappingApprovedDataModel(spender: spender)
         let gasOptions = try await getGasOptions(quoteData: quoteData, approvedData: approvedData)
 
         try Task.checkCancellation()
@@ -224,16 +242,11 @@ private extension CommonSwappingManager {
         return .available(availabilityModel)
     }
 
-    func updateSwappingAmountAllowance() async throws {
-        guard let walletAddress = walletAddress else {
-            throw SwappingManagerError.walletAddressNotFound
+    func updateSwappingAmountAllowance(spender: String) async throws {
+        let allowance = try await walletDataProvider.getAllowance(for: swappingItems.source, from: spender)
+        swappingAllowanceLimit.mutate { [source = swappingItems.source] value in
+            value[source] = allowance
         }
-
-        let allowance = try await swappingProvider.fetchAmountAllowance(
-            for: swappingItems.source,
-            walletAddress: walletAddress
-        )
-        swappingAllowanceLimit[swappingItems.source] = allowance
 
         logger.debug("Token \(swappingItems.source.name) allowance \(allowance)")
     }
@@ -244,17 +257,49 @@ private extension CommonSwappingManager {
         }
 
         return try await swappingProvider.fetchQuote(
-            items: swappingItems,
+            items: swappingItems.read(),
             amount: formattedAmount,
             referrer: referrer
         )
     }
 
-    func getSwappingApprovedDataModel() async throws -> SwappingApprovedDataModel {
-        try await swappingProvider.fetchApproveSwappingData(
-            for: swappingItems.source,
-            approvePolicy: approvePolicy
-        )
+    /// Get the spender's address. The router that will provide the exchange
+    func getSpenderAddress() async throws -> String {
+        let blockchain = swappingItems.source.blockchain
+
+        if let spender = spenderAddresses[blockchain] {
+            return spender
+        }
+
+        let spender = try await swappingProvider.fetchSpenderAddress(for: blockchain)
+        spenderAddresses.mutate { [blockchain] value in
+            value[blockchain] = spender
+        }
+
+        return spender
+    }
+
+    func getSwappingApprovedDataModel(spender: String) throws -> SwappingApprovedDataModel {
+        guard let contractAddress = swappingItems.source.contractAddress else {
+            throw SwappingManagerError.contractAddressNotFound
+        }
+
+        let approveAmount: Decimal = try {
+            switch approvePolicy {
+            case .specified:
+                if let amount = amount {
+                    return swappingItems.source.convertToWEI(value: amount)
+                }
+
+                throw SwappingManagerError.amountNotFound
+
+            case .unlimited:
+                return .greatestFiniteMagnitude
+            }
+        }()
+
+        let data = walletDataProvider.getApproveData(for: swappingItems.source, from: spender, amount: approveAmount)
+        return SwappingApprovedDataModel(data: data, tokenAddress: contractAddress, value: 0)
     }
 
     func getSwappingTxDataModel() async throws -> SwappingDataModel {
@@ -267,7 +312,7 @@ private extension CommonSwappingManager {
         }
 
         return try await swappingProvider.fetchSwappingData(
-            items: swappingItems,
+            items: swappingItems.read(),
             walletAddress: walletAddress,
             amount: formattedAmount,
             referrer: referrer
@@ -281,12 +326,12 @@ private extension CommonSwappingManager {
         if let destination = swappingItems.destination {
             let balance = try await walletDataProvider.getBalance(for: destination)
             if swappingItems.destinationBalance != balance {
-                swappingItems.destinationBalance = balance
+                swappingItems.mutate { $0.destinationBalance = balance }
             }
         }
 
         if swappingItems.sourceBalance != balance {
-            swappingItems.sourceBalance = balance
+            swappingItems.mutate { $0.sourceBalance = balance }
         }
     }
 

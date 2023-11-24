@@ -13,8 +13,8 @@ import Combine
 class LegacyMainCoordinator: CoordinatorObject {
     @Injected(\.userWalletRepository) private var userWalletRepository: UserWalletRepository
 
-    var dismissAction: Action
-    var popToRootAction: ParamsAction<PopToRootOptions>
+    var dismissAction: Action<Void>
+    var popToRootAction: Action<PopToRootOptions>
 
     // MARK: - Main view model
 
@@ -22,11 +22,12 @@ class LegacyMainCoordinator: CoordinatorObject {
 
     // MARK: - Child coordinators
 
-    @Published var sendCoordinator: SendCoordinator? = nil
+    @Published var legacySendCoordinator: LegacySendCoordinator? = nil
     @Published var pushTxCoordinator: PushTxCoordinator? = nil
+    @Published var legacyTokenDetailsCoordinator: LegacyTokenDetailsCoordinator? = nil
     @Published var tokenDetailsCoordinator: TokenDetailsCoordinator? = nil
     @Published var detailsCoordinator: DetailsCoordinator? = nil
-    @Published var tokenListCoordinator: TokenListCoordinator? = nil
+    @Published var legacyTokenListCoordinator: LegacyTokenListCoordinator? = nil
     @Published var modalOnboardingCoordinator: OnboardingCoordinator? = nil
 
     // MARK: - Child view models
@@ -38,6 +39,7 @@ class LegacyMainCoordinator: CoordinatorObject {
     @Published var addressQrBottomSheetContentViewModel: AddressQrBottomSheetContentViewModel? = nil
     @Published var warningBankCardViewModel: WarningBankCardViewModel? = nil
     @Published var userWalletListCoordinator: UserWalletListCoordinator?
+    @Published var promotionCoordinator: PromotionCoordinator?
 
     // MARK: - Helpers
 
@@ -46,7 +48,7 @@ class LegacyMainCoordinator: CoordinatorObject {
     private var lastInsertedUserWalletId: Data?
     private var bag: Set<AnyCancellable> = []
 
-    required init(dismissAction: @escaping Action, popToRootAction: @escaping ParamsAction<PopToRootOptions>) {
+    required init(dismissAction: @escaping Action<Void>, popToRootAction: @escaping Action<PopToRootOptions>) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
 
@@ -58,15 +60,15 @@ class LegacyMainCoordinator: CoordinatorObject {
                 switch event {
                 case .selected(let userWallet, _):
                     guard !userWallet.isLocked,
-                          let selectedModel = self.userWalletRepository.selectedModel
+                          let selectedModel = userWalletRepository.selectedModel
                     else {
                         return
                     }
 
                     let options = Options(cardModel: selectedModel)
-                    self.start(with: options)
+                    start(with: options)
                 case .inserted(let userWallet):
-                    self.lastInsertedUserWalletId = userWallet.userWalletId
+                    lastInsertedUserWalletId = userWallet.userWalletId
                 default:
                     break
                 }
@@ -97,7 +99,7 @@ extension LegacyMainCoordinator {
 
 extension LegacyMainCoordinator: LegacyMainRoutable {
     func openOnboardingModal(with input: OnboardingInput) {
-        let dismissAction: Action = { [weak self] in
+        let dismissAction: Action<OnboardingCoordinator.OutputOptions> = { [weak self] _ in
             self?.modalOnboardingCoordinator = nil
             self?.mainViewModel?.updateIsBackupAllowed()
         }
@@ -142,35 +144,35 @@ extension LegacyMainCoordinator: LegacyMainRoutable {
     }
 
     func openSend(amountToSend: Amount, blockchainNetwork: BlockchainNetwork, cardViewModel: CardViewModel) {
-        let coordinator = SendCoordinator { [weak self] in
-            self?.sendCoordinator = nil
+        let coordinator = LegacySendCoordinator { [weak self] in
+            self?.legacySendCoordinator = nil
         }
-        let options = SendCoordinator.Options(
+        let options = LegacySendCoordinator.Options(
             amountToSend: amountToSend,
             destination: nil,
             blockchainNetwork: blockchainNetwork,
             cardViewModel: cardViewModel
         )
         coordinator.start(with: options)
-        sendCoordinator = coordinator
+        legacySendCoordinator = coordinator
     }
 
     func openSendToSell(amountToSend: Amount, destination: String, blockchainNetwork: BlockchainNetwork, cardViewModel: CardViewModel) {
-        let coordinator = SendCoordinator { [weak self] in
-            self?.sendCoordinator = nil
+        let coordinator = LegacySendCoordinator { [weak self] in
+            self?.legacySendCoordinator = nil
         }
-        let options = SendCoordinator.Options(
+        let options = LegacySendCoordinator.Options(
             amountToSend: amountToSend,
             destination: destination,
             blockchainNetwork: blockchainNetwork,
             cardViewModel: cardViewModel
         )
         coordinator.start(with: options)
-        sendCoordinator = coordinator
+        legacySendCoordinator = coordinator
     }
 
-    func openPushTx(for tx: BlockchainSdk.Transaction, blockchainNetwork: BlockchainNetwork, card: CardViewModel) {
-        let dismissAction: Action = { [weak self] in
+    func openPushTx(for tx: PendingTransactionRecord, blockchainNetwork: BlockchainNetwork, card: CardViewModel) {
+        let dismissAction: Action<Void> = { [weak self] _ in
             self?.pushTxCoordinator = nil
         }
 
@@ -188,13 +190,13 @@ extension LegacyMainCoordinator: LegacyMainRoutable {
         popToRoot(with: .init(newScan: newScan))
     }
 
-    func openSettings(cardModel: CardViewModel) {
-        let dismissAction: Action = { [weak self] in
+    func openSettings(userWalletModel: UserWalletModel) {
+        let dismissAction: Action<Void> = { [weak self] _ in
             self?.detailsCoordinator = nil
         }
 
         let coordinator = DetailsCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
-        let options = DetailsCoordinator.Options(cardModel: cardModel)
+        let options = DetailsCoordinator.Options(userWalletModel: userWalletModel)
         coordinator.start(with: options)
         coordinator.popToRootAction = popToRootAction
         detailsCoordinator = coordinator
@@ -202,18 +204,34 @@ extension LegacyMainCoordinator: LegacyMainRoutable {
 
     func openTokenDetails(cardModel: CardViewModel, blockchainNetwork: BlockchainNetwork, amountType: Amount.AmountType) {
         Analytics.log(.tokenIsTapped)
-        let dismissAction: Action = { [weak self] in
+        let dismissAction: Action<Void> = { [weak self] _ in
+            self?.legacyTokenDetailsCoordinator = nil
             self?.tokenDetailsCoordinator = nil
         }
 
-        let coordinator = TokenDetailsCoordinator(dismissAction: dismissAction)
-        let options = TokenDetailsCoordinator.Options(
+        if FeatureProvider.isAvailable(.tokenDetailsV2) {
+            guard let walletModel = cardModel.walletModelsManager.walletModels.first(where: { $0.blockchainNetwork == blockchainNetwork }) else {
+                return
+            }
+
+            let coordinator = TokenDetailsCoordinator(dismissAction: dismissAction)
+            coordinator.start(with: .init(
+                cardModel: cardModel,
+                walletModel: walletModel,
+                userTokensManager: cardModel.userTokensManager
+            ))
+            tokenDetailsCoordinator = coordinator
+            return
+        }
+
+        let coordinator = LegacyTokenDetailsCoordinator(dismissAction: dismissAction)
+        let options = LegacyTokenDetailsCoordinator.Options(
             cardModel: cardModel,
             blockchainNetwork: blockchainNetwork,
             amountType: amountType
         )
         coordinator.start(with: options)
-        tokenDetailsCoordinator = coordinator
+        legacyTokenDetailsCoordinator = coordinator
     }
 
     func openCurrencySelection(autoDismiss: Bool) {
@@ -221,14 +239,20 @@ extension LegacyMainCoordinator: LegacyMainRoutable {
         currencySelectViewModel?.dismissAfterSelection = autoDismiss
     }
 
-    func openTokensList(with cardModel: CardViewModel) {
-        let dismissAction: Action = { [weak self] in
-            self?.tokenListCoordinator = nil
+    func openLegacyTokensList(
+        with settings: LegacyManageTokensSettings,
+        userTokensManager: UserTokensManager
+    ) {
+        let dismissAction: Action<Void> = { [weak self] _ in
+            self?.legacyTokenListCoordinator = nil
         }
 
-        let coordinator = TokenListCoordinator(dismissAction: dismissAction)
-        coordinator.start(with: .add(cardModel: cardModel))
-        tokenListCoordinator = coordinator
+        let coordinator = LegacyTokenListCoordinator(dismissAction: dismissAction)
+        coordinator.start(with: .add(
+            settings: settings,
+            userTokensManager: userTokensManager
+        ))
+        legacyTokenListCoordinator = coordinator
     }
 
     func openMail(with dataCollector: EmailDataCollector, emailType: EmailType, recipient: String) {
@@ -267,7 +291,7 @@ extension LegacyMainCoordinator: LegacyMainRoutable {
     }
 
     func openUserWalletList() {
-        let dismissAction: Action = { [weak self] in
+        let dismissAction: Action<Void> = { [weak self] _ in
             self?.userWalletListCoordinator = nil
         }
 
@@ -279,15 +303,25 @@ extension LegacyMainCoordinator: LegacyMainRoutable {
 
     /// Because `MainRoutable` inherits `TokenDetailsRoutable`. Todo: Remove it dependency
     func openSwapping(input: CommonSwappingModulesFactory.InputModel) {}
+
+    func openPromotion(cardPublicKey: String, cardId: String, walletId: String) {
+        let dismissAction: Action<Void> = { [weak self] _ in
+            self?.promotionCoordinator = nil
+        }
+
+        let coordinator = PromotionCoordinator(dismissAction: dismissAction)
+        let options: PromotionCoordinator.Options = .oldUser(cardPublicKey: cardPublicKey, cardId: cardId, walletId: walletId)
+        coordinator.start(with: options)
+        promotionCoordinator = coordinator
+    }
 }
 
 extension LegacyMainCoordinator: UserWalletListCoordinatorOutput {
     func dismissAndOpenOnboarding(with input: OnboardingInput) {
         userWalletListCoordinator = nil
 
-        let dismissAction: Action = { [weak self] in
+        let dismissAction: Action<OnboardingCoordinator.OutputOptions> = { [weak self] _ in
             self?.modalOnboardingCoordinator = nil
-            self?.userWalletRepository.updateSelection()
         }
 
         let coordinator = OnboardingCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
@@ -296,7 +330,6 @@ extension LegacyMainCoordinator: UserWalletListCoordinatorOutput {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             self.modalOnboardingCoordinator = coordinator
-            Analytics.log(.onboardingStarted)
         }
     }
 }

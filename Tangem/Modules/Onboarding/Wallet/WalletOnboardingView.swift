@@ -84,7 +84,7 @@ struct WalletOnboardingView: View {
 
             disclaimerContent
                 .layoutPriority(1)
-                .readSize { size in
+                .readGeometry(\.size) { size in
                     viewModel.setupContainer(with: size)
                 }
 
@@ -92,6 +92,12 @@ struct WalletOnboardingView: View {
                 GeometryReader { geom in
                     let size = geom.size
                     ZStack(alignment: .center) {
+                        Circle()
+                            .foregroundColor(Colors.Button.secondary)
+                            .frame(size: viewModel.isInitialAnimPlayed ? currentStep.cardBackgroundFrame(containerSize: size) : .zero)
+                            .offset(viewModel.isInitialAnimPlayed ? currentStep.backgroundOffset(in: size) : .zero)
+                            .opacity(viewModel.isCustomContentVisible ? 0 : 1)
+
                         // Navbar is added to ZStack instead of VStack because of wrong animation when container changed
                         // and cards jumps instead of smooth transition
                         NavigationBar(
@@ -145,7 +151,7 @@ struct WalletOnboardingView: View {
                                 ZStack(alignment: .topTrailing) {
                                     OnboardingCardView(
                                         placeholderCardType: .dark,
-                                        cardImage: viewModel.cardImage,
+                                        cardImage: viewModel.customOnboardingImage ?? viewModel.cardImage,
                                         cardScanned: viewModel.isInitialAnimPlayed
                                     )
                                     Text(Localization.commonOriginCard)
@@ -180,7 +186,7 @@ struct WalletOnboardingView: View {
                     }
                     .position(x: size.width / 2, y: size.height / 2)
                 }
-                .readSize { size in
+                .readGeometry(\.size) { size in
                     if !viewModel.isCustomContentVisible {
                         viewModel.setupContainer(with: size)
                     }
@@ -190,7 +196,7 @@ struct WalletOnboardingView: View {
                 if viewModel.isCustomContentVisible {
                     customContent
                         .layoutPriority(1)
-                        .readSize { size in
+                        .readGeometry(\.size) { size in
                             viewModel.setupContainer(with: size)
                         }
                 }
@@ -218,6 +224,7 @@ struct WalletOnboardingView: View {
         })
         .preference(key: ModalSheetPreferenceKey.self, value: viewModel.isModal)
         .onAppear(perform: viewModel.onAppear)
+        .background(Colors.Background.primary.edgesIgnoringSafeArea(.all))
     }
 }
 

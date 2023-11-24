@@ -11,16 +11,29 @@ import Combine
 import Firebase
 import AppsFlyerLib
 import Amplitude
+import BlockchainSdk
 
 class ServicesManager {
     @Injected(\.exchangeService) private var exchangeService: ExchangeService
     @Injected(\.tangemApiService) private var tangemApiService: TangemApiService
+    @Injected(\.userWalletRepository) private var userWalletRepository: UserWalletRepository
 
     private var bag = Set<AnyCancellable>()
 
     func initialize() {
-        AppLog.shared.debug("Start services initializing")
         AppLog.shared.configure()
+
+        let initialLaunches = AppSettings.shared.numberOfLaunches
+        let currentLaunches = initialLaunches + 1
+        AppSettings.shared.numberOfLaunches = currentLaunches
+
+        AppLog.shared.logAppLaunch(currentLaunches)
+
+        if initialLaunches == 0 {
+            userWalletRepository.initialClean()
+        }
+
+        AppLog.shared.debug("Start services initializing")
 
         if !AppEnvironment.current.isDebug {
             configureFirebase()
@@ -28,11 +41,9 @@ class ServicesManager {
             configureAmplitude()
         }
 
-        let currentLaunches = AppSettings.shared.numberOfLaunches + 1
-        AppSettings.shared.numberOfLaunches = currentLaunches
-        AppLog.shared.logAppLaunch(currentLaunches)
-        S2CTOUMigrator().migrate()
+        configureBlockchainSdkExceptionHandler()
 
+        S2CTOUMigrator().migrate()
         exchangeService.initialize()
         tangemApiService.initialize()
     }
@@ -66,6 +77,12 @@ class ServicesManager {
     private func configureAmplitude() {
         Amplitude.instance().trackingSessionEvents = true
         Amplitude.instance().initializeApiKey(try! CommonKeysManager().amplitudeApiKey)
+    }
+
+    private func configureBlockchainSdkExceptionHandler() {
+        if FeatureProvider.isAvailable(.enableBlockchainSdkEvents) {
+            ExceptionHandler.shared.append(output: Analytics.BlockchainExceptionHandler())
+        }
     }
 }
 

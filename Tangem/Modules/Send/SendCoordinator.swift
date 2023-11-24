@@ -2,72 +2,54 @@
 //  SendCoordinator.swift
 //  Tangem
 //
-//  Created by Alexander Osokin on 16.06.2022.
-//  Copyright © 2022 Tangem AG. All rights reserved.
+//  Created by Andrey Chukavin on 30.10.2023.
+//  Copyright © 2023 Tangem AG. All rights reserved.
 //
 
 import Foundation
+import Combine
 import BlockchainSdk
-import SwiftUI
 
 class SendCoordinator: CoordinatorObject {
-    var dismissAction: Action
-    var popToRootAction: ParamsAction<PopToRootOptions>
+    let dismissAction: Action<Void>
+    let popToRootAction: Action<PopToRootOptions>
 
-    // MARK: - Main view model
+    // MARK: - Root view model
 
-    @Published private(set) var sendViewModel: SendViewModel? = nil
+    @Published private(set) var rootViewModel: SendViewModel?
+
+    // MARK: - Child coordinators
 
     // MARK: - Child view models
 
-    @Published var mailViewModel: MailViewModel? = nil
-    @Published var qrScanViewModel: QRScanViewModel? = nil
-
-    required init(dismissAction: @escaping Action, popToRootAction: @escaping ParamsAction<PopToRootOptions>) {
+    required init(
+        dismissAction: @escaping Action<Void>,
+        popToRootAction: @escaping Action<PopToRootOptions>
+    ) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
     }
 
-    func start(with options: SendCoordinator.Options) {
-        if let destination = options.destination {
-            sendViewModel = SendViewModel(
-                amountToSend: options.amountToSend,
-                destination: destination,
-                blockchainNetwork: options.blockchainNetwork,
-                cardViewModel: options.cardViewModel,
-                coordinator: self
-            )
-        } else {
-            sendViewModel = SendViewModel(
-                amountToSend: options.amountToSend,
-                blockchainNetwork: options.blockchainNetwork,
-                cardViewModel: options.cardViewModel,
-                coordinator: self
-            )
-        }
+    func start(with options: Options) {
+        rootViewModel = SendViewModel(
+            walletModel: options.walletModel,
+            transactionSigner: options.transactionSigner,
+            sendType: options.type,
+            coordinator: self
+        )
     }
 }
+
+// MARK: - Options
 
 extension SendCoordinator {
     struct Options {
-        let amountToSend: Amount
-        let destination: String?
-        let blockchainNetwork: BlockchainNetwork
-        let cardViewModel: CardViewModel
+        let walletModel: WalletModel
+        let transactionSigner: TransactionSigner
+        let type: SendType
     }
 }
 
-extension SendCoordinator: SendRoutable {
-    func openMail(with dataCollector: EmailDataCollector, recipient: String) {
-        let logsComposer = LogsComposer(infoProvider: dataCollector)
-        mailViewModel = MailViewModel(logsComposer: logsComposer, recipient: recipient, emailType: .failedToSendTx)
-    }
+// MARK: - SendRoutable
 
-    func closeModule() {
-        dismiss()
-    }
-
-    func openQRScanner(with codeBinding: Binding<String>) {
-        qrScanViewModel = .init(code: codeBinding)
-    }
-}
+extension SendCoordinator: SendRoutable {}

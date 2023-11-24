@@ -9,7 +9,7 @@
 import Foundation
 import Combine
 
-extension AnyPublisher {
+extension AnyPublisher where Failure: Error {
     static func just(output: Output) -> AnyPublisher<Output, Never> {
         Just(output).eraseToAnyPublisher()
     }
@@ -27,6 +27,19 @@ extension AnyPublisher {
                 } receiveValue: { output in
                     continuation.resume(returning: output)
                 }
+        }
+    }
+}
+
+extension AnyPublisher where Failure == Never {
+    func async() async -> Output {
+        await withCheckedContinuation { continuation in
+            var cancellable: AnyCancellable?
+            cancellable = first()
+                .sink(receiveValue: { output in
+                    continuation.resume(returning: output)
+                    withExtendedLifetime(cancellable) {}
+                })
         }
     }
 }

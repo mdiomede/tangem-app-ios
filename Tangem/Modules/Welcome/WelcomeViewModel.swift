@@ -93,14 +93,18 @@ class WelcomeViewModel: ObservableObject {
 
             switch result {
             case .troubleshooting:
-                self.showTroubleshootingView = true
+                showTroubleshootingView = true
             case .onboarding(let input):
-                self.openOnboarding(with: input)
+                openOnboarding(with: input)
             case .error(let error):
                 self.error = error.alertBinder
             case .success(let cardModel), .partial(let cardModel, _): // partial unlock is impossible in this case
-                Analytics.log(.signedIn, params: [.signInType: .signInTypeCard])
-                self.openMain(with: cardModel)
+                Analytics.log(event: .signedIn, params: [
+                    .signInType: Analytics.ParameterValue.signInTypeCard.rawValue,
+                    .walletsCount: "1", // we don't have any saved wallets, just log one,
+                    .walletHasBackup: Analytics.ParameterValue.affirmativeOrNegative(for: cardModel.hasBackupCards).rawValue,
+                ])
+                openMain(with: cardModel)
             }
         }
     }
@@ -111,6 +115,11 @@ class WelcomeViewModel: ObservableObject {
 extension WelcomeViewModel {
     func openMail() {
         coordinator.openMail(with: failedCardScanTracker, recipient: EmailConfig.default.recipient)
+    }
+
+    func openPromotion() {
+        Analytics.log(.introductionProcessLearn)
+        coordinator.openPromotion()
     }
 
     func openTokensList() {

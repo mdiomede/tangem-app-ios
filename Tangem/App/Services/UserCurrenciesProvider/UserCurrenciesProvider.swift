@@ -7,13 +7,19 @@
 //
 
 import TangemSwapping
+import Combine
+import BlockchainSdk
 
 struct UserCurrenciesProvider {
-    private let walletModel: WalletModel
+    @Injected(\.tangemApiService) private var tangemApiService: TangemApiService
+
+    private let blockchain: Blockchain
+    private let walletModelTokens: [Token]
     private let currencyMapper: CurrencyMapping
 
-    init(walletModel: WalletModel, currencyMapper: CurrencyMapping) {
-        self.walletModel = walletModel
+    init(blockchain: Blockchain, walletModelTokens: [Token], currencyMapper: CurrencyMapping) {
+        self.blockchain = blockchain
+        self.walletModelTokens = walletModelTokens
         self.currencyMapper = currencyMapper
     }
 }
@@ -21,23 +27,46 @@ struct UserCurrenciesProvider {
 // MARK: - UserCurrenciesProviding
 
 extension UserCurrenciesProvider: UserCurrenciesProviding {
-    func getCurrencies(blockchain swappingBlockchain: SwappingBlockchain) -> [Currency] {
-        let blockchain = walletModel.blockchainNetwork.blockchain
-
-        guard blockchain.networkId == swappingBlockchain.networkId else {
-            assertionFailure("incorrect blockchain in WalletModel")
-            return []
-        }
-
+    func getCurrencies(blockchain swappingBlockchain: SwappingBlockchain) async -> [Currency] {
         var currencies: [Currency] = []
         if let coinCurrency = currencyMapper.mapToCurrency(blockchain: blockchain) {
             currencies.append(coinCurrency)
         }
 
-        currencies += walletModel.getTokens().compactMap {
-            currencyMapper.mapToCurrency(token: $0, blockchain: blockchain)
+        let tokenIds = walletModelTokens.compactMap(\.id)
+        if tokenIds.isEmpty {
+            return currencies
+        }
+
+        // Get user tokens from API with filled in fields
+        // For checking exchangeable
+        do {
+            let tokens = try await filterTokens(with: tokenIds, in: blockchain)
+            currencies += tokens.compactMap { token in
+                currencyMapper.mapToCurrency(token: token, blockchain: blockchain)
+            }
+        } catch {
+            AppLog.shared.debug("UserCurrenciesProvider could not loaded tokens")
+            AppLog.shared.error(error)
         }
 
         return currencies
+    }
+}
+
+private extension UserCurrenciesProvider {
+    func filterTokens(with ids: [String], in blockchain: Blockchain) async throws -> [Token] {
+        let request = CoinsList.Request(supportedBlockchains: [blockchain], ids: ids)
+        let coins = try await tangemApiService.loadCoins(requestModel: request).async()
+
+        let tokens = coins.compactMap { coin -> Token? in
+            guard let item = coin.items.first(where: { $0.id == coin.id }), item.exchangeable else {
+                return nil
+            }
+
+            return item.tokenItem.token
+        }
+
+        return tokens
     }
 }

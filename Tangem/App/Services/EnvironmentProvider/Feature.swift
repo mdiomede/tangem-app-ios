@@ -9,38 +9,41 @@
 import Foundation
 
 enum Feature: String, Hashable, CaseIterable {
-    case exchange
-    case walletConnectV2
-    case importSeedPhrase
-    case accessCodeRecoverySettings
     case disableFirmwareVersionLimit
-    case abilityChooseCommissionRate
-    case abilityChooseApproveAmount
     case learnToEarn
+    case tokenDetailsV2
+    case enableBlockchainSdkEvents
+    case mainV2
+    case sendV2
+    case mainScreenBottomSheet
+    case dynamicFonts
+    case express
 
     var name: String {
         switch self {
-        case .exchange: return "Exchange"
-        case .walletConnectV2: return "WalletConnect V2"
-        case .importSeedPhrase: return "Import seed phrase (Firmware 6.11 and above)"
-        case .accessCodeRecoverySettings: return "Access Code Recovery Settings"
         case .disableFirmwareVersionLimit: return "Disable firmware version limit"
-        case .abilityChooseCommissionRate: return "Ability Choose Commission Rate"
-        case .abilityChooseApproveAmount: return "Ability Choose Approve Amount"
         case .learnToEarn: return "Learn to Earn"
+        case .tokenDetailsV2: return "Token details 2.0"
+        case .enableBlockchainSdkEvents: return "Enable send BlockchainSdk events"
+        case .mainV2: return "Main page 2.0"
+        case .sendV2: return "Send screen 2.0"
+        case .mainScreenBottomSheet: return "Bottom sheet on Main screen 2.0"
+        case .dynamicFonts: return "Dynamic fonts"
+        case .express: return "Tangem express"
         }
     }
 
     var releaseVersion: ReleaseVersion {
         switch self {
-        case .exchange: return .version("4.2")
-        case .walletConnectV2: return .unspecified
-        case .importSeedPhrase: return .unspecified
-        case .accessCodeRecoverySettings: return .unspecified
         case .disableFirmwareVersionLimit: return .unspecified
-        case .abilityChooseCommissionRate: return .version("4.6")
-        case .abilityChooseApproveAmount: return .version("4.6")
         case .learnToEarn: return .unspecified
+        case .tokenDetailsV2: return .version("5.0")
+        case .enableBlockchainSdkEvents: return .unspecified
+        case .mainV2: return .version("5.0")
+        case .sendV2: return .unspecified
+        case .mainScreenBottomSheet: return .unspecified
+        case .dynamicFonts: return .unspecified
+        case .express: return .unspecified
         }
     }
 }

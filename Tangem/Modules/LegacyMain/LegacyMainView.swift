@@ -29,7 +29,7 @@ struct LegacyMainView: View {
                         .padding(.top, 8)
                         .fixedSize(horizontal: false, vertical: true)
 
-                        if viewModel.isLackDerivationWarningViewVisible {
+                        if viewModel.hasPendingDerivations {
                             ScanCardWarningView(action: viewModel.deriveEntriesWithoutDerivation)
                                 .padding(.horizontal, 16)
                         }
@@ -39,7 +39,7 @@ struct LegacyMainView: View {
                         })
                         .padding(.horizontal, 16)
 
-                        if viewModel.canLearnAndEarn {
+                        if viewModel.promotionAvailable {
                             learnAlertView
                         }
 
@@ -49,8 +49,10 @@ struct LegacyMainView: View {
 
                         if let viewModel = viewModel.multiWalletContentViewModel {
                             LegacyMultiWalletContentView(viewModel: viewModel)
+                                .animation(nil)
                         } else if let viewModel = viewModel.singleWalletContentViewModel {
                             LegacySingleWalletContentView(viewModel: viewModel)
+                                .animation(nil)
                         }
 
                         Color.clear.frame(width: 10, height: 58, alignment: .center)
@@ -116,10 +118,7 @@ struct LegacyMainView: View {
 
     var settingsNavigationButton: some View {
         Button(action: viewModel.openSettings) {
-            Assets.verticalDots.image
-                .foregroundColor(Color.tangemGrayDark6)
-                .frame(width: 44, height: 44)
-                .offset(x: 11)
+            NavbarDotsImage()
         }
         .buttonStyle(PlainButtonStyle())
         .animation(nil)
@@ -127,7 +126,7 @@ struct LegacyMainView: View {
     }
 
     var learnAlertView: some View {
-        LearnAndEarnAlertView(tapAction: viewModel.learnAndEarn)
+        LearnAndEarnAlertView(title: viewModel.learnAndEarnTitle, subtitle: viewModel.learnAndEarnSubtitle, inProgress: viewModel.promotionRequestInProgress, tapAction: viewModel.learnAndEarn)
             .padding(.horizontal, 16)
     }
 

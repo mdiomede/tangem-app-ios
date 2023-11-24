@@ -28,9 +28,10 @@ struct CounterView: View {
     }
 }
 
+@available(*, deprecated, message: "Use NotificationView instead")
 struct WarningView: View {
     let warning: AppWarning
-    var buttonAction: (WarningButton) -> Void = { _ in }
+    var buttonAction: (WarningView.WarningButton) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -40,7 +41,7 @@ struct WarningView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 8)
                     .foregroundColor(.white)
-                if warning.event?.canBeDismissed ?? false {
+                if warning.event?.isDismissable ?? false {
                     Spacer()
                     Button(action: { buttonAction(.dismiss) }, label: {
                         Image(systemName: "xmark.circle.fill")
@@ -69,7 +70,7 @@ struct WarningView: View {
         .cornerRadius(6)
     }
 
-    var warningButtons: [WarningButton] {
+    var warningButtons: [WarningView.WarningButton] {
         if let buttons = warning.event?.buttons, !buttons.isEmpty {
             return buttons
         } else {
@@ -105,6 +106,29 @@ struct WarningView: View {
     }
 }
 
+@available(*, deprecated, message: "Use NotificationView instead")
+extension WarningView {
+    enum WarningButton: String, Identifiable {
+        case okGotIt
+        case rateApp
+        case reportProblem
+        case dismiss
+        case learnMore
+
+        var id: String { rawValue }
+
+        var buttonTitle: String {
+            switch self {
+            case .okGotIt: return Localization.warningButtonOk
+            case .rateApp: return Localization.warningButtonReallyCool
+            case .reportProblem: return Localization.warningButtonCouldBeBetter
+            case .learnMore: return Localization.warningButtonLearnMore
+            case .dismiss: return ""
+            }
+        }
+    }
+}
+
 struct WarningView_Previews: PreviewProvider {
     @State static var warnings: [AppWarning] = [
         WarningEvent.numberOfSignedHashesIncorrect.warning,
@@ -112,7 +136,6 @@ struct WarningView_Previews: PreviewProvider {
         AppWarning(title: "Warning", message: "Blockchain is currently unavailable", priority: .critical, type: .permanent),
         AppWarning(title: "Good news, everyone!", message: "New Tangem Cards available. Visit our web site to learn more", priority: .info, type: .temporary),
         AppWarning(title: "Attention!", message: "Something huuuuuge is going to happen! Something huuuuuge is going to happen! Something huuuuuge is going to happen! Something huuuuuge is going to happen! Something huuuuuge is going to happen! Something huuuuuge is going to happen!", priority: .warning, type: .permanent),
-        WarningEvent.multiWalletSignedHashes.warning,
     ]
     static var previews: some View {
         ScrollView {

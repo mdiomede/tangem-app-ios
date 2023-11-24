@@ -16,7 +16,7 @@ class CommonSwappingWalletDataProvider {
     private let ethereumTransactionProcessor: EthereumTransactionProcessor
     private let currencyMapper: CurrencyMapping
 
-    private var balances: [Amount.AmountType: Decimal] = [:]
+    private let balances: ThreadSafeContainer<[Amount.AmountType: Decimal]>
     private var walletAddress: String { wallet.address }
 
     init(
@@ -30,9 +30,11 @@ class CommonSwappingWalletDataProvider {
         self.ethereumTransactionProcessor = ethereumTransactionProcessor
         self.currencyMapper = currencyMapper
 
-        balances = wallet.amounts.reduce(into: [:]) {
+        let balances = wallet.amounts.reduce(into: [:]) {
             $0[$1.key] = $1.value.value.rounded(scale: $1.value.decimals, roundingMode: .down)
         }
+
+        self.balances = ThreadSafeContainer<[Amount.AmountType: Decimal]>(balances)
     }
 }
 
@@ -62,19 +64,17 @@ extension CommonSwappingWalletDataProvider: SwappingWalletDataProvider {
         )
     }
 
+    func getBalance(for currency: Currency) -> Decimal? {
+        guard let amountType = mapToAmountType(currency: currency) else {
+            return nil
+        }
+
+        return balances[amountType]
+    }
+
     func getBalance(for currency: Currency) async throws -> Decimal {
-        let amountType: Amount.AmountType
-
-        switch currency.currencyType {
-        case .token:
-            guard let token = currencyMapper.mapToToken(currency: currency) else {
-                assertionFailure("Currency isn't a token")
-                return 0
-            }
-
-            amountType = Amount.AmountType.token(value: token)
-        case .coin:
-            amountType = Amount.AmountType.coin
+        guard let amountType = mapToAmountType(currency: currency) else {
+            throw CommonError.noData
         }
 
         if let balance = balances[amountType] {
@@ -84,7 +84,9 @@ extension CommonSwappingWalletDataProvider: SwappingWalletDataProvider {
         var balance = try await getBalanceFromNetwork(amountType: amountType)
         balance.round(scale: currency.decimalCount, roundingMode: .down)
 
-        balances[amountType] = balance
+        balances.mutate { value in
+            value[amountType] = balance
+        }
 
         return balance
     }
@@ -100,8 +102,28 @@ extension CommonSwappingWalletDataProvider: SwappingWalletDataProvider {
         }
 
         let balance = try await getBalanceFromNetwork(amountType: .coin)
-        balances[.coin] = balance
+        balances.mutate { value in
+            value[.coin] = balance
+        }
         return balance
+    }
+
+    func getAllowance(for currency: Currency, from spender: String) async throws -> Decimal {
+        guard let contractAddress = currency.contractAddress else {
+            throw SwappingManagerError.contractAddressNotFound
+        }
+
+        let allowanceInWEI = try await ethereumNetworkProvider.getAllowance(
+            owner: walletAddress,
+            spender: spender,
+            contractAddress: contractAddress
+        ).async()
+
+        return currency.convertFromWEI(value: allowanceInWEI)
+    }
+
+    func getApproveData(for currency: Currency, from spender: String, amount: Decimal) -> Data {
+        ethereumTransactionProcessor.buildForApprove(spender: spender, amount: amount)
     }
 }
 
@@ -134,7 +156,9 @@ private extension CommonSwappingWalletDataProvider {
         switch amountType {
         case .coin:
             let balance = try await ethereumNetworkProvider.getBalance(walletAddress).async()
-            balances[amountType] = balance
+            balances.mutate { value in
+                value[amountType] = balance
+            }
             return balance
 
         case .token(let token):
@@ -143,7 +167,9 @@ private extension CommonSwappingWalletDataProvider {
             ).async()
 
             if let balance = loadedBalances[token] {
-                balances[amountType] = balance
+                balances.mutate { value in
+                    value[amountType] = balance
+                }
                 return balance
             }
 
@@ -165,7 +191,7 @@ private extension CommonSwappingWalletDataProvider {
     ) async throws -> [EthereumGasDataModel] {
         let amount = createAmount(from: blockchain, amount: value)
 
-        let fees = try await ethereumTransactionProcessor.getFee(
+        let fees = try await ethereumNetworkProvider.getFee(
             destination: destination,
             value: amount.encodedForSend,
             data: data
@@ -231,5 +257,19 @@ private extension CommonSwappingWalletDataProvider {
             fee: blockchain.convertFromWEI(value: Decimal(gasLimit * gasPrice)),
             policy: policy
         )
+    }
+
+    func mapToAmountType(currency: Currency) -> Amount.AmountType? {
+        switch currency.currencyType {
+        case .token:
+            guard let token = currencyMapper.mapToToken(currency: currency) else {
+                assertionFailure("Currency isn't a token")
+                return nil
+            }
+
+            return Amount.AmountType.token(value: token)
+        case .coin:
+            return Amount.AmountType.coin
+        }
     }
 }

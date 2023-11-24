@@ -22,9 +22,29 @@ jobs:
   test:
     name: Test
     if: github.event.pull_request.draft == false
-    uses: tangem/actions/.github/workflows/test.yml@main
-    with:
-     channel: "${{vars.SLACK_CHANNEL_DEPLOYMENTS_IOS}}"
-    secrets:
-     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN}}
-     GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_MOBILE_PAT }}
+        
+    - name: Bundle install
+      run: |
+        bundle config path vendor/bundle
+        bundle install --jobs 4 --retry 3
+        
+    - name: Tests
+      run: bundle exec fastlane test
+      
+    - name: Build notification
+      if: failure()
+      uses: adamkdean/simple-slack-notify@master
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_DVELOPMENT_IOS }}
+      with:
+        channel: '#development-ios'
+        text: 'Tangem tests #${{ github.run_number }} failed'
+        color: 'danger'
+        fields: |
+          [{ "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}]

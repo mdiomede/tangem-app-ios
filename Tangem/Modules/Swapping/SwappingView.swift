@@ -36,8 +36,11 @@ struct SwappingView: View {
             // For animate button below informationSection
             .animation(.easeInOut, value: viewModel.informationSectionViewModels.count)
         }
-        .navigationBarTitle(Text(Localization.swappingSwap), displayMode: .inline)
+        .navigationBarTitle(Text(Localization.commonSwap), displayMode: .inline)
         .alert(item: $viewModel.errorAlert, content: { $0.alert })
+        .onDisappear {
+            viewModel.onDisappear()
+        }
     }
 
     @ViewBuilder
@@ -77,8 +80,10 @@ struct SwappingView: View {
             } else {
                 Button(action: viewModel.userDidTapSwapSwappingItemsButton) {
                     Assets.swappingIcon.image
+                        .renderingMode(.template)
                         .resizable()
                         .frame(width: 20, height: 20)
+                        .foregroundColor(Colors.Icon.primary1)
                 }
             }
         }
@@ -155,12 +160,12 @@ struct SwappingView_Preview: PreviewProvider {
         initialSourceCurrency: .mock,
         swappingInteractor: .init(
             swappingManager: SwappingManagerMock(),
-            userWalletModel: UserWalletModelMock(),
+            userTokensManager: UserTokensManagerMock(),
             currencyMapper: CurrencyMapper(),
             blockchainNetwork: PreviewCard.ethereum.blockchainNetwork!
         ),
         swappingDestinationService: SwappingDestinationServiceMock(),
-        tokenIconURLBuilder: TokenIconURLBuilderMock(),
+        tokenIconURLBuilder: TokenIconURLBuilder(),
         transactionSender: TransactionSenderMock(),
         fiatRatesProvider: FiatRatesProviderMock(),
         swappingFeeFormatter: SwappingFeeFormatterMock(),

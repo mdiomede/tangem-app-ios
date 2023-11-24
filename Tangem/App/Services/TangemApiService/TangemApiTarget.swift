@@ -25,25 +25,41 @@ struct TangemApiTarget: TargetType {
             return "/currencies"
         case .coins:
             return "/coins"
+        case .quotes:
+            return "/quotes"
         case .geo:
             return "/geo"
         case .getUserWalletTokens(let key), .saveUserWalletTokens(let key, _):
             return "/user-tokens/\(key)"
-        case .loadReferralProgramInfo(let userWalletId):
+        case .loadReferralProgramInfo(let userWalletId, _):
             return "/referral/\(userWalletId)"
         case .participateInReferralProgram:
             return "/referral"
+        case .promotion:
+            return "/promotion"
+        case .validateNewUserPromotionEligibility:
+            return "/promotion/code/validate"
+        case .validateOldUserPromotionEligibility:
+            return "/promotion/validate"
+        case .awardNewUser:
+            return "/promotion/code/award"
+        case .awardOldUser:
+            return "/promotion/award"
+        case .resetAward:
+            return "/private/manual-check/promotion-award"
         }
     }
 
     var method: Moya.Method {
         switch type {
-        case .rates, .currencies, .coins, .geo, .getUserWalletTokens, .loadReferralProgramInfo:
+        case .rates, .currencies, .coins, .quotes, .geo, .getUserWalletTokens, .loadReferralProgramInfo, .promotion:
             return .get
         case .saveUserWalletTokens:
             return .put
-        case .participateInReferralProgram:
+        case .participateInReferralProgram, .validateNewUserPromotionEligibility, .validateOldUserPromotionEligibility, .awardNewUser, .awardOldUser:
             return .post
+        case .resetAward:
+            return .delete
         }
     }
 
@@ -59,14 +75,49 @@ struct TangemApiTarget: TargetType {
             )
         case .coins(let pageModel):
             return .requestURLEncodable(pageModel)
+        case .quotes(let pageModel):
+            return .requestURLEncodable(pageModel)
         case .currencies, .geo, .getUserWalletTokens:
             return .requestPlain
         case .saveUserWalletTokens(_, let list):
             return .requestJSONEncodable(list)
-        case .loadReferralProgramInfo:
-            return .requestPlain
+        case .loadReferralProgramInfo(_, let expectedAwardsLimit):
+            return .requestParameters(
+                parameters: [
+                    "expected-awards-limit": expectedAwardsLimit,
+                ],
+                encoding: URLEncoding.default
+            )
         case .participateInReferralProgram(let requestData):
             return .requestURLEncodable(requestData)
+        case .promotion(let programName, _):
+            return .requestParameters(parameters: ["programName": programName], encoding: URLEncoding.default)
+        case .validateNewUserPromotionEligibility(let walletId, let code):
+            return .requestParameters(parameters: [
+                "walletId": walletId,
+                "code": code,
+            ], encoding: JSONEncoding.default)
+        case .validateOldUserPromotionEligibility(let walletId, let programName):
+            return .requestParameters(parameters: [
+                "walletId": walletId,
+                "programName": programName,
+            ], encoding: JSONEncoding.default)
+        case .awardNewUser(let walletId, let address, let code):
+            return .requestParameters(parameters: [
+                "walletId": walletId,
+                "address": address,
+                "code": code,
+            ], encoding: JSONEncoding.default)
+        case .awardOldUser(let walletId, let address, let programName):
+            return .requestParameters(parameters: [
+                "walletId": walletId,
+                "address": address,
+                "programName": programName,
+            ], encoding: JSONEncoding.default)
+        case .resetAward(let cardId):
+            return .requestParameters(parameters: [
+                "cardId": cardId,
+            ], encoding: URLEncoding.default)
         }
     }
 
@@ -79,12 +130,21 @@ extension TangemApiTarget {
     enum TargetType {
         case rates(coinIds: [String], currencyId: String)
         case currencies
-        case coins(_ requestModel: CoinsListRequestModel)
+        case coins(_ requestModel: CoinsList.Request)
+        case quotes(_ requestModel: QuotesDTO.Request)
         case geo
         case getUserWalletTokens(key: String)
         case saveUserWalletTokens(key: String, list: UserTokenList)
-        case loadReferralProgramInfo(userWalletId: String)
+        case loadReferralProgramInfo(userWalletId: String, expectedAwardsLimit: Int)
         case participateInReferralProgram(userInfo: ReferralParticipationRequestBody)
+
+        // Promotion
+        case promotion(programName: String, timeout: TimeInterval?)
+        case validateNewUserPromotionEligibility(walletId: String, code: String)
+        case validateOldUserPromotionEligibility(walletId: String, programName: String)
+        case awardNewUser(walletId: String, address: String, code: String)
+        case awardOldUser(walletId: String, address: String, programName: String)
+        case resetAward(cardId: String)
     }
 
     struct AuthData {
@@ -94,7 +154,7 @@ extension TangemApiTarget {
         var headers: [String: String] {
             [
                 "card_id": cardId,
-                "card_public_key": cardPublicKey.hexString,
+                "card_public_key": cardPublicKey.hex,
             ]
         }
     }
@@ -107,6 +167,17 @@ extension TangemApiTarget: CachePolicyProvider {
             return .reloadIgnoringLocalAndRemoteCacheData
         default:
             return .useProtocolCachePolicy
+        }
+    }
+}
+
+extension TangemApiTarget: TimeoutIntervalProvider {
+    var timeoutInterval: TimeInterval? {
+        switch type {
+        case .promotion(_, let timeout):
+            return timeout
+        default:
+            return nil
         }
     }
 }
