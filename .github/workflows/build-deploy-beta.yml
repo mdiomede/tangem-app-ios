@@ -60,7 +60,7 @@ jobs:
        action: setVersionToIssues
        project: IOS
        version: "Next Release"
-       issues: ${{ steps.github-issues.outputs.issues }}
+       issues: ${{ steps.git-diff.outputs.issues }}
   
  build:
    name: Tangem Beta
