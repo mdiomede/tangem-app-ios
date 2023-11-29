@@ -47,7 +47,7 @@ jobs:
        version: "Next Release"
        
    - name: Jira Create Version
-     if: ${{ !steps.jira-check-version.outputs.result }}
+     if: ${{ steps.jira-check-version.outputs.result == 'false' }}
      uses: tangem/jira-action@master
      with:
        action: createVersion
