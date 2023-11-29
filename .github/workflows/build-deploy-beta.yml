@@ -25,7 +25,10 @@ jobs:
       head: 'develop'
 
    - name: Print issues
-     run: echo ${{ steps.git-diff.outputs.issues }}
+     run: |
+       echo ${{ steps.git-diff.outputs.issues }}
+       exit -1
+     
    
    - name: Jira Login
      uses: atlassian/gajira-login@master
