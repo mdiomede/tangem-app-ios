@@ -40,7 +40,7 @@ jobs:
 
    - name: Print changelog
      run: |
-       echo ${{ steps.changelog.outputs.results }}
+       echo ${{ steps.changelog.outputs.result }}
        exit -1
   
  build:
