@@ -15,13 +15,16 @@ on:
 
 jobs:
  prepare:
-   name: Prepare
+   name: Prepare Release
    uses: tangem/actions/.github/workflows/build.yml@main
    with:
     versionName: ${{ github.event.inputs.versionName }}
     versionType: ${{ github.event.inputs.versionType }}
    secrets:
     GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
+    JIRA_BASE_URL: ${{ secrets.JIRA_URL }}
+    JIRA_USER_EMAIL: ${{ secrets.JIRA_USER }}
+    JIRA_API_TOKEN: ${{ secrets.JIRA_TOKEN }}
  
  build:
    name: Tangem RC
@@ -29,7 +32,7 @@ jobs:
    uses: tangem/actions/.github/workflows/build.yml@main
    with:
     stage: ${{needs.prepare.outputs.stage}}
-    version: "${{needs.prepare.outputs.version}}"
+    version: "${{ github.event.inputs.name }}"
     build_number: ${{needs.prepare.outputs.build_number}}
     path: "fastlane/builds/"
     filename: "Tangem-${{needs.prepare.outputs.stage}}-${{needs.prepare.outputs.version}}(${{needs.prepare.outputs.build_number}}).ipa"
