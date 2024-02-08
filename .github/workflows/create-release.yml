@@ -16,7 +16,7 @@ on:
 jobs:
  prepare:
    name: Prepare Release
-   uses: tangem/actions/.github/workflows/build.yml@main
+   uses: tangem/actions/.github/workflows/prepare-release.yml@main
    with:
     versionName: ${{ github.event.inputs.versionName }}
     versionType: ${{ github.event.inputs.versionType }}
