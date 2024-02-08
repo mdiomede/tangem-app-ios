@@ -19,7 +19,7 @@ jobs:
    uses: tangem/actions/.github/workflows/prepare-release.yml@main
    with:
     versionName: ${{ github.event.inputs.versionName }}
-    versionType: ${{ github.event.inputs.versionType }}
+    releaseType: ${{ github.event.inputs.versionType }}
    secrets:
     GH_MOBILE_PAT: ${{ secrets.GH_MOBILE_PAT}}
     JIRA_BASE_URL: ${{ secrets.JIRA_URL }}
