@@ -139,9 +139,10 @@ final class SendViewModel: ObservableObject {
         self.userWalletModel = userWalletModel
         self.emailDataProvider = emailDataProvider
 
+        let defaultFeeOption = (AppSettings.shared.useDefaultFee && walletModel.shouldShowFeeSelector) ? AppSettings.shared.defaultFeeOption : .market
         let addressService = SendAddressServiceFactory(walletModel: walletModel).makeService()
         #warning("TODO: pass SendModel and NotificationManager as dependencies")
-        sendModel = SendModel(walletModel: walletModel, transactionSigner: transactionSigner, addressService: addressService, sendType: sendType)
+        sendModel = SendModel(walletModel: walletModel, transactionSigner: transactionSigner, addressService: addressService, defaultFeeOption: defaultFeeOption, sendType: sendType)
 
         let steps = sendType.steps
         guard let firstStep = steps.first else {
