@@ -76,7 +76,8 @@ class VisaWalletModel {
         )
         let cardPublicKey: String
         if let wallet = userWalletModel.userWallet.card.wallets.first(where: { $0.curve == .secp256k1 }) {
-            cardPublicKey = wallet.publicKey.hexString
+            cardPublicKey = "02C2BBA0DA1E066EA968C1EB129499F6DEBC5FD82D70D61DCAF691CDB69AF5D8B9"
+//            cardPublicKey = wallet.publicKey.hexString
         } else {
             cardPublicKey = "Failed to find secp256k1 key"
         }
@@ -173,7 +174,7 @@ class VisaWalletModel {
 
         let builder = VisaBridgeInteractorBuilder(evmSmartContractInteractor: smartContractInteractor)
         do {
-            let interactor = try await builder.build(for: walletModel.defaultAddress, logger: AppLog.shared)
+            let interactor = try await builder.build(for: "0x40d8194b7168723ece51fa34d16825c60ba03dfa", logger: AppLog.shared)
             visaBridgeInteractor = interactor
             await generalUpdateAsync()
         } catch {

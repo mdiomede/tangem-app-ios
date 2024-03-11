@@ -24,6 +24,10 @@ struct UserWalletConfigFactory {
         let isS2CCard = cardInfo.card.issuer.name.lowercased() == "start2coin"
         let isRing = cardInfo.card.batchId == "AC17" || cardInfo.card.batchId == "BA01"
 
+        if cardInfo.card.cardId == "AB02000000058724" || cardInfo.card.cardId == "AB01000000057206" {
+            return VisaConfig(card: cardInfo.card)
+        }
+
         switch cardInfo.walletData {
         case .none:
             // old multiwallet
