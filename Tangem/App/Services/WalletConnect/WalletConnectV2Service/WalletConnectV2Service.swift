@@ -57,6 +57,7 @@ final class WalletConnectV2Service {
         self.wcHandlersService = wcHandlersService
 
         Networking.configure(
+            groupIdentifier: "group.com.tangem.Tangem",
             projectId: keysManager.walletConnectProjectId,
             socketFactory: factory,
             socketConnectionType: .automatic
@@ -65,7 +66,8 @@ final class WalletConnectV2Service {
             name: "Tangem iOS",
             description: "Tangem is a card-shaped self-custodial cold hardware wallet",
             url: "tangem.com",
-            icons: ["https://user-images.githubusercontent.com/24321494/124071202-72a00900-da58-11eb-935a-dcdab21de52b.png"]
+            icons: ["https://user-images.githubusercontent.com/24321494/124071202-72a00900-da58-11eb-935a-dcdab21de52b.png"],
+            redirect: .init(native: IncomingActionConstants.universalLinkScheme, universal: IncomingActionConstants.appTangemDomain)
         ))
 
         setupSessionSubscriptions()

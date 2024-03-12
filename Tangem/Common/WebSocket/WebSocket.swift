@@ -102,6 +102,7 @@ class WebSocket {
     }
 
     func disconnect() {
+        Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketDisconnected(closeCode: "Disconnect function", connectionState: "Before disconnect() execution: \(state.rawValue)"))
         log("Disconnecting WebSocket with state: \(state) with \(url)")
         invalidateTimer()
         state = .notConnected
@@ -138,6 +139,7 @@ class WebSocket {
         task?.send(.string(text)) { [weak self] error in
             guard let self else { return }
             if let error = error {
+                Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketConnectionError(source: .send, error: error))
                 handleEvent(.connnectionError(error))
             } else {
                 handleEvent(.messageSent(text))
@@ -173,6 +175,7 @@ class WebSocket {
                 self?.receive()
             case .failure(let error):
                 self?.log("Socket receive failure message with error: \(error)")
+                Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketConnectionError(source: .receive, error: error))
                 self?.handleEvent(.connnectionError(error))
             }
         }
@@ -183,6 +186,7 @@ class WebSocket {
 
         task?.sendPing(pongReceiveHandler: { [weak self] error in
             if let error {
+                Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketConnectionError(source: .pingPong, error: error))
                 self?.handleEvent(.connnectionError(error))
                 return
             }
@@ -229,7 +233,7 @@ class WebSocket {
 
             notifyOnDisconnectOnMainThread(with: error)
         case .messageReceived(let text):
-            Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketReceiveText)
+            Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketReceiveText(connectionState: state.rawValue))
             onText?(text)
         case .messageSent(let text):
             log("==> Message successfully sent \(text)")
@@ -241,7 +245,6 @@ class WebSocket {
             // We need to check if task is still running, and if not - recreate it and start observing messages
             // Otherwise WC will stuck with not connected state, and only app restart will fix this problem
             log("Connection error: \(error.localizedDescription)")
-            Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketConnectionError(error: error))
             if task?.state != .running {
                 log("URLSessionWebSocketTask is not running. Resetting WebSocket state and attempting to reconnect")
                 state = .notConnected

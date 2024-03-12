@@ -164,43 +164,43 @@ PODS:
   - SwiftyJSON (5.0.1)
   - TangemSdk (3.9.0)
   - TweetNacl (1.0.2)
-  - WalletConnectSwiftV2 (1.8.4):
-    - WalletConnectSwiftV2/WalletConnect (= 1.8.4)
-  - WalletConnectSwiftV2/Commons (1.8.4)
-  - WalletConnectSwiftV2/HTTPClient (1.8.4)
-  - WalletConnectSwiftV2/JSONRPC (1.8.4):
+  - WalletConnectSwiftV2 (1.13.0):
+    - WalletConnectSwiftV2/WalletConnect (= 1.13.0)
+  - WalletConnectSwiftV2/Commons (1.13.0)
+  - WalletConnectSwiftV2/HTTPClient (1.13.0)
+  - WalletConnectSwiftV2/JSONRPC (1.13.0):
     - WalletConnectSwiftV2/Commons
-  - WalletConnectSwiftV2/WalletConnect (1.8.4):
+  - WalletConnectSwiftV2/WalletConnect (1.13.0):
     - WalletConnectSwiftV2/WalletConnectAuth
     - WalletConnectSwiftV2/WalletConnectPush
     - WalletConnectSwiftV2/WalletConnectSign
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectAuth (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectAuth (1.13.0):
     - WalletConnectSwiftV2/WalletConnectPairing
     - WalletConnectSwiftV2/WalletConnectSigner
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectJWT (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectJWT (1.13.0):
     - WalletConnectSwiftV2/WalletConnectKMS
-  - WalletConnectSwiftV2/WalletConnectKMS (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectKMS (1.13.0):
     - WalletConnectSwiftV2/WalletConnectUtils
-  - WalletConnectSwiftV2/WalletConnectNetworking (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectNetworking (1.13.0):
     - WalletConnectSwiftV2/HTTPClient
     - WalletConnectSwiftV2/WalletConnectRelay
-  - WalletConnectSwiftV2/WalletConnectPairing (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectPairing (1.13.0):
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectPush (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectPush (1.13.0):
     - WalletConnectSwiftV2/WalletConnectJWT
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectRelay (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectRelay (1.13.0):
     - WalletConnectSwiftV2/WalletConnectJWT
-  - WalletConnectSwiftV2/WalletConnectSign (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectSign (1.13.0):
     - WalletConnectSwiftV2/WalletConnectPairing
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectSigner (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectSigner (1.13.0):
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectUtils (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectUtils (1.13.0):
     - WalletConnectSwiftV2/JSONRPC
-  - WalletConnectSwiftV2/WalletConnectVerify (1.8.4):
+  - WalletConnectSwiftV2/WalletConnectVerify (1.13.0):
     - WalletConnectSwiftV2/WalletConnectNetworking
     - WalletConnectSwiftV2/WalletConnectUtils
 
@@ -220,7 +220,7 @@ DEPENDENCIES:
   - Moya
   - Solana.Swift (from `https://github.com/tangem/Solana.Swift`, tag `1.2.0-tangem1`)
   - TangemSdk (from `https://github.com/Tangem/tangem-sdk-ios.git`, tag `develop-284`)
-  - WalletConnectSwiftV2 (from `https://github.com/WalletConnect/WalletConnectSwiftV2`, tag `1.8.4`)
+  - WalletConnectSwiftV2 (from `https://github.com/WalletConnect/WalletConnectSwiftV2`, tag `1.13.0`)
 
 SPEC REPOS:
   trunk:
@@ -279,7 +279,7 @@ EXTERNAL SOURCES:
     :tag: develop-284
   WalletConnectSwiftV2:
     :git: https://github.com/WalletConnect/WalletConnectSwiftV2
-    :tag: 1.8.4
+    :tag: 1.13.0
 
 CHECKOUT OPTIONS:
   AlertToast:
@@ -302,7 +302,7 @@ CHECKOUT OPTIONS:
     :tag: develop-284
   WalletConnectSwiftV2:
     :git: https://github.com/WalletConnect/WalletConnectSwiftV2
-    :tag: 1.8.4
+    :tag: 1.13.0
 
 SPEC CHECKSUMS:
   Alamofire: d368e1ff8a298e6dde360e35a3e68e6c610e7204
@@ -344,8 +344,8 @@ SPEC CHECKSUMS:
   SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
   TangemSdk: c141ae9d17337c53d892142e94247225d59b5c09
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  WalletConnectSwiftV2: c1c2c2fbd0495860baf71515be1b943f0c5dce0c
+  WalletConnectSwiftV2: d5d55295f9f0dec6f497e4ad408d673108b8fa1b
 
-PODFILE CHECKSUM: d4a3871245c0b5542fa9d2cb1f54e0c60e44b645
+PODFILE CHECKSUM: 804bde60b71996b02a39c9200fb433a7e67e7143
 
 COCOAPODS: 1.15.2
