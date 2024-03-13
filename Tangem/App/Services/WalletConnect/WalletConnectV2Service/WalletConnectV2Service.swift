@@ -56,8 +56,9 @@ final class WalletConnectV2Service {
         self.messageComposer = messageComposer
         self.wcHandlersService = wcHandlersService
 
+        let id = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String ?? ""
         Networking.configure(
-            groupIdentifier: "group.com.tangem.Tangem",
+            groupIdentifier: id,
             projectId: keysManager.walletConnectProjectId,
             socketFactory: factory,
             socketConnectionType: .automatic
