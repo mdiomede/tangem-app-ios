@@ -14,6 +14,7 @@ enum InfoDictionaryUtils {
     case bundleVersion
     case bundleURLTypes
     case bundleURLSchemes
+    case appGroupId
 
     func value<T>() -> T? {
         let infoDictionary = Bundle.main.infoDictionary ?? [:]
@@ -32,6 +33,8 @@ enum InfoDictionaryUtils {
             }
 
             return dictionary.map { $0["CFBundleURLSchemes"] } as? T
+        case .appGroupId:
+            return infoDictionary["AppGroupId"] as? T
         }
     }
 }

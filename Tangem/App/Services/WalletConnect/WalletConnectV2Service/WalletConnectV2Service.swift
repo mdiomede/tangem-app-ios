@@ -56,7 +56,7 @@ final class WalletConnectV2Service {
         self.messageComposer = messageComposer
         self.wcHandlersService = wcHandlersService
 
-        let id = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String ?? ""
+        let id: String = InfoDictionaryUtils.appGroupId.value() ?? ""
         Networking.configure(
             groupIdentifier: id,
             projectId: keysManager.walletConnectProjectId,
