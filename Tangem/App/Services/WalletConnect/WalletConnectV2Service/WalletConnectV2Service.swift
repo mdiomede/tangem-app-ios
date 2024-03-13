@@ -115,7 +115,7 @@ final class WalletConnectV2Service {
             default:
                 break
             }
-            AppLog.shared.error("[WC 2.0] Failed to disconnect session with topic: \(session.topic) with error: \(error)")
+            AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] Failed to disconnect session with topic: \(session.topic) with error: \(error)")
         }
     }
 
@@ -128,13 +128,46 @@ final class WalletConnectV2Service {
                 do {
                     try await signApi.disconnect(topic: session.topic)
                 } catch {
-                    AppLog.shared.error("[WC 2.0] Failed to disconnect session while disconnecting all sessions for user wallet with id: \(userWalletId). Error: \(error)")
+                    AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] Failed to disconnect session while disconnecting all sessions for user wallet with id: \(userWalletId). Error: \(error)")
                 }
             }
         }
     }
 
+    private func checkSocketConnection() async -> Bool {
+        guard let socket = factory.lastCreatetSocket else {
+            return false
+        }
+
+        if socket.currentState == .connected {
+            return true
+        }
+
+        do {
+            let newState = try await socket.statePublisher
+                .filter { $0 == .connected }
+                .eraseError()
+                .timeout(.seconds(10), scheduler: DispatchQueue.main, customError: {
+                    WalletConnectV2Error.socketConnectionTimeout
+                })
+                .eraseToAnyPublisher()
+                .async()
+
+            return newState == .connected
+        } catch {
+            log("Failed to get new connection state.\nError: \(error)")
+            return false
+        }
+    }
+
     private func pairClient(with url: WalletConnectURI) async {
+        guard await checkSocketConnection() else {
+            Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketConnectionTimeout)
+            displayErrorUI(WalletConnectV2Error.socketIsNotConnected)
+            canEstablishNewSessionSubject.send(true)
+            return
+        }
+
         log("Trying to pair client: \(url)")
         do {
             try await pairApi.pair(uri: url)
@@ -142,7 +175,7 @@ final class WalletConnectV2Service {
             log("Established pair for \(url)")
         } catch {
             displayErrorUI(WalletConnectV2Error.pairClientError(error.localizedDescription))
-            AppLog.shared.error("[WC 2.0] Failed to connect to \(url) with error: \(error)")
+            AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] Failed to connect to \(url) with error: \(error)")
 
             // Hack to delete the topic from the user default storage inside the WC 2.0 SDK
             await disconnect(topic: url.topic)
@@ -154,7 +187,7 @@ final class WalletConnectV2Service {
             try await pairApi.disconnect(topic: topic)
             log("Success disconnect/delete topic \(topic)")
         } catch {
-            AppLog.shared.error("[WC 2.0] Failed to disconnect/delete topic \(topic) with error: \(error)")
+            AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] Failed to disconnect/delete topic \(topic) with error: \(error)")
         }
     }
 
@@ -273,7 +306,7 @@ final class WalletConnectV2Service {
         } catch let error as WalletConnectV2Error {
             displayErrorUI(error)
         } catch {
-            AppLog.shared.error("[WC 2.0] \(error)")
+            AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] \(error)")
             displayErrorUI(.unknown(error.localizedDescription))
         }
         canEstablishNewSessionSubject.send(true)
@@ -327,7 +360,7 @@ final class WalletConnectV2Service {
             } catch {
                 let mappedError = WalletConnectV2ErrorMappingUtils().mapWCv2Error(error)
                 displayErrorUI(mappedError)
-                AppLog.shared.error("[WC 2.0] Failed to approve Session with error: \(error)")
+                AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] Failed to approve Session with error: \(error)")
             }
         }
     }
@@ -338,7 +371,7 @@ final class WalletConnectV2Service {
                 try await self?.signApi.reject(proposalId: proposal.id, reason: .userRejected)
                 self?.log("User reject WC connection")
             } catch {
-                AppLog.shared.error("[WC 2.0] Failed to reject WC connection with error: \(error)")
+                AppLog.shared.error("🌈🌈🌈🌈[WC 2.0] Failed to reject WC connection with error: \(error)")
             }
             self?.canEstablishNewSessionSubject.send(true)
         }
@@ -472,7 +505,7 @@ final class WalletConnectV2Service {
     }
 
     private func log<T>(_ message: @autoclosure () -> T) {
-        AppLog.shared.debug("[WC 2.0] \(message())")
+        AppLog.shared.debug("🌈🌈🌈🌈[WC 2.0] \(message())")
     }
 }
 

@@ -14,6 +14,7 @@ extension Analytics {
         case webSocketDisconnected(closeCode: String, connectionState: String)
         case webSocketReceiveText(connectionState: String)
         case webSocketConnectionError(source: ConnectionErrorSource, error: Error)
+        case webSocketConnectionTimeout
         case attemptingToOpenSession(url: String)
         case receiveSessionProposal(name: String, dAppURL: String)
         case receiveRequestFromDApp(method: String)
@@ -37,6 +38,8 @@ extension Analytics.WalletConnectDebugEvent: AnalyticsDebugEvent {
             suffix = webSocketPrefix + "receive text"
         case .webSocketConnectionError:
             suffix = webSocketPrefix + "receive connection error"
+        case .webSocketConnectionTimeout:
+            suffix = webSocketPrefix + "not connected and timeout for reconnection"
         case .attemptingToOpenSession:
             suffix = "Attempting to open new session"
         case .receiveSessionProposal:
@@ -56,7 +59,7 @@ extension Analytics.WalletConnectDebugEvent: AnalyticsDebugEvent {
 
     var analyticsParams: [String: Any] {
         switch self {
-        case .webSocketConnected, .attemptingToWriteMessageMultipleTimes:
+        case .webSocketConnected, .attemptingToWriteMessageMultipleTimes, .webSocketConnectionTimeout:
             return [:]
         case .webSocketReceiveText(let connectionState):
             return [

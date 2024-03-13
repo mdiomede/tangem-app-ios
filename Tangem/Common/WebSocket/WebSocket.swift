@@ -27,9 +27,17 @@ class WebSocket {
     private let pingInterval: TimeInterval = 30
     private let timeoutInterval: TimeInterval = 20
 
-    var isConnected: Bool { state == .connected }
+    var isConnected: Bool { stateSubject.value == .connected }
 
-    private var state: ConnectionState = .notConnected
+    var statePublisher: AnyPublisher<ConnectionState, Never> {
+        stateSubject.eraseToAnyPublisher()
+    }
+
+    var currentState: ConnectionState {
+        stateSubject.value
+    }
+
+    private var stateSubject: CurrentValueSubject<ConnectionState, Never> = .init(.notConnected)
     private var isWaitingForMessage: Bool = false
     private var wasConnectedAtLeastOnce: Bool = false
 
@@ -96,16 +104,20 @@ class WebSocket {
         invalidateTimer()
     }
 
+    func setupSocket(for url: URL) {
+        request = URLRequest(url: url, timeoutInterval: timeoutInterval)
+    }
+
     func connect() {
-        log("Attempting to connect WebSocket with state \(state) to \(url)")
+        log("Attempting to connect WebSocket with state \(stateSubject.value) to \(url)")
         scheduleConnectionSetup()
     }
 
     func disconnect() {
-        Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketDisconnected(closeCode: "Disconnect function", connectionState: "Before disconnect() execution: \(state.rawValue)"))
-        log("Disconnecting WebSocket with state: \(state) with \(url)")
+        Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketDisconnected(closeCode: "Disconnect function", connectionState: "Before disconnect() execution: \(stateSubject.value.rawValue)"))
+        log("Disconnecting WebSocket with state: \(stateSubject.value) with \(url)")
         invalidateTimer()
-        state = .notConnected
+        stateSubject.value = .notConnected
         isWaitingForMessage = false
         if task == nil {
             return
@@ -152,7 +164,7 @@ class WebSocket {
     }
 
     private func log(_ message: String) {
-        AppLog.shared.debug("[WebSocket] ✉️ Message: \(message)")
+        AppLog.shared.debug("🌈🌈🌈🌈[WebSocket] ✉️ Message: \(message)")
     }
 
     private func receive() {
@@ -200,7 +212,7 @@ class WebSocket {
         switch event {
         case .connected:
             log("Receive connected event")
-            state = .connected
+            stateSubject.value = .connected
             setupPingTimer()
             Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketConnected)
             onConnect?()
@@ -208,7 +220,7 @@ class WebSocket {
             let closeCodeRawValue = String(describing: closeCode.rawValue)
             Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketDisconnected(
                 closeCode: closeCodeRawValue,
-                connectionState: state.rawValue
+                connectionState: stateSubject.value.rawValue
             ))
 
             log("Receive disconnect event. Close code: \(closeCodeRawValue)")
@@ -233,7 +245,7 @@ class WebSocket {
 
             notifyOnDisconnectOnMainThread(with: error)
         case .messageReceived(let text):
-            Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketReceiveText(connectionState: state.rawValue))
+            Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.webSocketReceiveText(connectionState: stateSubject.value.rawValue))
             onText?(text)
         case .messageSent(let text):
             log("==> Message successfully sent \(text)")
@@ -247,7 +259,7 @@ class WebSocket {
             log("Connection error: \(error.localizedDescription)")
             if task?.state != .running {
                 log("URLSessionWebSocketTask is not running. Resetting WebSocket state and attempting to reconnect")
-                state = .notConnected
+                stateSubject.value = .notConnected
                 connect()
                 return
             }
@@ -310,12 +322,12 @@ class WebSocket {
             return
         }
 
-        let connectionSetupDelay: TimeInterval = wasConnectedAtLeastOnce ? 5 : 0
+        let connectionSetupDelay: TimeInterval = wasConnectedAtLeastOnce ? 1 : 0
         log("Scheduling connection setup. Delay: \(connectionSetupDelay)")
         let workItem = DispatchWorkItem { [weak self] in
-            guard let self, state == .notConnected else {
-                self?.log("No need to setup web socket connection. State: \(self?.state.rawValue ?? "self is nil")")
-                Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.connectionSetupMessage(message: "No need to setup web socket connection. State: \(self?.state.rawValue ?? "self is nil")"))
+            guard let self, stateSubject.value == .notConnected else {
+                self?.log("No need to setup web socket connection. State: \(self?.stateSubject.value.rawValue ?? "self is nil")")
+                Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.connectionSetupMessage(message: "No need to setup web socket connection. State: \(self?.stateSubject.value.rawValue ?? "self is nil")"))
                 self?.connectionSetupDispatchWorkItem = nil
                 return
             }
@@ -325,7 +337,7 @@ class WebSocket {
                 Analytics.debugLog(eventInfo: Analytics.WalletConnectDebugEvent.connectionSetupMessage(message: "WebSocketTask is not nil, disconnecting old task"))
                 disconnect()
             }
-            state = .connecting
+            stateSubject.value = .connecting
             task = session.webSocketTask(with: request)
             task?.resume()
             receive()
