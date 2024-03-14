@@ -49,7 +49,17 @@ class VisaBalancesLimitsBottomSheetViewModel: ObservableObject, Identifiable {
         dateFormatter.dateFormat = "dd.MM.YYYY"
         availabilityDescription = "Available till \(dateFormatter.string(from: limit.actualExpirationDate))"
         remainingOTPAmount = formatter.formatCryptoBalance(limit.remainingOTPAmount, currencyCode: tokenCurrencyCode, formattingOptions: balanceFormattingOptions)
-        remainingNoOtpAmount = formatter.formatCryptoBalance(limit.remainingNoOTPAmount, currencyCode: tokenCurrencyCode, formattingOptions: balanceFormattingOptions)
+        let remainingNoOTPAmountToDisplay: Decimal?
+        if let noOTP = limit.remainingNoOTPAmount {
+            if let total = limit.remainingOTPAmount {
+                remainingNoOTPAmountToDisplay = min(total, noOTP)
+            } else {
+                remainingNoOTPAmountToDisplay = noOTP
+            }
+        } else {
+            remainingNoOTPAmountToDisplay = nil
+        }
+        remainingNoOtpAmount = formatter.formatCryptoBalance(remainingNoOTPAmountToDisplay, currencyCode: tokenCurrencyCode, formattingOptions: balanceFormattingOptions)
     }
 
     func openBalancesInfo() {
