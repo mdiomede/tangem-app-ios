@@ -164,7 +164,7 @@ class WebSocket {
     }
 
     private func log(_ message: String) {
-        AppLog.shared.debug("🌈🌈🌈🌈[WebSocket] ✉️ Message: \(message)")
+        AppLog.shared.debug("[WebSocket] ✉️ Message: \(message)")
     }
 
     private func receive() {
