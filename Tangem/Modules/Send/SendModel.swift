@@ -58,10 +58,12 @@ class SendModel {
         validatedAmount.value
     }
 
-    var totalExceedsBalance: Bool {
+    var shouldSubtractFee: Bool {
         guard
             let validatedAmount = validatedAmount.value,
-            let fee = fee.value
+            let fee = fee.value,
+            fee.amount.type == validatedAmount.type,
+            validatedAmount >= fee.amount
         else {
             return false
         }
@@ -109,8 +111,6 @@ class SendModel {
     private let _sendError = PassthroughSubject<Error?, Never>()
 
     private let _customFee = CurrentValueSubject<Fee?, Never>(nil)
-    private let _customFeeGasPrice = CurrentValueSubject<BigUInt?, Never>(nil)
-    private let _customFeeGasLimit = CurrentValueSubject<BigUInt?, Never>(nil)
 
     // MARK: - Errors (raw implementation)
 
@@ -164,19 +164,19 @@ class SendModel {
         }
     }
 
-    func includeFeeIntoAmount() {
+    func subtractFeeFromMaxAmount() {
         guard
             !_isFeeIncluded.value,
-            let userInputAmount = userInputAmount.value,
+            let maxAmount = walletModel.wallet.amounts[walletModel.amountType],
             let fee = fee.value?.amount,
-            (userInputAmount - fee).value >= 0
+            (maxAmount - fee).value >= 0
         else {
             AppLog.shared.debug("Invalid amount and fee when subtracting")
             return
         }
 
         _isFeeIncluded.value = true
-        self.userInputAmount.send(userInputAmount - fee)
+        userInputAmount.send(maxAmount - fee)
     }
 
     func useMaxAmount() {
@@ -192,6 +192,18 @@ class SendModel {
 
     func updateFees() -> AnyPublisher<FeeUpdateResult, Error> {
         updateFees(amount: validatedAmount.value, destination: validatedDestination.value?.value)
+    }
+
+    func setCustomFee(_ customFee: Fee?) {
+        guard _customFee.value?.amount != customFee?.amount else {
+            return
+        }
+
+        didSetCustomFee = true
+        _customFee.send(customFee)
+        if case .custom = selectedFeeOption {
+            fee.send(customFee)
+        }
     }
 
     func send() {
@@ -265,14 +277,6 @@ class SendModel {
                 guard let self else { return }
 
                 fee.send(feeValues[selectedFeeOption]?.value)
-
-                if let customFee = feeValues[.custom]?.value,
-                   let ethereumFeeParameters = customFee.parameters as? EthereumFeeParameters,
-                   !didSetCustomFee {
-                    _customFee.send(customFee)
-                    _customFeeGasPrice.send(ethereumFeeParameters.gasPrice)
-                    _customFeeGasLimit.send(ethereumFeeParameters.gasLimit)
-                }
             }
             .store(in: &bag)
 
@@ -293,6 +297,8 @@ class SendModel {
 
                 do {
                     #warning("TODO: Use await validation")
+                    try walletModel.transactionValidator.validateTotal(amount: validatedAmount, fee: fee.amount)
+
                     let transaction = try walletModel.transactionCreator.createTransaction(
                         amount: validatedAmount,
                         fee: fee,
@@ -528,44 +534,6 @@ class SendModel {
         _isFeeIncluded.send(isFeeIncluded)
     }
 
-    func didChangeCustomFee(_ value: Fee?) {
-        didSetCustomFee = true
-        _customFee.send(value)
-        fee.send(value)
-
-        if let ethereumParams = value?.parameters as? EthereumFeeParameters {
-            _customFeeGasLimit.send(ethereumParams.gasLimit)
-            _customFeeGasPrice.send(ethereumParams.gasPrice)
-        }
-    }
-
-    func didChangeCustomFeeGasPrice(_ value: BigUInt?) {
-        _customFeeGasPrice.send(value)
-        recalculateCustomFee()
-    }
-
-    func didChangeCustomFeeGasLimit(_ value: BigUInt?) {
-        _customFeeGasLimit.send(value)
-        recalculateCustomFee()
-    }
-
-    private func recalculateCustomFee() {
-        let newFee: Fee?
-        if let gasPrice = _customFeeGasPrice.value,
-           let gasLimit = _customFeeGasLimit.value,
-           let gasInWei = (gasPrice * gasLimit).decimal {
-            let blockchain = walletModel.tokenItem.blockchain
-            let validatedAmount = Amount(with: blockchain, value: gasInWei / blockchain.decimalValue)
-            newFee = Fee(validatedAmount, parameters: EthereumFeeParameters(gasLimit: gasLimit, gasPrice: gasPrice))
-        } else {
-            newFee = nil
-        }
-
-        didSetCustomFee = true
-        _customFee.send(newFee)
-        fee.send(newFee)
-    }
-
     private func feeValues(_ fees: [Fee]) -> [FeeOption: LoadingValue<Fee>] {
         switch fees.count {
         case 1:
@@ -630,10 +598,6 @@ extension SendModel: SendDestinationViewModelInput {
         walletModel.blockchainNetwork
     }
 
-    var walletPublicKey: Wallet.PublicKey {
-        walletModel.wallet.publicKey
-    }
-
     var currencySymbol: String {
         walletModel.tokenItem.currencySymbol
     }
@@ -660,7 +624,7 @@ extension SendModel: SendFeeViewModelInput {
     var feeOptions: [FeeOption] {
         if walletModel.shouldShowFeeSelector {
             var options: [FeeOption] = [.slow, .market, .fast]
-            if tokenItem.blockchain.isEvm {
+            if walletModel.supportsCustomFees {
                 options.append(.custom)
             }
             return options
@@ -677,24 +641,8 @@ extension SendModel: SendFeeViewModelInput {
         walletModel.tokenItem
     }
 
-    var customGasLimit: BigUInt? {
-        _customFeeGasLimit.value
-    }
-
-    var customGasPrice: BigUInt? {
-        _customFeeGasPrice.value
-    }
-
     var customFeePublisher: AnyPublisher<Fee?, Never> {
         _customFee.eraseToAnyPublisher()
-    }
-
-    var customGasPricePublisher: AnyPublisher<BigUInt?, Never> {
-        _customFeeGasPrice.eraseToAnyPublisher()
-    }
-
-    var customGasLimitPublisher: AnyPublisher<BigUInt?, Never> {
-        _customFeeGasLimit.eraseToAnyPublisher()
     }
 
     var canIncludeFeeIntoAmount: Bool {
@@ -707,20 +655,6 @@ extension SendModel: SendFeeViewModelInput {
 }
 
 extension SendModel: SendSummaryViewModelInput {
-    var additionalFieldPublisher: AnyPublisher<(SendAdditionalFields, String)?, Never> {
-        _destinationAdditionalFieldText
-            .map { [weak self] in
-                guard
-                    !$0.isEmpty,
-                    let additionalFields = self?.additionalFieldType
-                else {
-                    return nil
-                }
-                return (additionalFields, $0)
-            }
-            .eraseToAnyPublisher()
-    }
-
     var userInputAmountPublisher: AnyPublisher<Amount?, Never> {
         userInputAmount.eraseToAnyPublisher()
     }
@@ -755,12 +689,6 @@ extension SendModel: SendFinishViewModelInput {
         validatedDestination.value?.value
     }
 
-    var additionalField: (SendAdditionalFields, String)? {
-        guard let additionalFieldType else { return nil }
-
-        return (additionalFieldType, _destinationAdditionalFieldText.value)
-    }
-
     var feeValue: Fee? {
         fee.value
     }
@@ -789,3 +717,9 @@ extension SendModel: SendNotificationManagerInput {
 }
 
 extension SendModel: SendFiatCryptoAdapterOutput {}
+
+extension SendModel: CustomFeeServiceInput, CustomFeeServiceOutput {
+    var customFee: Fee? {
+        _customFee.value
+    }
+}

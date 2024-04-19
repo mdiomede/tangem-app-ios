@@ -163,7 +163,7 @@ final class MultiWalletMainContentViewModel: ObservableObject {
             .map { $0.map(\.walletModelId) }
             .withWeakCaptureOf(self)
             .flatMapLatest { viewModel, walletModelIds in
-                return viewModel.optionsEditing.save(reorderedWalletModelIds: walletModelIds)
+                return viewModel.optionsEditing.save(reorderedWalletModelIds: walletModelIds, source: .mainScreen)
             }
             .sink()
             .store(in: &bag)
@@ -434,11 +434,13 @@ extension MultiWalletMainContentViewModel: TokenItemContextActionsProvider {
         let canExchange = userWalletModel.config.isFeatureVisible(.exchange)
         // On the Main view we have to hide send button if we have any sending restrictions
         let canSend = userWalletModel.config.hasFeature(.send) && walletModel.sendingRestrictions == .none
-        let canSwap = userWalletModel.config.hasFeature(.swapping) && swapAvailabilityProvider.canSwap(tokenItem: tokenItem.tokenItem) && !walletModel.isCustom
+        let canSwap = userWalletModel.config.isFeatureVisible(.swapping) && swapAvailabilityProvider.canSwap(tokenItem: tokenItem.tokenItem) && !walletModel.isCustom
         let isBlockchainReachable = !walletModel.state.isBlockchainUnreachable
+        let canSignTransactions = walletModel.sendingRestrictions != .cantSignLongTransactions
 
         return actionsBuilder.buildTokenContextActions(
             canExchange: canExchange,
+            canSignTransactions: canSignTransactions,
             canSend: canSend,
             canSwap: canSwap,
             canHide: canManageTokens,
@@ -473,11 +475,6 @@ extension MultiWalletMainContentViewModel: TokenItemContextActionDelegate {
             UIPasteboard.general.string = walletModel.defaultAddress
             delegate?.displayAddressCopiedToast()
         case .exchange:
-            if let disabledLocalizedReason = userWalletModel.config.getDisabledLocalizedReason(for: .swapping) {
-                error = AlertBuilder.makeDemoAlert(disabledLocalizedReason)
-                return
-            }
-
             Analytics.log(event: .buttonExchange, params: [.token: walletModel.tokenItem.currencySymbol])
             tokenRouter.openExchange(walletModel: walletModel)
         case .hide:

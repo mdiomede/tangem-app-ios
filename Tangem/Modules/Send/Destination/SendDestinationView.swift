@@ -30,26 +30,24 @@ struct SendDestinationView: View {
                     if !viewModel.animatingAuxiliaryViewsOnAppear {
                         Text(addressViewModel.description)
                             .style(Fonts.Regular.caption1, color: Colors.Text.tertiary)
-                            .transition(SendView.Constants.auxiliaryViewTransition)
+                            .transition(SendView.Constants.auxiliaryViewTransition(for: .destination))
                     }
                 }
                 .innerContentPadding(2)
                 .backgroundColor(Colors.Background.action, id: SendViewNamespaceId.addressContainer.rawValue, namespace: namespace)
             }
 
-            if let additionalFieldViewModel = viewModel.additionalFieldViewModel {
+            if let additionalFieldViewModel = viewModel.additionalFieldViewModel, !viewModel.animatingAuxiliaryViewsOnAppear {
                 GroupedSection(additionalFieldViewModel) {
                     SendDestinationTextView(viewModel: $0)
                         .disabled(viewModel.userInputDisabled)
                 } footer: {
-                    if !viewModel.animatingAuxiliaryViewsOnAppear {
-                        Text(additionalFieldViewModel.description)
-                            .style(Fonts.Regular.caption1, color: Colors.Text.tertiary)
-                            .transition(SendView.Constants.auxiliaryViewTransition)
-                    }
+                    Text(additionalFieldViewModel.description)
+                        .style(Fonts.Regular.caption1, color: Colors.Text.tertiary)
                 }
                 .innerContentPadding(2)
                 .backgroundColor(Colors.Background.action)
+                .transition(SendView.Constants.auxiliaryViewTransition(for: .destination))
             }
 
             if let suggestedDestinationViewModel = viewModel.suggestedDestinationViewModel, viewModel.showSuggestedDestinations {

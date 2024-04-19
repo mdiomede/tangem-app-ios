@@ -51,10 +51,22 @@ struct ExpressView: View {
         .readGeometry(bindTo: $viewGeometryInfo)
         .ignoresSafeArea(.keyboard)
         .navigationBarTitle(Text(Localization.commonSwap), displayMode: .inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    viewModel.didTapCloseButton()
+                } label: {
+                    Assets.crossBlack.image
+                        .renderingMode(.template)
+                        .foregroundColor(Colors.Icon.primary1)
+                }
+            }
+        }
         .alert(item: $viewModel.alert) { $0.alert }
         // For animate button below informationSection
         .animation(.easeInOut, value: viewModel.providerState?.id)
         .animation(.default, value: viewModel.notificationInputs)
+        .animation(.easeInOut, value: viewModel.expressFeeRowViewModel)
     }
 
     @ViewBuilder
@@ -153,7 +165,10 @@ struct ExpressView: View {
             }
             .readGeometry(\.frame.size, bindTo: $bottomViewSize)
         }
-        .animation(nil, value: 0)
+        // To force `.animation(nil)` behaviour
+        .transaction { transaction in
+            transaction.animation = nil
+        }
     }
 
     @ViewBuilder

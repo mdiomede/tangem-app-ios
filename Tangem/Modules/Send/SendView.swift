@@ -110,16 +110,26 @@ struct SendView: View {
         switch viewModel.step {
         case .amount:
             SendAmountView(namespace: namespace, viewModel: viewModel.sendAmountViewModel)
+                .onAppear(perform: viewModel.onCurrentPageAppear)
+                .onDisappear(perform: viewModel.onCurrentPageDisappear)
         case .destination:
             SendDestinationView(namespace: namespace, viewModel: viewModel.sendDestinationViewModel, bottomSpacing: bottomGradientHeight)
+                .onAppear(perform: viewModel.onCurrentPageAppear)
+                .onDisappear(perform: viewModel.onCurrentPageDisappear)
         case .fee:
-            SendFeeView(namespace: namespace, viewModel: viewModel.sendFeeViewModel, bottomSpacing: bottomGradientHeight)
+            SendFeeView(namespace: namespace, viewModel: viewModel.sendFeeViewModel, bottomSpacing: bottomGradientHeight, navigationButtonsHeight: navigationButtonsHeight)
+                .onAppear(perform: viewModel.onCurrentPageAppear)
+                .onDisappear(perform: viewModel.onCurrentPageDisappear)
         case .summary:
             SendSummaryView(namespace: namespace, viewModel: viewModel.sendSummaryViewModel, bottomSpacing: navigationButtonsHeight)
                 .onAppear(perform: viewModel.onSummaryAppear)
                 .onDisappear(perform: viewModel.onSummaryDisappear)
+                .onAppear(perform: viewModel.onCurrentPageAppear)
+                .onDisappear(perform: viewModel.onCurrentPageDisappear)
         case .finish(let sendFinishViewModel):
             SendFinishView(namespace: namespace, viewModel: sendFinishViewModel, bottomSpacing: navigationButtonsHeight)
+                .onAppear(perform: viewModel.onCurrentPageAppear)
+                .onDisappear(perform: viewModel.onCurrentPageDisappear)
         }
     }
 
@@ -142,12 +152,13 @@ struct SendView: View {
                 icon: viewModel.mainButtonIcon,
                 style: .primary,
                 size: .default,
+                isLoading: viewModel.mainButtonLoading,
                 isDisabled: viewModel.mainButtonDisabled,
                 action: viewModel.next
             )
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 6)
+        .padding(.bottom, 14)
     }
 
     @ViewBuilder
@@ -188,8 +199,24 @@ extension SendView {
         static let defaultAnimation: Animation = .spring(duration: 0.3)
         static let backButtonAnimation: Animation = .easeOut(duration: 0.1)
         static let sectionContentAnimation: Animation = .easeOut(duration: animationDuration)
-        static let auxiliaryViewTransition: AnyTransition = .offset(y: UIScreen.main.bounds.height).combined(with: .opacity)
         static let hintViewTransition: AnyTransition = .asymmetric(insertion: .offset(y: 20), removal: .identity).combined(with: .opacity)
+
+        static func auxiliaryViewTransition(for step: SendStep) -> AnyTransition {
+            let offset: CGFloat
+            switch step {
+            case .destination, .amount:
+                offset = 100
+            case .fee:
+                offset = 250
+            case .summary:
+                offset = 100
+            case .finish:
+                assertionFailure("WHY")
+                return .identity
+            }
+
+            return .offset(y: offset).combined(with: .opacity)
+        }
     }
 }
 
@@ -213,6 +240,7 @@ struct SendView_Preview: PreviewProvider {
         transactionSigner: TransactionSignerMock(),
         sendType: .send,
         emailDataProvider: EmailDataProviderMock(),
+        canUseFiatCalculation: true,
         coordinator: SendRoutableMock()
     )
 

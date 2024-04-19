@@ -281,7 +281,8 @@ class WalletOnboardingViewModel: OnboardingViewModel<WalletOnboardingStep, Onboa
     @Published private var previewBackupState: BackupService.State = .finalizingPrimaryCard
 
     private let backupService: BackupService
-    private var cardInitializer: CardInitializable?
+    private var cardInitializer: CardInitializer?
+    private let pendingBackupManager = PendingBackupManager()
 
     // MARK: - Initializer
 
@@ -391,22 +392,13 @@ class WalletOnboardingViewModel: OnboardingViewModel<WalletOnboardingStep, Onboa
     }
 
     override func goToNextStep() {
-        switch currentStep {
-        case .createWallet, .createWalletSelector, .seedPhraseUserValidation, .seedPhraseImport:
-            if let backupIntroStepIndex = steps.firstIndex(of: .backupIntro) {
-                let canSkipBackup = userWalletModel?.config.canSkipBackup ?? true
-                if canSkipBackup {
-                    goToStep(with: backupIntroStepIndex)
-                } else {
-                    goToStep(with: backupIntroStepIndex + 1)
-                }
-            } else {
-                // impossible case
-                super.goToNextStep()
-            }
-        default:
-            super.goToNextStep()
+        if currentStep.isCreateWalletStep,
+           let backupIntroStepIndex = steps.firstIndex(where: { $0.isInitialBackupStep }) {
+            goToStep(with: backupIntroStepIndex)
+            return
         }
+
+        super.goToNextStep()
     }
 
     // MARK: - Main button action
@@ -732,7 +724,7 @@ class WalletOnboardingViewModel: OnboardingViewModel<WalletOnboardingStep, Onboa
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 if case .failure(let error) = completion {
-                    self?.processLinkingError(error)
+                    self?.processBackupError(error)
                     self?.isMainButtonBusy = false
                 }
                 self?.stepPublisher = nil
@@ -764,12 +756,14 @@ class WalletOnboardingViewModel: OnboardingViewModel<WalletOnboardingStep, Onboa
 
                         switch result {
                         case .success(let updatedCard):
-                            self.userWalletModel?.addAssociatedCard(CardDTO(card: updatedCard), validationMode: .full)
+                            self.userWalletModel?.addAssociatedCard(updatedCard.cardId)
+                            self.pendingBackupManager.onProceedBackup(updatedCard)
                             if updatedCard.cardId == self.backupService.primaryCard?.cardId {
                                 self.userWalletModel?.onBackupCreated(updatedCard)
                             }
 
                             if self.backupServiceState == .finished {
+                                self.pendingBackupManager.onBackupCompleted()
                                 Analytics.log(
                                     event: .backupFinished,
                                     params: [.cardsCount: String((updatedCard.backupStatus?.linkedCardsCount ?? 0) + 1)]
@@ -789,11 +783,8 @@ class WalletOnboardingViewModel: OnboardingViewModel<WalletOnboardingStep, Onboa
             .sink { [weak self] completion in
                 if case .failure(let error) = completion {
                     AppLog.shared.error(error, params: [.action: .proceedBackup])
+                    self?.processBackupError(error)
                     self?.isMainButtonBusy = false
-
-                    if !error.toTangemSdkError().isUserCancelled {
-                        self?.alert = error.alertBinder
-                    }
                 }
                 self?.stepPublisher = nil
             } receiveValue: { [weak self] (_: Void, _: Notification) in
@@ -811,11 +802,10 @@ class WalletOnboardingViewModel: OnboardingViewModel<WalletOnboardingStep, Onboa
         }
     }
 
-    private func processLinkingError(_ error: Error) {
+    private func processBackupError(_ error: Error) {
         AppLog.shared.error(error, params: [.action: .addbackup])
 
-        if backupService.primaryCard?.firmwareVersion >= .keysImportAvailable,
-           let tangemSdkError = error as? TangemSdkError,
+        if let tangemSdkError = error as? TangemSdkError,
            case .backupFailedNotEmptyWallets(let cardId) = tangemSdkError {
             requestResetCard(with: cardId)
             return

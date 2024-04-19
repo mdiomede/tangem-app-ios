@@ -19,6 +19,9 @@ final class EnvironmentSetupViewModel: ObservableObject {
     @Published var additionalSettingsViewModels: [DefaultRowViewModel] = []
     @Published var alert: AlertBinder?
 
+    // Demo
+    @Published var forcedDemoCardId: String = ""
+
     // Promotion
     @Published var currentPromoCode: String = ""
     @Published var finishedPromotionNames: String = ""
@@ -83,6 +86,15 @@ final class EnvironmentSetupViewModel: ObservableObject {
                     set: { $0.isPerformanceMonitorEnabled = $1 }
                 )
             ),
+            DefaultToggleRowViewModel(
+                title: "Mocked CardScanner Enabled",
+                isOn: BindingValue<Bool>(
+                    root: featureStorage,
+                    default: false,
+                    get: { $0.isMockedCardScannerEnabled },
+                    set: { $0.isMockedCardScannerEnabled = $1 }
+                )
+            ),
         ]
 
         featureStateViewModels = Feature.allCases.reversed().map { feature in
@@ -116,6 +128,15 @@ final class EnvironmentSetupViewModel: ObservableObject {
         updateFinishedPromotionNames()
 
         updateAwardedPromotionNames()
+
+        forcedDemoCardId = AppSettings.shared.forcedDemoCardId ?? ""
+
+        $forcedDemoCardId
+            .removeDuplicates()
+            .sink { newValue in
+                AppSettings.shared.forcedDemoCardId = newValue.nilIfEmpty
+            }
+            .store(in: &bag)
     }
 
     func copyCurrentPromoCode() {

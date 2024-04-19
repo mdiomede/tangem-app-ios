@@ -38,6 +38,7 @@ enum PreviewCard {
                     kaspaSecondaryApiUrl: nil,
                     tronGridApiKey: "",
                     hederaArkhiaApiKey: "",
+                    polygonScanApiKey: "",
                     tonCenterApiKeys: .init(mainnetApiKey: "", testnetApiKey: ""),
                     fireAcademyApiKeys: .init(mainnetApiKey: "", testnetApiKey: ""),
                     chiaTangemApiKeys: .init(mainnetApiKey: ""),
@@ -114,9 +115,9 @@ enum PreviewCard {
     private var card: Card {
         switch self {
         case .tangemWalletBackuped:
-            return .walletWithBackup
+            return CardMock.wallet.card
         default:
-            return .walletV2
+            return CardMock.wallet2.card
         }
     }
 }

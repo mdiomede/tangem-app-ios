@@ -85,7 +85,13 @@ struct TokenInteractionAvailabilityProvider {
              .manta,
              .zkSync,
              .moonbeam,
-             .polygonZkEVM:
+             .polygonZkEVM,
+             .moonriver,
+             .mantle,
+             .flare,
+             .taraxa,
+             .radiant,
+             .base:
 
             // Checking that we have at least one valid (non-empty) address
             //
