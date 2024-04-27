@@ -643,10 +643,12 @@ final class SendViewModel: ObservableObject {
             return
         }
 
-        sendModel.setDestination(SendAddress(value: result.destination, source: .qrCode))
+        sendDestinationViewModel.setAddress(SendAddress(value: result.destination, source: .qrCode))
+        // TODO: ❌
         sendModel.setAmount(result.amount)
 
         if let memo = result.memo {
+            // TODO: ❌
             sendModel.setDestinationAdditionalField(memo)
         }
     }
