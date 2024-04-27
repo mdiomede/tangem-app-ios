@@ -140,6 +140,7 @@ class SendModel {
 
         bind()
 
+        // TODO: ❌ move this crap
         if let amount = sendType.predefinedAmount {
             setAmount(amount)
         }
