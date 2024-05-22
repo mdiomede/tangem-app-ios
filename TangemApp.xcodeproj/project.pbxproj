@@ -1124,6 +1124,9 @@
 		DCFE143E294B31C00053106B /* AppPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCFE143D294B31C00053106B /* AppPresenter.swift */; };
 		E9C17C5F291951BF00FDE4BC /* AnyPublisher+.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C17C5E291951BF00FDE4BC /* AnyPublisher+.swift */; };
 		EF0295592A9DCDEE000B2142 /* SensitiveText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0295582A9DCDEE000B2142 /* SensitiveText.swift */; };
+		EF031A472C0A2783001535C9 /* StakingAmountRoutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */; };
+		EF031A482C0A2783001535C9 /* StakingAmountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A442C0A2782001535C9 /* StakingAmountView.swift */; };
+		EF031A492C0A2783001535C9 /* StakingAmountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */; };
 		EF032C502955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */; };
 		EF032C512955C59E006C1FF3 /* DefaultSelectableRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */; };
 		EF032C532955C725006C1FF3 /* CheckIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C522955C725006C1FF3 /* CheckIconView.swift */; };
@@ -2838,6 +2841,9 @@
 		E41571C8A3492645DEC301E5 /* Pods-TangemFoundationTests.release(beta).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TangemFoundationTests.release(beta).xcconfig"; path = "Target Support Files/Pods-TangemFoundationTests/Pods-TangemFoundationTests.release(beta).xcconfig"; sourceTree = "<group>"; };
 		E9C17C5E291951BF00FDE4BC /* AnyPublisher+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnyPublisher+.swift"; sourceTree = "<group>"; };
 		EF0295582A9DCDEE000B2142 /* SensitiveText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveText.swift; sourceTree = "<group>"; };
+		EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountRoutable.swift; sourceTree = "<group>"; };
+		EF031A442C0A2782001535C9 /* StakingAmountView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountView.swift; sourceTree = "<group>"; };
+		EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountViewModel.swift; sourceTree = "<group>"; };
 		EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowViewModel.swift; sourceTree = "<group>"; };
 		EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowView.swift; sourceTree = "<group>"; };
 		EF032C522955C725006C1FF3 /* CheckIconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CheckIconView.swift; sourceTree = "<group>"; };
@@ -6997,6 +7003,24 @@
 			path = Validators;
 			sourceTree = "<group>";
 		};
+		EF031A462C0A2782001535C9 /* Steps */ = {
+			isa = PBXGroup;
+			children = (
+				EF031A4A2C0A2B38001535C9 /* StakingAmountView */,
+			);
+			path = Steps;
+			sourceTree = "<group>";
+		};
+		EF031A4A2C0A2B38001535C9 /* StakingAmountView */ = {
+			isa = PBXGroup;
+			children = (
+				EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */,
+				EF031A442C0A2782001535C9 /* StakingAmountView.swift */,
+				EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */,
+			);
+			path = StakingAmountView;
+			sourceTree = "<group>";
+		};
 		EF032C4D2955C59E006C1FF3 /* DefaultSelectableRowView */ = {
 			isa = PBXGroup;
 			children = (
@@ -8313,6 +8337,7 @@
 				EFEE23452BFE01CC0099917E /* StakingView.swift */,
 				EFEE23462BFE01CC0099917E /* StakingViewModel.swift */,
 				EFEE23472BFE01CC0099917E /* StakingRoutable.swift */,
+				EF031A462C0A2782001535C9 /* Steps */,
 			);
 			path = Staking;
 			sourceTree = "<group>";
@@ -9296,6 +9321,7 @@
 				B65591ED2A2FF1B20066A13B /* OrganizeTokensHeaderView.swift in Sources */,
 				EFB6800E2B29BD4B00842BE3 /* SheetModifier.swift in Sources */,
 				B09BB861259A075600B92000 /* NavigationBar.swift in Sources */,
+				EF031A472C0A2783001535C9 /* StakingAmountRoutable.swift in Sources */,
 				5DF2522B24F9439D0015B429 /* UIImage+.swift in Sources */,
 				B0F62C4825DE4ABE005C8BA0 /* EmailType.swift in Sources */,
 				DC70BFD72B9105BF002205BA /* SecurityOptionChangingCardInteractor.swift in Sources */,
@@ -9790,6 +9816,7 @@
 				5D4B8BB927EDB327002CE87C /* ArrowView.swift in Sources */,
 				B68B35692A4ACF8B0069129F /* OrganizeTokensContainerView.swift in Sources */,
 				B06997D02692EC5E0014A676 /* ExchangeService.swift in Sources */,
+				EF031A492C0A2783001535C9 /* StakingAmountViewModel.swift in Sources */,
 				EF07082C2A16474F0072AA0E /* FeeFormatter.swift in Sources */,
 				B674D6D92A96AC8800172491 /* Sequence+.swift in Sources */,
 				B6AA13762A2A37A800B53937 /* CardInfoPagePreviewView.swift in Sources */,
@@ -10349,6 +10376,7 @@
 				DC66BBF5285A14CB00CDF765 /* WelcomeViewLifecycleListener.swift in Sources */,
 				EFA6B04729533C860090A92F /* ResetToFactoryViewRoutable.swift in Sources */,
 				EFEE23482BFE01CC0099917E /* StakingCoordinator.swift in Sources */,
+				EF031A482C0A2783001535C9 /* StakingAmountView.swift in Sources */,
 				EFEE23492BFE01CC0099917E /* StakingCoordinatorView.swift in Sources */,
 				EFEE234A2BFE01CC0099917E /* StakingView.swift in Sources */,
 				EFEE234B2BFE01CC0099917E /* StakingViewModel.swift in Sources */,
