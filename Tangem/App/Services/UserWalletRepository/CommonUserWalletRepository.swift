@@ -148,6 +148,13 @@ class CommonUserWalletRepository: UserWalletRepository {
             .eraseToAnyPublisher()
     }
 
+    private func suggestedUserWalletName(defaultName: String) -> String {
+        let otherNames = models.map(\.name)
+        let helper = UserWalletNameIndexationHelper(mode: .newName, names: otherNames)
+
+        return helper.suggestedName(defaultName)
+    }
+
     func unlock(with method: UserWalletRepositoryUnlockMethod, completion: @escaping (UserWalletRepositoryResult?) -> Void) {
         switch method {
         case .biometry:

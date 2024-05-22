@@ -849,6 +849,8 @@
 		DAAA3C722B3D813C0002DBB0 /* SendAddressService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAA3C702B3D813C0002DBB0 /* SendAddressService.swift */; };
 		DAAA3C732B3D813C0002DBB0 /* SendAddressServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAA3C712B3D813C0002DBB0 /* SendAddressServiceFactory.swift */; };
 		DAAEC38D2BF31A8800184D7C /* SendFeatureProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAEC38C2BF31A8800184D7C /* SendFeatureProvider.swift */; };
+		DAAF69482BFE1C0400179697 /* UserWalletNameIndexationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAF69462BFE1C0400179697 /* UserWalletNameIndexationHelper.swift */; };
+		DAAF694A2BFE1CFA00179697 /* UserWalletNameIndexationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAF69492BFE1CFA00179697 /* UserWalletNameIndexationTests.swift */; };
 		DAB19D482B2C72A100DD08C4 /* AddCustomTokenCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB19D432B2C72A100DD08C4 /* AddCustomTokenCoordinator.swift */; };
 		DAB19D492B2C72A100DD08C4 /* AddCustomTokenViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB19D442B2C72A100DD08C4 /* AddCustomTokenViewModel.swift */; };
 		DAB19D4A2B2C72A100DD08C4 /* AddCustomTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB19D452B2C72A100DD08C4 /* AddCustomTokenView.swift */; };
@@ -2434,6 +2436,8 @@
 		DAAA3C702B3D813C0002DBB0 /* SendAddressService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendAddressService.swift; sourceTree = "<group>"; };
 		DAAA3C712B3D813C0002DBB0 /* SendAddressServiceFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendAddressServiceFactory.swift; sourceTree = "<group>"; };
 		DAAEC38C2BF31A8800184D7C /* SendFeatureProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeatureProvider.swift; sourceTree = "<group>"; };
+		DAAF69462BFE1C0400179697 /* UserWalletNameIndexationHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserWalletNameIndexationHelper.swift; sourceTree = "<group>"; };
+		DAAF69492BFE1CFA00179697 /* UserWalletNameIndexationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserWalletNameIndexationTests.swift; sourceTree = "<group>"; };
 		DAB19D432B2C72A100DD08C4 /* AddCustomTokenCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenCoordinator.swift; sourceTree = "<group>"; };
 		DAB19D442B2C72A100DD08C4 /* AddCustomTokenViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenViewModel.swift; sourceTree = "<group>"; };
 		DAB19D452B2C72A100DD08C4 /* AddCustomTokenView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenView.swift; sourceTree = "<group>"; };
@@ -3419,6 +3423,7 @@
 		5D3F77DB24BF56DC00E8695B /* TangemTests */ = {
 			isa = PBXGroup;
 			children = (
+				DAAF69492BFE1CFA00179697 /* UserWalletNameIndexationTests.swift */,
 				0A1992A52B5FBDF800344312 /* CurrencyTests.swift */,
 				5D3F77DC24BF56DC00E8695B /* TangemTests.swift */,
 				DC4BF174298A4B810052EC19 /* IncomingActionsTests.swift */,
@@ -5910,6 +5915,14 @@
 			path = UserWalletStorageAggreement;
 			sourceTree = "<group>";
 		};
+		DAAF69472BFE1C0400179697 /* UserWalletNameIndexationHelper */ = {
+			isa = PBXGroup;
+			children = (
+				DAAF69462BFE1C0400179697 /* UserWalletNameIndexationHelper.swift */,
+			);
+			path = UserWalletNameIndexationHelper;
+			sourceTree = "<group>";
+		};
 		DAB5E331297E8CBF00A4E9CF /* Rounding */ = {
 			isa = PBXGroup;
 			children = (
@@ -6146,6 +6159,7 @@
 				DC0A57FF28243D050031BECC /* ExchangeService */,
 				DC0A57E62822AB8C0031BECC /* PersistentStorage */,
 				DC0A57E52822AA240031BECC /* UserWalletRepository */,
+				DAAF69472BFE1C0400179697 /* UserWalletNameIndexationHelper */,
 				DC0A57E02822A5A10031BECC /* TangemSdk */,
 				DC0A5848282C07750031BECC /* WalletConnect */,
 				DC0A57F52822BDFB0031BECC /* CardImageLoader */,
@@ -9291,6 +9305,7 @@
 				DC3B49F62893E51B00C207EA /* UserWalletConfig.swift in Sources */,
 				DADBECE32BBE910C007E7885 /* CustomFeeServiceInputOutput.swift in Sources */,
 				B6C4D7322B1A71480084AF1E /* BottomScrollableSheet+Environment.swift in Sources */,
+				DAAF69482BFE1C0400179697 /* UserWalletNameIndexationHelper.swift in Sources */,
 				B03156AA2A8636CB001D9646 /* TokenItemViewState+WalletModelState.swift in Sources */,
 				5D242A5F273C1F24008F79B5 /* Publisher+.swift in Sources */,
 				B0A0E7972BF48CAF0059FD5C /* VisaAppUtilities.swift in Sources */,
@@ -9827,6 +9842,7 @@
 				B03AC9932BD8DB26000CBC50 /* APIListTests.swift in Sources */,
 				DC4BF175298A4B810052EC19 /* IncomingActionsTests.swift in Sources */,
 				0A1992A62B5FBDF800344312 /* CurrencyTests.swift in Sources */,
+				DAAF694A2BFE1CFA00179697 /* UserWalletNameIndexationTests.swift in Sources */,
 				EF6221B3292B5FCD00D1D4A0 /* DecimalNumberFormatterTests.swift in Sources */,
 				DC7AC96A292BE2C900580668 /* TangemTests.swift in Sources */,
 			);
