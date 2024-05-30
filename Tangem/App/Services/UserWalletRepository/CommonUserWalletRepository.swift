@@ -524,8 +524,6 @@ class CommonUserWalletRepository: UserWalletRepository {
             return
         }
 
-        AppSettings.shared.didMigrateUserWalletNames = true
-
         let oldNames = wallets.map(\.name)
         let helper = UserWalletNameIndexationHelper(mode: .migration, names: oldNames)
 
@@ -542,6 +540,8 @@ class CommonUserWalletRepository: UserWalletRepository {
         if didChangeNames {
             UserWalletRepositoryUtil().saveUserWallets(wallets)
         }
+
+        AppSettings.shared.didMigrateUserWalletNames = true
     }
 
     private func sendEvent(_ event: UserWalletRepositoryEvent) {
