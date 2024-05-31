@@ -183,7 +183,7 @@ private extension CommonSendFiatCryptoAdapter {
             if let cryptoCurrencyId,
                let crypto,
                let roundingMode = fiatFormattingOptions.roundingType?.roundingMode {
-                fiat = balanceConverter.convertToFiat(value: crypto, from: cryptoCurrencyId)?.rounded(
+                fiat = balanceConverter.convertToFiat(crypto, currencyId: cryptoCurrencyId)?.rounded(
                     scale: fiatFormattingOptions.maxFractionDigits,
                     roundingMode: roundingMode
                 )
@@ -198,7 +198,7 @@ private extension CommonSendFiatCryptoAdapter {
             self.fiat = fiat
 
             if let cryptoCurrencyId, let fiat {
-                crypto = balanceConverter.convertFromFiat(value: fiat, to: cryptoCurrencyId)?.rounded(scale: decimals)
+                crypto = balanceConverter.convertFromFiat(fiat, currencyId: cryptoCurrencyId)?.rounded(scale: decimals)
             } else {
                 crypto = nil
             }
