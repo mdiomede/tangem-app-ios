@@ -254,8 +254,8 @@ class SendSummaryViewModel: ObservableObject {
         }
 
         let converter = BalanceConverter()
-        let amountInFiat = converter.convertToFiat(value: amount.value, from: amountCurrencyId)
-        let feeInFiat = converter.convertToFiat(value: fee.amount.value, from: feeCurrencyId)
+        let amountInFiat = converter.convertToFiat(amount.value, currencyId: amountCurrencyId)
+        let feeInFiat = converter.convertToFiat(fee.amount.value, currencyId: feeCurrencyId)
 
         let totalInFiat: Decimal?
         if let amountInFiat, let feeInFiat {

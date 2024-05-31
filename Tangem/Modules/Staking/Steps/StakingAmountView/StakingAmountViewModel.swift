@@ -9,6 +9,38 @@
 import Combine
 import SwiftUI
 
+struct CryptoFiatAmountConverter {
+    let formatter: DecimalNumberFormatter
+
+    init(maximumFractionDigits: Int) {
+        formatter = DecimalNumberFormatter(maximumFractionDigits: maximumFractionDigits)
+    }
+
+    func convertToCrypto(_ value: Decimal?, currencyId: String?) -> Decimal? {
+        guard let value,
+              let currencyId,
+              let cryptoValue = BalanceConverter().convertFromFiat(value, currencyId: currencyId) else {
+            return nil
+        }
+
+        formatter.update(maximumFractionDigits: 2)
+        let string = formatter.format(value: formatter.mapToString(decimal: cryptoValue))
+        return formatter.mapToDecimal(string: string)
+    }
+
+    func convertToFiat(_ value: Decimal?, currencyId: String?) -> Decimal? {
+        guard let value,
+              let currencyId,
+              let fiatValue = BalanceConverter().convertToFiat(value, currencyId: currencyId) else {
+            return nil
+        }
+
+        formatter.update(maximumFractionDigits: 2)
+        let string = formatter.format(value: formatter.mapToString(decimal: fiatValue))
+        return formatter.mapToDecimal(string: string)
+    }
+}
+
 final class StakingAmountViewModel: ObservableObject {
     // MARK: - ViewState
 
@@ -32,9 +64,13 @@ final class StakingAmountViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
+    private let cryptoFiatAmountConverter: CryptoFiatAmountConverter
+    private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
+
     private let walletModel: WalletModel
     private weak var coordinator: StakingAmountRoutable?
-    private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
+
+    private var bag: Set<AnyCancellable> = []
 
     init(
         walletModel: WalletModel,
@@ -45,6 +81,7 @@ final class StakingAmountViewModel: ObservableObject {
         balance = .loaded(text: input.balanceFormatted)
         tokenIconInfo = input.tokenIconInfo
 
+        cryptoFiatAmountConverter = .init(maximumFractionDigits: input.tokenItem.decimalCount)
         prefixSuffixOptionsFactory = SendDecimalNumberTextField.PrefixSuffixOptionsFactory(
             cryptoCurrencyCode: walletModel.tokenItem.currencySymbol,
             fiatCurrencyCode: AppSettings.shared.selectedCurrencyCode
@@ -54,10 +91,36 @@ final class StakingAmountViewModel: ObservableObject {
 
         self.walletModel = walletModel
         self.coordinator = coordinator
+
+        bind()
     }
 
     func bind() {
-        currentFieldOptions = useFiatCalculation ? prefixSuffixOptionsFactory.makeCryptoOptions() : prefixSuffixOptionsFactory.makeFiatOptions()
+        $useFiatCalculation
+            .receive(on: DispatchQueue.main)
+            .withWeakCaptureOf(self)
+            .sink { viewModel, useFiat in
+                viewModel.update(useFiat: useFiat)
+            }
+            .store(in: &bag)
+    }
+
+    func update(useFiat: Bool) {
+        if useFiat {
+            currentFieldOptions = prefixSuffixOptionsFactory.makeFiatOptions()
+            let fiatValue = cryptoFiatAmountConverter.convertToFiat(
+                decimalNumberTextFieldViewModel.value,
+                currencyId: walletModel.tokenItem.currencyId
+            )
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+        } else {
+            currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
+            let fiatValue = cryptoFiatAmountConverter.convertToCrypto(
+                decimalNumberTextFieldViewModel.value,
+                currencyId: walletModel.tokenItem.currencyId
+            )
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+        }
     }
 
     func setupAmountFormatting() {}
@@ -71,4 +134,3 @@ extension StakingAmountViewModel {
         let balanceFormatted: String
     }
 }
-

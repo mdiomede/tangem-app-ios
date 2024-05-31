@@ -29,15 +29,32 @@ class StakingCoordinator: CoordinatorObject {
         self.popToRootAction = popToRootAction
     }
 
-    func start(with options: Options) {}
+    func start(with options: Options) {
+        let builder = StakingStepsViewBuilder(userWalletName: options.userWalletModel.name, wallet: options.walletModel)
+
+        let stakingAmountViewModel = StakingAmountViewModel(
+            walletModel: options.walletModel,
+            input: builder.makeStakingAmountViewModel(),
+            coordinator: self
+        )
+
+        rootViewModel = .init(stakingAmountViewModel: stakingAmountViewModel, coordinator: self)
+    }
 }
 
 // MARK: - Options
 
 extension StakingCoordinator {
-    enum Options {}
+    struct Options {
+        let userWalletModel: UserWalletModel
+        let walletModel: WalletModel
+    }
 }
 
 // MARK: - StakingRoutable
 
 extension StakingCoordinator: StakingRoutable {}
+
+// MARK: - StakingAmountRoutable
+
+extension StakingCoordinator: StakingAmountRoutable {}

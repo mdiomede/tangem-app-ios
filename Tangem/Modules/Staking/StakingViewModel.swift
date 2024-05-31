@@ -12,13 +12,17 @@ import SwiftUI
 final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
 
+    @Published var stakingAmountViewModel: StakingAmountViewModel?
+
     // MARK: - Dependencies
 
     private weak var coordinator: StakingRoutable?
 
     init(
+        stakingAmountViewModel: StakingAmountViewModel?,
         coordinator: StakingRoutable
     ) {
+        self.stakingAmountViewModel = stakingAmountViewModel
         self.coordinator = coordinator
     }
 }
