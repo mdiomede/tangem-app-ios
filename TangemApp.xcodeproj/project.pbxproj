@@ -1127,6 +1127,8 @@
 		EF031A472C0A2783001535C9 /* StakingAmountRoutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */; };
 		EF031A482C0A2783001535C9 /* StakingAmountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A442C0A2782001535C9 /* StakingAmountView.swift */; };
 		EF031A492C0A2783001535C9 /* StakingAmountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */; };
+		EF031A652C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */; };
+		EF031A6E2C0A33F9001535C9 /* StakingStepsViewBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */; };
 		EF032C502955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */; };
 		EF032C512955C59E006C1FF3 /* DefaultSelectableRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */; };
 		EF032C532955C725006C1FF3 /* CheckIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C522955C725006C1FF3 /* CheckIconView.swift */; };
@@ -2844,6 +2846,8 @@
 		EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountRoutable.swift; sourceTree = "<group>"; };
 		EF031A442C0A2782001535C9 /* StakingAmountView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountView.swift; sourceTree = "<group>"; };
 		EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountViewModel.swift; sourceTree = "<group>"; };
+		EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryViewGeometryEffectNames.swift; sourceTree = "<group>"; };
+		EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingStepsViewBuilder.swift; sourceTree = "<group>"; };
 		EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowViewModel.swift; sourceTree = "<group>"; };
 		EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowView.swift; sourceTree = "<group>"; };
 		EF032C522955C725006C1FF3 /* CheckIconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CheckIconView.swift; sourceTree = "<group>"; };
@@ -7006,6 +7010,8 @@
 		EF031A462C0A2782001535C9 /* Steps */ = {
 			isa = PBXGroup;
 			children = (
+				EF031A6C2C0A33ED001535C9 /* Factory */,
+				EF031A632C0A32AB001535C9 /* Namespace */,
 				EF031A4A2C0A2B38001535C9 /* StakingAmountView */,
 			);
 			path = Steps;
@@ -7019,6 +7025,22 @@
 				EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */,
 			);
 			path = StakingAmountView;
+			sourceTree = "<group>";
+		};
+		EF031A632C0A32AB001535C9 /* Namespace */ = {
+			isa = PBXGroup;
+			children = (
+				EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */,
+			);
+			path = Namespace;
+			sourceTree = "<group>";
+		};
+		EF031A6C2C0A33ED001535C9 /* Factory */ = {
+			isa = PBXGroup;
+			children = (
+				EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */,
+			);
+			path = Factory;
 			sourceTree = "<group>";
 		};
 		EF032C4D2955C59E006C1FF3 /* DefaultSelectableRowView */ = {
@@ -10217,6 +10239,7 @@
 				DC7D39FF29E02BC6007BCD23 /* AccessCodeRequestPolicyFactory.swift in Sources */,
 				B675A1E62A1E05F700F624B6 /* CardsInfoPagerView.swift in Sources */,
 				B01EB9C426E9F18A0060E2FB /* StackCalculator.swift in Sources */,
+				EF031A6E2C0A33F9001535C9 /* StakingStepsViewBuilder.swift in Sources */,
 				EF92E2BA29963E7400DD9B06 /* ExpressKeys.swift in Sources */,
 				EFF034AF28B6522500F70FF7 /* WalletModelsManager.swift in Sources */,
 				B65C07A92AE2973E00127CCE /* OrganizeTokensPreviewConfiguration.swift in Sources */,
@@ -10295,6 +10318,7 @@
 				5D43E2D72514D5B700697E5B /* CardOperationView.swift in Sources */,
 				B0DD162A2A331C2100CB23AA /* TokenDetailsView.swift in Sources */,
 				DAC53CFA27BE63830027147D /* StoriesView.swift in Sources */,
+				EF031A652C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift in Sources */,
 				B6805B722A32F8C90015EC96 /* OrganizeTokensListItemPreviewProvider.swift in Sources */,
 				5DE2038E24EE8A510044EF46 /* ActivityIndicatorView.swift in Sources */,
 				B05A13AE29FBED3000FB511A /* ScrollableButtonsView.swift in Sources */,

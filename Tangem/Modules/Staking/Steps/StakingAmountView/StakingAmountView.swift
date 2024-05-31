@@ -8,27 +8,6 @@
 
 import SwiftUI
 
-struct StakingViewNamespaceID: StakingAmountViewGeometryEffectNames {
-    var amountContainer: String { "amountContainer" }
-    var tokenIcon: String { "tokenIcon" }
-    var amountCryptoText: String { "amountCryptoText" }
-    var amountFiatText: String { "amountFiatText" }
-}
-
-protocol StakingAmountViewGeometryEffectNames {
-    var amountContainer: String { get }
-    var tokenIcon: String { get }
-    var amountCryptoText: String { get }
-    var amountFiatText: String { get }
-}
-
-extension StakingAmountView {
-    struct Namespace {
-        let id: SwiftUI.Namespace.ID
-        let names: any StakingAmountViewGeometryEffectNames
-    }
-}
-
 struct StakingAmountView: View {
     @ObservedObject private var viewModel: StakingAmountViewModel
     private let namespace: Namespace
@@ -48,7 +27,7 @@ struct StakingAmountView: View {
 
     private var amountContainer: some View {
         VStack(spacing: 32) {
-            StakingWalletInfoView(name: viewModel.walletName, balance: viewModel.balance)
+            StakingWalletInfoView(name: viewModel.userWalletName, balance: viewModel.balance)
                 // Because the top padding is equal 16 to the white background
                 // And bottom padding is equal 12
                 .padding(.top, 4)
@@ -109,9 +88,17 @@ struct StakingAmountView: View {
     }
 }
 
+extension StakingAmountView {
+    struct Namespace {
+        let id: SwiftUI.Namespace.ID
+        let names: any StakingAmountViewGeometryEffectNames
+    }
+}
+
 struct StakingAmountView_Preview: PreviewProvider {
     static let viewModel = StakingAmountViewModel(
         walletModel: .mockETH,
+        input: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingAmountViewModel(),
         coordinator: StakingAmountRoutableMock()
     )
 
