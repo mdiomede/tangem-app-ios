@@ -1131,6 +1131,9 @@
 		EF031A472C0A2783001535C9 /* StakingAmountRoutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */; };
 		EF031A482C0A2783001535C9 /* StakingAmountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A442C0A2782001535C9 /* StakingAmountView.swift */; };
 		EF031A492C0A2783001535C9 /* StakingAmountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */; };
+		EF031A602C0A2D8C001535C9 /* StakingSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5B2C0A2D8C001535C9 /* StakingSummaryView.swift */; };
+		EF031A612C0A2D8C001535C9 /* StakingSummaryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5C2C0A2D8C001535C9 /* StakingSummaryViewModel.swift */; };
+		EF031A622C0A2D8C001535C9 /* StakingSummaryRoutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5D2C0A2D8C001535C9 /* StakingSummaryRoutable.swift */; };
 		EF031A652C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */; };
 		EF031A6E2C0A33F9001535C9 /* StakingStepsViewBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */; };
 		EF031A7F2C0DD243001535C9 /* CryptoFiatAmountConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */; };
@@ -2847,6 +2850,9 @@
 		EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountRoutable.swift; sourceTree = "<group>"; };
 		EF031A442C0A2782001535C9 /* StakingAmountView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountView.swift; sourceTree = "<group>"; };
 		EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountViewModel.swift; sourceTree = "<group>"; };
+		EF031A5B2C0A2D8C001535C9 /* StakingSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryView.swift; sourceTree = "<group>"; };
+		EF031A5C2C0A2D8C001535C9 /* StakingSummaryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryViewModel.swift; sourceTree = "<group>"; };
+		EF031A5D2C0A2D8C001535C9 /* StakingSummaryRoutable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryRoutable.swift; sourceTree = "<group>"; };
 		EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryViewGeometryEffectNames.swift; sourceTree = "<group>"; };
 		EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingStepsViewBuilder.swift; sourceTree = "<group>"; };
 		EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmountConverter.swift; sourceTree = "<group>"; };
@@ -7044,6 +7050,7 @@
 				EF031A6C2C0A33ED001535C9 /* Factory */,
 				EF031A632C0A32AB001535C9 /* Namespace */,
 				EF031A4A2C0A2B38001535C9 /* StakingAmountView */,
+				EF031A582C0A2CB3001535C9 /* StakingSummaryView */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -7056,6 +7063,16 @@
 				EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */,
 			);
 			path = StakingAmountView;
+			sourceTree = "<group>";
+		};
+		EF031A582C0A2CB3001535C9 /* StakingSummaryView */ = {
+			isa = PBXGroup;
+			children = (
+				EF031A5B2C0A2D8C001535C9 /* StakingSummaryView.swift */,
+				EF031A5C2C0A2D8C001535C9 /* StakingSummaryViewModel.swift */,
+				EF031A5D2C0A2D8C001535C9 /* StakingSummaryRoutable.swift */,
+			);
+			path = StakingSummaryView;
 			sourceTree = "<group>";
 		};
 		EF031A632C0A32AB001535C9 /* Namespace */ = {
@@ -10194,6 +10211,9 @@
 				B0C616682AFBA58E00ABADF0 /* ThemeSelectionView.swift in Sources */,
 				EF5D83DA2B0B7A2B00516B5F /* ExpressSuccessSentViewModel.swift in Sources */,
 				B046EE182578D38E00EA38A5 /* SceneDelegate.swift in Sources */,
+				EF031A602C0A2D8C001535C9 /* StakingSummaryView.swift in Sources */,
+				EF031A612C0A2D8C001535C9 /* StakingSummaryViewModel.swift in Sources */,
+				EF031A622C0A2D8C001535C9 /* StakingSummaryRoutable.swift in Sources */,
 				DA7046172AAA180A00808FA8 /* LineChartView.swift in Sources */,
 				B06A828029C81E3A00B6160E /* SeedPhraseTextView.swift in Sources */,
 				DAF72F432B0F480A0006B44F /* SendFinishView.swift in Sources */,
