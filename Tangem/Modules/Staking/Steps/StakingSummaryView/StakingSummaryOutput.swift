@@ -1,5 +1,5 @@
 //
-//  StakingSummaryRoutable.swift
+//  StakingSummaryOutput.swift
 //  Tangem
 //
 //  Created by Sergey Balashov on 31.05.2024.
@@ -8,10 +8,10 @@
 
 import Foundation
 
-class StakingSummaryRoutableMock: StakingSummaryRoutable {
+class StakingSummaryOutputMock: StakingSummaryOutput {
 
 }
 
-protocol StakingSummaryRoutable: AnyObject {
+protocol StakingSummaryOutput: AnyObject {
 
 }

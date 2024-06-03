@@ -1128,12 +1128,12 @@
 		DCFE143E294B31C00053106B /* AppPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCFE143D294B31C00053106B /* AppPresenter.swift */; };
 		E9C17C5F291951BF00FDE4BC /* AnyPublisher+.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C17C5E291951BF00FDE4BC /* AnyPublisher+.swift */; };
 		EF0295592A9DCDEE000B2142 /* SensitiveText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0295582A9DCDEE000B2142 /* SensitiveText.swift */; };
-		EF031A472C0A2783001535C9 /* StakingAmountRoutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */; };
+		EF031A472C0A2783001535C9 /* StakingAmountOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A432C0A2782001535C9 /* StakingAmountOutput.swift */; };
 		EF031A482C0A2783001535C9 /* StakingAmountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A442C0A2782001535C9 /* StakingAmountView.swift */; };
 		EF031A492C0A2783001535C9 /* StakingAmountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */; };
 		EF031A602C0A2D8C001535C9 /* StakingSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5B2C0A2D8C001535C9 /* StakingSummaryView.swift */; };
 		EF031A612C0A2D8C001535C9 /* StakingSummaryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5C2C0A2D8C001535C9 /* StakingSummaryViewModel.swift */; };
-		EF031A622C0A2D8C001535C9 /* StakingSummaryRoutable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5D2C0A2D8C001535C9 /* StakingSummaryRoutable.swift */; };
+		EF031A622C0A2D8C001535C9 /* StakingSummaryOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A5D2C0A2D8C001535C9 /* StakingSummaryOutput.swift */; };
 		EF031A652C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */; };
 		EF031A6E2C0A33F9001535C9 /* StakingStepsViewBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */; };
 		EF031A7F2C0DD243001535C9 /* CryptoFiatAmountConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */; };
@@ -2847,12 +2847,12 @@
 		E41571C8A3492645DEC301E5 /* Pods-TangemFoundationTests.release(beta).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TangemFoundationTests.release(beta).xcconfig"; path = "Target Support Files/Pods-TangemFoundationTests/Pods-TangemFoundationTests.release(beta).xcconfig"; sourceTree = "<group>"; };
 		E9C17C5E291951BF00FDE4BC /* AnyPublisher+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AnyPublisher+.swift"; sourceTree = "<group>"; };
 		EF0295582A9DCDEE000B2142 /* SensitiveText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveText.swift; sourceTree = "<group>"; };
-		EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountRoutable.swift; sourceTree = "<group>"; };
+		EF031A432C0A2782001535C9 /* StakingAmountOutput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountOutput.swift; sourceTree = "<group>"; };
 		EF031A442C0A2782001535C9 /* StakingAmountView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountView.swift; sourceTree = "<group>"; };
 		EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountViewModel.swift; sourceTree = "<group>"; };
 		EF031A5B2C0A2D8C001535C9 /* StakingSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryView.swift; sourceTree = "<group>"; };
 		EF031A5C2C0A2D8C001535C9 /* StakingSummaryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryViewModel.swift; sourceTree = "<group>"; };
-		EF031A5D2C0A2D8C001535C9 /* StakingSummaryRoutable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryRoutable.swift; sourceTree = "<group>"; };
+		EF031A5D2C0A2D8C001535C9 /* StakingSummaryOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryOutput.swift; sourceTree = "<group>"; };
 		EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryViewGeometryEffectNames.swift; sourceTree = "<group>"; };
 		EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingStepsViewBuilder.swift; sourceTree = "<group>"; };
 		EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmountConverter.swift; sourceTree = "<group>"; };
@@ -7058,9 +7058,9 @@
 		EF031A4A2C0A2B38001535C9 /* StakingAmountView */ = {
 			isa = PBXGroup;
 			children = (
-				EF031A432C0A2782001535C9 /* StakingAmountRoutable.swift */,
 				EF031A442C0A2782001535C9 /* StakingAmountView.swift */,
 				EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */,
+				EF031A432C0A2782001535C9 /* StakingAmountOutput.swift */,
 			);
 			path = StakingAmountView;
 			sourceTree = "<group>";
@@ -7070,7 +7070,7 @@
 			children = (
 				EF031A5B2C0A2D8C001535C9 /* StakingSummaryView.swift */,
 				EF031A5C2C0A2D8C001535C9 /* StakingSummaryViewModel.swift */,
-				EF031A5D2C0A2D8C001535C9 /* StakingSummaryRoutable.swift */,
+				EF031A5D2C0A2D8C001535C9 /* StakingSummaryOutput.swift */,
 			);
 			path = StakingSummaryView;
 			sourceTree = "<group>";
@@ -9457,6 +9457,7 @@
 				B09BB861259A075600B92000 /* NavigationBar.swift in Sources */,
 				EF031A472C0A2783001535C9 /* StakingAmountRoutable.swift in Sources */,
 				EF8DBCF12C061F9C009072CF /* StakingModulesFactory.swift in Sources */,
+				EF031A472C0A2783001535C9 /* StakingAmountOutput.swift in Sources */,
 				5DF2522B24F9439D0015B429 /* UIImage+.swift in Sources */,
 				B0F62C4825DE4ABE005C8BA0 /* EmailType.swift in Sources */,
 				DC70BFD72B9105BF002205BA /* SecurityOptionChangingCardInteractor.swift in Sources */,
@@ -10213,7 +10214,7 @@
 				B046EE182578D38E00EA38A5 /* SceneDelegate.swift in Sources */,
 				EF031A602C0A2D8C001535C9 /* StakingSummaryView.swift in Sources */,
 				EF031A612C0A2D8C001535C9 /* StakingSummaryViewModel.swift in Sources */,
-				EF031A622C0A2D8C001535C9 /* StakingSummaryRoutable.swift in Sources */,
+				EF031A622C0A2D8C001535C9 /* StakingSummaryOutput.swift in Sources */,
 				DA7046172AAA180A00808FA8 /* LineChartView.swift in Sources */,
 				B06A828029C81E3A00B6160E /* SeedPhraseTextView.swift in Sources */,
 				DAF72F432B0F480A0006B44F /* SendFinishView.swift in Sources */,

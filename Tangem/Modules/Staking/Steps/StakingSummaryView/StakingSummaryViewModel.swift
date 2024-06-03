@@ -7,26 +7,27 @@
 //
 
 import Combine
-import SwiftUI
+import BlockchainSdk
 
 final class StakingSummaryViewModel: ObservableObject {
     // MARK: - ViewState
 
+    @Published var userWalletName: String
     @Published var tokenIconInfo: TokenIconInfo
+    @Published var alternativeAmount: String?
 
     // MARK: - Dependencies
 
-    private weak var coordinator: StakingSummaryRoutable?
+    private weak var output: StakingSummaryOutput?
 
     init(
-        walletModel: WalletModel,
-        coordinator: StakingSummaryRoutable
+        input: StakingSummaryViewModel.Input,
+        output: StakingSummaryOutput
     ) {
+        userWalletName = input.userWalletName
+        tokenIconInfo = input.tokenIconInfo
 
-
-        tokenIconInfo = TokenIconInfoBuilder().build(from: walletModel.tokenItem, isCustom: walletModel.isCustom)
-
-        self.coordinator = coordinator
+        self.output = output
     }
 }
 
@@ -35,5 +36,6 @@ extension StakingSummaryViewModel {
         let userWalletName: String
         let tokenItem: TokenItem
         let tokenIconInfo: TokenIconInfo
+        let validator: TransactionValidator
     }
 }

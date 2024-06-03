@@ -32,13 +32,13 @@ final class StakingAmountViewModel: ObservableObject {
     private let tokenItem: TokenItem
     private let balanceValue: Decimal
     private var validator: TransactionValidator
-    private weak var coordinator: StakingAmountRoutable?
+    private weak var output: StakingAmountOutput?
 
     private var bag: Set<AnyCancellable> = []
 
     init(
         input: StakingAmountViewModel.Input,
-        coordinator: StakingAmountRoutable
+        output: StakingAmountOutput
     ) {
         userWalletName = input.userWalletName
         balance = input.balanceFormatted
@@ -56,7 +56,7 @@ final class StakingAmountViewModel: ObservableObject {
         tokenItem = input.tokenItem
         balanceValue = input.balanceValue
         validator = input.validator
-        self.coordinator = coordinator
+        self.output = output
 
         bind()
     }
