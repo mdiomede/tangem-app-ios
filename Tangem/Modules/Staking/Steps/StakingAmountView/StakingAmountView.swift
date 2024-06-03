@@ -77,8 +77,10 @@ struct StakingAmountView: View {
                     useFiatCalculation: $viewModel.useFiatCalculation
                 )
 
-                MainButton(title: Localization.sendMaxAmount, style: .secondary) {}
-                    .frame(width: proxy.size.width / 3)
+                MainButton(title: Localization.sendMaxAmount, style: .secondary) {
+                    viewModel.userDidTapMaxAmount()
+                }
+                .frame(width: proxy.size.width / 3)
             }
         }
     }

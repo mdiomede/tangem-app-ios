@@ -9,38 +9,6 @@
 import Combine
 import SwiftUI
 
-struct CryptoFiatAmountConverter {
-    let formatter: DecimalNumberFormatter
-
-    init(maximumFractionDigits: Int) {
-        formatter = DecimalNumberFormatter(maximumFractionDigits: maximumFractionDigits)
-    }
-
-    func convertToCrypto(_ value: Decimal?, currencyId: String?) -> Decimal? {
-        guard let value,
-              let currencyId,
-              let cryptoValue = BalanceConverter().convertFromFiat(value, currencyId: currencyId) else {
-            return nil
-        }
-
-        formatter.update(maximumFractionDigits: 2)
-        let string = formatter.format(value: formatter.mapToString(decimal: cryptoValue))
-        return formatter.mapToDecimal(string: string)
-    }
-
-    func convertToFiat(_ value: Decimal?, currencyId: String?) -> Decimal? {
-        guard let value,
-              let currencyId,
-              let fiatValue = BalanceConverter().convertToFiat(value, currencyId: currencyId) else {
-            return nil
-        }
-
-        formatter.update(maximumFractionDigits: 2)
-        let string = formatter.format(value: formatter.mapToString(decimal: fiatValue))
-        return formatter.mapToDecimal(string: string)
-    }
-}
-
 final class StakingAmountViewModel: ObservableObject {
     // MARK: - ViewState
 
@@ -77,7 +45,7 @@ final class StakingAmountViewModel: ObservableObject {
         currencyPickerData = input.currencyPickerData
 
         cryptoFiatAmountConverter = .init(maximumFractionDigits: input.tokenItem.decimalCount)
-        prefixSuffixOptionsFactory = SendDecimalNumberTextField.PrefixSuffixOptionsFactory(
+        prefixSuffixOptionsFactory = .init(
             cryptoCurrencyCode: walletModel.tokenItem.currencySymbol,
             fiatCurrencyCode: AppSettings.shared.selectedCurrencyCode
         )
@@ -90,12 +58,32 @@ final class StakingAmountViewModel: ObservableObject {
         bind()
     }
 
+    func userDidTapMaxAmount() {
+        if useFiatCalculation {
+            let fiatValue = cryptoFiatAmountConverter.convertToFiat(walletModel.balanceValue, tokenItem: walletModel.tokenItem)
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+        } else {
+            decimalNumberTextFieldViewModel.update(value: walletModel.balanceValue)
+        }
+    }
+}
+
+private extension StakingAmountViewModel {
     func bind() {
         $useFiatCalculation
+            .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .withWeakCaptureOf(self)
             .sink { viewModel, useFiat in
                 viewModel.update(useFiat: useFiat)
+            }
+            .store(in: &bag)
+
+        decimalNumberTextFieldViewModel.valuePublisher
+            .receive(on: DispatchQueue.main)
+            .withWeakCaptureOf(self)
+            .sink { viewModel, value in
+                viewModel.updateAlternativeAmount(value: value)
             }
             .store(in: &bag)
     }
@@ -105,20 +93,32 @@ final class StakingAmountViewModel: ObservableObject {
             currentFieldOptions = prefixSuffixOptionsFactory.makeFiatOptions()
             let fiatValue = cryptoFiatAmountConverter.convertToFiat(
                 decimalNumberTextFieldViewModel.value,
-                currencyId: walletModel.tokenItem.currencyId
+                tokenItem: walletModel.tokenItem
             )
             decimalNumberTextFieldViewModel.update(value: fiatValue)
         } else {
             currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
             let fiatValue = cryptoFiatAmountConverter.convertToCrypto(
                 decimalNumberTextFieldViewModel.value,
-                currencyId: walletModel.tokenItem.currencyId
+                tokenItem: walletModel.tokenItem
             )
             decimalNumberTextFieldViewModel.update(value: fiatValue)
         }
+
+        updateAlternativeAmount(value: decimalNumberTextFieldViewModel.value)
     }
 
-    func setupAmountFormatting() {}
+    func updateAlternativeAmount(value: Decimal?) {
+        if useFiatCalculation {
+            let cryptoValue = cryptoFiatAmountConverter.convertToCrypto(value, tokenItem: walletModel.tokenItem)
+            let formatted = BalanceFormatter().formatCryptoBalance(cryptoValue, currencyCode: walletModel.tokenItem.currencySymbol)
+            alternativeAmount = .loaded(text: formatted)
+        } else {
+            let fiatValue = cryptoFiatAmountConverter.convertToFiat(value, tokenItem: walletModel.tokenItem)
+            let formatted = BalanceFormatter().formatFiatBalance(fiatValue)
+            alternativeAmount = .loaded(text: formatted)
+        }
+    }
 }
 
 extension StakingAmountViewModel {

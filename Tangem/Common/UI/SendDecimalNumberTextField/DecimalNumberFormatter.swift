@@ -52,6 +52,10 @@ struct DecimalNumberFormatter {
         return format(value: mapToString(decimal: value))
     }
 
+    public func format(value: Decimal) -> Decimal? {
+        mapToDecimal(string: format(value: mapToString(decimal: value)))
+    }
+
     // MARK: - Mapping
 
     public func mapToString(decimal: Decimal) -> String {

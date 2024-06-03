@@ -1129,6 +1129,7 @@
 		EF031A492C0A2783001535C9 /* StakingAmountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */; };
 		EF031A652C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */; };
 		EF031A6E2C0A33F9001535C9 /* StakingStepsViewBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */; };
+		EF031A7F2C0DD243001535C9 /* CryptoFiatAmountConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */; };
 		EF032C502955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */; };
 		EF032C512955C59E006C1FF3 /* DefaultSelectableRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */; };
 		EF032C532955C725006C1FF3 /* CheckIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C522955C725006C1FF3 /* CheckIconView.swift */; };
@@ -2848,6 +2849,7 @@
 		EF031A452C0A2782001535C9 /* StakingAmountViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StakingAmountViewModel.swift; sourceTree = "<group>"; };
 		EF031A642C0A32C3001535C9 /* StakingSummaryViewGeometryEffectNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingSummaryViewGeometryEffectNames.swift; sourceTree = "<group>"; };
 		EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingStepsViewBuilder.swift; sourceTree = "<group>"; };
+		EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmountConverter.swift; sourceTree = "<group>"; };
 		EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowViewModel.swift; sourceTree = "<group>"; };
 		EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowView.swift; sourceTree = "<group>"; };
 		EF032C522955C725006C1FF3 /* CheckIconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CheckIconView.swift; sourceTree = "<group>"; };
@@ -7010,6 +7012,7 @@
 		EF031A462C0A2782001535C9 /* Steps */ = {
 			isa = PBXGroup;
 			children = (
+				EF031A7D2C0DD234001535C9 /* Utils */,
 				EF031A6C2C0A33ED001535C9 /* Factory */,
 				EF031A632C0A32AB001535C9 /* Namespace */,
 				EF031A4A2C0A2B38001535C9 /* StakingAmountView */,
@@ -7041,6 +7044,14 @@
 				EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */,
 			);
 			path = Factory;
+			sourceTree = "<group>";
+		};
+		EF031A7D2C0DD234001535C9 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 		EF032C4D2955C59E006C1FF3 /* DefaultSelectableRowView */ = {
@@ -10436,6 +10447,7 @@
 				B0FE0B3529712C170046EE2C /* WalletConnectV2Utils.swift in Sources */,
 				DCBC945F2994F9BF0050BC35 /* AnalyticsContextScope.swift in Sources */,
 				B687286F2B7D48E90090C24F /* BlockchainAccountCreateParameters.swift in Sources */,
+				EF031A7F2C0DD243001535C9 /* CryptoFiatAmountConverter.swift in Sources */,
 				B0C4F77126F08C4D0086D815 /* TwinsOnboardingCardLayout.swift in Sources */,
 				B0A4C4A22A271CD20060E039 /* BalanceWithButtonsViewModel.swift in Sources */,
 				2D535E722A0CB4D20081EB76 /* BottomSheetInfoView.swift in Sources */,
