@@ -36,8 +36,10 @@ struct StakingStepsViewBuilder {
             userWalletName: userWalletName,
             tokenItem: wallet.tokenItem,
             tokenIconInfo: tokenIconInfo,
+            balanceValue: wallet.balanceValue ?? 0,
             balanceFormatted: balanceFormatted,
-            currencyPickerData: currencyPickerData
+            currencyPickerData: currencyPickerData,
+            validator: wallet.transactionValidator
         )
     }
 }

@@ -33,7 +33,6 @@ class StakingCoordinator: CoordinatorObject {
         let builder = StakingStepsViewBuilder(userWalletName: options.userWalletModelName, wallet: options.walletModel)
 
         let stakingAmountViewModel = StakingAmountViewModel(
-            walletModel: options.walletModel,
             input: builder.makeStakingAmountViewModel(),
             coordinator: self
         )

@@ -27,14 +27,26 @@ struct StakingAmountView: View {
 
     private var amountContainer: some View {
         VStack(spacing: 32) {
-            StakingWalletInfoView(name: viewModel.userWalletName, balance: viewModel.balance)
-                // Because the top padding is equal 16 to the white background
-                // And bottom padding is equal 12
+            walletInfoView
+                // Because the top padding have to be is 16 to the white background
+                // But the bottom padding have to be is 12
                 .padding(.top, 4)
 
             amountContent
         }
         .defaultRoundedBackground(with: Colors.Background.action)
+    }
+
+    private var walletInfoView: some View {
+        VStack(spacing: 4) {
+            Text(viewModel.userWalletName)
+                .style(Fonts.Bold.footnote, color: Colors.Text.tertiary)
+                .lineLimit(1)
+
+            SensitiveText(viewModel.balance)
+                .style(Fonts.Regular.footnote, color: Colors.Text.tertiary)
+                .lineLimit(1)
+        }
     }
 
     private var amountContent: some View {
@@ -53,14 +65,10 @@ struct StakingAmountView: View {
                     .frame(maxWidth: .infinity)
                     .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
 
-                LoadableTextView(
-                    state: viewModel.alternativeAmount,
-                    font: Fonts.Regular.footnote,
-                    textColor: Colors.Text.tertiary,
-                    loaderSize: CGSize(width: 60, height: 14),
-                    lineLimit: 1
-                )
-                .matchedGeometryEffect(id: namespace.names.amountFiatText, in: namespace.id)
+                Text(viewModel.alternativeAmount ?? " ")
+                    .style(Fonts.Regular.footnote, color: Colors.Text.tertiary)
+                    .lineLimit(1)
+                    .matchedGeometryEffect(id: namespace.names.amountFiatText, in: namespace.id)
 
                 Text(viewModel.error ?? " ")
                     .style(Fonts.Regular.caption1, color: Colors.Text.warning)
@@ -95,7 +103,6 @@ extension StakingAmountView {
 
 struct StakingAmountView_Preview: PreviewProvider {
     static let viewModel = StakingAmountViewModel(
-        walletModel: .mockETH,
         input: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingAmountViewModel(),
         coordinator: StakingAmountRoutableMock()
     )
@@ -109,28 +116,6 @@ struct StakingAmountView_Preview: PreviewProvider {
             StakingAmountView(
                 viewModel: viewModel,
                 namespace: .init(id: namespace, names: StakingViewNamespaceID())
-            )
-        }
-    }
-}
-
-struct StakingWalletInfoView: View {
-    let name: String
-    let balance: LoadableTextView.State
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(name)
-                .style(Fonts.Bold.footnote, color: Colors.Text.tertiary)
-                .lineLimit(1)
-
-            LoadableTextView(
-                state: balance,
-                font: Fonts.Regular.footnote,
-                textColor: Colors.Text.tertiary,
-                loaderSize: CGSize(width: 80, height: 14),
-                lineLimit: 1,
-                isSensitiveText: true
             )
         }
     }
