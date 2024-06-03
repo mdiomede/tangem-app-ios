@@ -9,62 +9,134 @@
 import Combine
 import SwiftUI
 
-class StakingManager {}
-
-extension StakingManager: StakingAmountOutput {}
-extension StakingManager: StakingSummaryOutput {}
-
 final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
 
-    @Published var step: Step
+    @Published var step: Step?
+    @Published var animation: StepAnimation
     @Published var actionType: ActionType
+
+    @Published var stakingAmountViewModel: StakingAmountViewModel
+    @Published var stakingSummaryViewModel: StakingSummaryViewModel
 
     // MARK: - Dependencies
 
-    private let manager: StakingManager
-    private let builder: StakingStepsViewBuilder
+    private let factory: StakingModulesFactory
     private weak var coordinator: StakingRoutable?
 
     init(
-        manager: StakingManager,
-        builder: StakingStepsViewBuilder,
+        factory: StakingModulesFactory,
         coordinator: StakingRoutable
     ) {
-        self.manager = manager
-        self.builder = builder
+        self.factory = factory
         self.coordinator = coordinator
 
+        stakingAmountViewModel = factory.makeStakingAmountViewModel()
+        stakingSummaryViewModel = factory.makeStakingSummaryViewModel()
+
         // Intial setup
-        step = .amount(StakingAmountViewModel(input: builder.makeStakingAmountInput(), coordinator: manager))
-        actionType = .continue
+        animation = .fade
+        actionType = .next
+        step = .amount(stakingAmountViewModel)
     }
 
     func userDidTapActionButton() {
         switch actionType {
-        case .continue:
+        case .next:
             openNextStep()
         }
     }
 
     func openNextStep() {
         switch step {
+        case .none:
+            break
         case .amount:
-            let viewModel = StakingAmountViewModel(input: builder.makeStakingAmountInput(), coordinator: manager)
-            step = .summary(<#T##StakingSummaryViewModel#>)
+            step = .summary(stakingSummaryViewModel)
+
         case .summary:
-            assertionFailure("There's no next step")
+            step = .amount(stakingAmountViewModel)
         }
     }
 }
 
 extension StakingViewModel {
-    enum Step {
+    enum Step: Equatable {
         case amount(StakingAmountViewModel)
         case summary(StakingSummaryViewModel)
+
+        static func == (lhs: StakingViewModel.Step, rhs: StakingViewModel.Step) -> Bool {
+            switch (lhs, rhs) {
+            case (.amount, .amount): true
+            case (.summary, .summary): true
+            default: false
+            }
+        }
+    }
+
+    enum StepAnimation {
+        case slideForward
+        case slideBackward
+        case fade
     }
 
     enum ActionType {
-        case `continue`
+        case next
+
+        var title: String {
+            switch self {
+            case .next:
+                return Localization.commonNext
+            }
+        }
+    }
+}
+
+class StakingManager {
+    private let amount: CurrentValueSubject<Decimal?, Never> = .init(nil)
+}
+
+extension StakingManager: StakingAmountOutput {
+    func update(value: Decimal?) {
+        amount.send(value)
+    }
+}
+
+extension StakingManager: StakingSummaryInput, StakingAmountInput {
+    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
+        amount.eraseToAnyPublisher()
+    }
+}
+
+extension StakingManager: StakingSummaryOutput {}
+
+class StakingModulesFactory {
+    private let wallet: WalletModel
+    private let builder: StakingStepsViewBuilder
+
+    lazy var stakingManager = StakingManager()
+    lazy var cryptoFiatAmountConverter = CryptoFiatAmountConverter()
+
+    init(wallet: WalletModel, builder: StakingStepsViewBuilder) {
+        self.wallet = wallet
+        self.builder = builder
+    }
+
+    func makeStakingAmountViewModel() -> StakingAmountViewModel {
+        StakingAmountViewModel(
+            inputModel: builder.makeStakingAmountInput(),
+            cryptoFiatAmountConverter: cryptoFiatAmountConverter,
+            input: stakingManager,
+            output: stakingManager
+        )
+    }
+
+    func makeStakingSummaryViewModel() -> StakingSummaryViewModel {
+        StakingSummaryViewModel(
+            inputModel: builder.makeStakingSummaryInput(),
+            cryptoFiatAmountConverter: cryptoFiatAmountConverter,
+            input: stakingManager,
+            output: stakingManager
+        )
     }
 }

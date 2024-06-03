@@ -26,36 +26,40 @@ final class StakingAmountViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
+    private let tokenItem: TokenItem
+    private let balanceValue: Decimal
+    private let validator: TransactionValidator
     private let cryptoFiatAmountConverter: CryptoFiatAmountConverter
     private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
 
-    private let tokenItem: TokenItem
-    private let balanceValue: Decimal
-    private var validator: TransactionValidator
+    private weak var input: StakingAmountInput?
     private weak var output: StakingAmountOutput?
 
     private var bag: Set<AnyCancellable> = []
 
     init(
-        input: StakingAmountViewModel.Input,
+        inputModel: StakingAmountViewModel.Input,
+        cryptoFiatAmountConverter: CryptoFiatAmountConverter,
+        input: StakingAmountInput,
         output: StakingAmountOutput
     ) {
-        userWalletName = input.userWalletName
-        balance = input.balanceFormatted
-        tokenIconInfo = input.tokenIconInfo
-        currencyPickerData = input.currencyPickerData
+        userWalletName = inputModel.userWalletName
+        balance = inputModel.balanceFormatted
+        tokenIconInfo = inputModel.tokenIconInfo
+        currencyPickerData = inputModel.currencyPickerData
 
-        cryptoFiatAmountConverter = .init(maximumFractionDigits: input.tokenItem.decimalCount)
         prefixSuffixOptionsFactory = .init(
-            cryptoCurrencyCode: input.tokenItem.currencySymbol,
+            cryptoCurrencyCode: inputModel.tokenItem.currencySymbol,
             fiatCurrencyCode: AppSettings.shared.selectedCurrencyCode
         )
         currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
-        decimalNumberTextFieldViewModel = .init(maximumFractionDigits: input.tokenItem.decimalCount)
+        decimalNumberTextFieldViewModel = .init(maximumFractionDigits: inputModel.tokenItem.decimalCount)
 
-        tokenItem = input.tokenItem
-        balanceValue = input.balanceValue
-        validator = input.validator
+        tokenItem = inputModel.tokenItem
+        balanceValue = inputModel.balanceValue
+        validator = inputModel.validator
+
+        self.cryptoFiatAmountConverter = cryptoFiatAmountConverter
         self.output = output
 
         bind()
@@ -73,6 +77,7 @@ final class StakingAmountViewModel: ObservableObject {
 
         decimalNumberTextFieldViewModel.update(value: value)
         updateAlternativeAmount(value: value)
+        output?.update(value: value)
     }
 }
 
@@ -95,6 +100,7 @@ private extension StakingAmountViewModel {
             .sink { viewModel, value in
                 viewModel.updateAlternativeAmount(value: value)
                 viewModel.validate(amount: value)
+                viewModel.output?.update(value: value)
             }
             .store(in: &bag)
     }
@@ -141,6 +147,7 @@ private extension StakingAmountViewModel {
             error = nil
             return
         }
+
         do {
             let amount = Amount(with: tokenItem.blockchain, type: tokenItem.amountType, value: amount)
             try validator.validate(amount: amount)

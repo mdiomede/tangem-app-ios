@@ -39,8 +39,7 @@ struct GroupedSection<Model: Identifiable, Content: View, Footer: View, Header: 
     private var contentAlignment: HorizontalAlignment = .leading
     private var innerHeaderPadding: CGFloat = GroupedSectionConstants.headerSpacing
 
-    private var namespace: Namespace.ID?
-    private var backgroundNamespaceId: String?
+    private var geometryEffect: GeometryEffect?
 
     init(
         _ models: [Model],
@@ -88,7 +87,9 @@ struct GroupedSection<Model: Identifiable, Content: View, Footer: View, Header: 
                 .background(
                     backgroundColor
                         .cornerRadiusContinuous(GroupedSectionConstants.defaultCornerRadius)
-                        .matchedGeometryEffectOptional(id: backgroundNamespaceId, in: namespace)
+                        .modifier(ifLet: geometryEffect) {
+                            $0.matchedGeometryEffect(id: $1.id, in: $1.namespace, isSource: $1.isSource)
+                        }
                 )
 
                 footer()
@@ -150,15 +151,11 @@ extension GroupedSection: Setupable {
     }
 
     func backgroundColor(_ color: Color) -> Self {
-        backgroundColor(color, id: nil, namespace: nil)
+        map { $0.backgroundColor = color }
     }
 
-    func backgroundColor(_ color: Color, id backgroundNamespaceId: String?, namespace: Namespace.ID?) -> Self {
-        map {
-            $0.backgroundColor = color
-            $0.namespace = namespace
-            $0.backgroundNamespaceId = backgroundNamespaceId
-        }
+    func geometryEffect(_ geometryEffect: GeometryEffect?) -> Self {
+        map { $0.geometryEffect = geometryEffect }
     }
 
     func contentAlignment(_ alignment: HorizontalAlignment) -> Self {

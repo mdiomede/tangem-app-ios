@@ -7,11 +7,18 @@
 //
 
 import Foundation
+import Combine
 
-class StakingSummaryOutputMock: StakingSummaryOutput {
-
+class StakingSummaryInputMock: StakingSummaryInput {
+    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
+        .just(output: 1)
+    }
 }
 
-protocol StakingSummaryOutput: AnyObject {
-
+protocol StakingSummaryInput: AnyObject {
+    func amountPublisher() -> AnyPublisher<Decimal?, Never>
 }
+
+class StakingSummaryOutputMock: StakingSummaryOutput {}
+
+protocol StakingSummaryOutput: AnyObject {}

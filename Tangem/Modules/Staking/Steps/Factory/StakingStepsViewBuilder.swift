@@ -43,24 +43,10 @@ struct StakingStepsViewBuilder {
         )
     }
 
-    func makeSummaryAmountInput() -> StakingSummaryViewModel.Input {
+    func makeStakingSummaryInput() -> StakingSummaryViewModel.Input {
         let tokenIconInfo = TokenIconInfoBuilder().build(
             from: wallet.tokenItem,
             isCustom: wallet.isCustom
-        )
-
-        let balanceFormatted = BalanceFormatter().formatCryptoBalance(
-            wallet.balanceValue,
-            currencyCode: wallet.tokenItem.currencySymbol
-        )
-
-        let fiatIconURL = IconURLBuilder().fiatIconURL(currencyCode: AppSettings.shared.selectedCurrencyCode)
-        let currencyPickerData = SendCurrencyPickerData(
-            cryptoIconURL: tokenIconInfo.imageURL,
-            cryptoCurrencyCode: wallet.tokenItem.currencySymbol,
-            fiatIconURL: fiatIconURL,
-            fiatCurrencyCode: AppSettings.shared.selectedCurrencyCode,
-            disabled: wallet.quote == nil
         )
 
         return .init(

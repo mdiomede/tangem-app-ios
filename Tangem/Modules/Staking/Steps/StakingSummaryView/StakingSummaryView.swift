@@ -14,12 +14,16 @@ struct StakingSummaryView: View {
 
     init(viewModel: StakingSummaryViewModel, namespace: Namespace) {
         self.viewModel = viewModel
+        self.namespace = namespace
     }
 
     var body: some View {
-        GroupedScrollView(spacing: 14) {
+        VStack(spacing: 14) {
             amountContainer
         }
+        .onAppear(perform: {
+            print("onAppear ->>")
+        })
     }
 
     private var amountContainer: some View {
@@ -31,28 +35,29 @@ struct StakingSummaryView: View {
             .matchedGeometryEffect(id: namespace.names.tokenIcon, in: namespace.id)
 
             VStack(spacing: 4) {
-                SendDecimalNumberTextField(viewModel: viewModel.decimalNumberTextFieldViewModel)
-                    .initialFocusBehavior(.immediateFocus)
-                    .alignment(.center)
-                    .prefixSuffixOptions(viewModel.currentFieldOptions)
-                    .frame(maxWidth: .infinity)
+                // We use the TextField here for better animation
+                TextField("", text: .constant(viewModel.sendingAmountFormatted))
                     .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
+                    .multilineTextAlignment(.center)
+                    .disabled(true)
+                    .style(DecimalNumberTextField.Appearance().font, color: DecimalNumberTextField.Appearance().textColor)
 
-                LoadableTextView(
-                    state: viewModel.alternativeAmount,
-                    font: Fonts.Regular.footnote,
-                    textColor: Colors.Text.tertiary,
-                    loaderSize: CGSize(width: 60, height: 14),
-                    lineLimit: 1
-                )
-                .matchedGeometryEffect(id: namespace.names.amountFiatText, in: namespace.id)
-
-                Text(viewModel.error ?? " ")
-                    .style(Fonts.Regular.caption1, color: Colors.Text.warning)
-                    .lineLimit(1)
+                Text(viewModel.alternativeAmount)
+                    .matchedGeometryEffect(id: namespace.names.amountFiatText, in: namespace.id)
+                    .style(Fonts.Regular.footnote, color: Colors.Text.tertiary)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                print("onTapGesture ->>")
             }
         }
-        .roundedBackground(with: Colors.Background.action, verticalPadding: 16, horizontalPadding: 14)
+        .infinityFrame(axis: .horizontal, alignment: .center)
+        .roundedBackground(
+            with: Colors.Background.action,
+            verticalPadding: 16,
+            horizontalPadding: 0,
+            geometryEffect: .init(id: namespace.names.amountContainer, namespace: namespace.id)
+        )
     }
 }
 
@@ -64,7 +69,13 @@ extension StakingSummaryView {
 }
 
 struct StakingSummaryView_Preview: PreviewProvider {
-    static let viewModel = StakingSummaryViewModel(coordinator: StakingSummaryRoutableMock())
+    static let viewModel = StakingSummaryViewModel(
+        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingSummaryInput(),
+        cryptoFiatAmountConverter: .init(),
+        input: StakingSummaryInputMock(),
+        output: StakingSummaryOutputMock()
+    )
+
     @Namespace static var namespace
 
     static var previews: some View {

@@ -7,7 +7,22 @@
 //
 
 import Foundation
+import Combine
 
-class StakingAmountOutputMock: StakingAmountOutput {}
+class StakingAmountOutputMock: StakingAmountOutput {
+    func update(value: Decimal?) {}
+}
 
-protocol StakingAmountOutput: AnyObject {}
+protocol StakingAmountOutput: AnyObject {
+    func update(value: Decimal?)
+}
+
+class StakingAmountInputMock: StakingAmountInput {
+    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
+        .just(output: 1)
+    }
+}
+
+protocol StakingAmountInput: AnyObject {
+    func amountPublisher() -> AnyPublisher<Decimal?, Never>
+}

@@ -17,42 +17,73 @@ struct StakingView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Colors.Background.tertiary.ignoresSafeArea()
+        ZStack(alignment: .bottom) {
+            Colors.Background.tertiary.ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                header
 
                 GroupedScrollView(spacing: 14) {
                     content
+                        .transition(transition)
                 }
             }
-            .navigationTitle(Localization.commonStaking)
-            .navigationBarTitleDisplayMode(.inline)
+
+            mainButton
         }
+        .animation(.spring(), value: viewModel.step)
+    }
+
+    @ViewBuilder
+    var header: some View {
+        BottomSheetHeaderView(title: Localization.commonStaking)
     }
 
     @ViewBuilder
     var content: some View {
+        let names = StakingViewNamespaceID()
+
         switch viewModel.step {
         case .none:
             EmptyView()
-        case .amount(let stakingAmountViewModel):
+        case .amount(let viewModel):
             StakingAmountView(
-                viewModel: stakingAmountViewModel,
-                namespace: .init(
-                    id: namespace,
-                    names: StakingViewNamespaceID()
-                )
+                viewModel: viewModel,
+                namespace: .init(id: namespace, names: names)
             )
-        case .summary:
-            Text("Summary") // TODO: https://tangem.atlassian.net/browse/IOS-6894
+        case .summary(let viewModel):
+            StakingSummaryView(
+                viewModel: viewModel,
+                namespace: .init(id: namespace, names: names)
+            )
+        }
+    }
+
+    @ViewBuilder
+    var mainButton: some View {
+        MainButton(title: viewModel.actionType.title) {
+            viewModel.userDidTapActionButton()
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+    }
+
+    private var transition: AnyTransition {
+        switch viewModel.animation {
+        case .slideForward:
+            return .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
+        case .slideBackward:
+            return .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
+        case .fade:
+            return .opacity
         }
     }
 }
 
 struct StakingView_Preview: PreviewProvider {
     static let viewModel = StakingViewModel(
-        step: nil,
-        coordinator: StakingCoordinator()
+        factory: .init(wallet: .mockETH, builder: .init(userWalletName: "Wallet", wallet: .mockETH)),
+        coordinator: StakingRoutableMock()
     )
 
     static var previews: some View {

@@ -21,7 +21,8 @@ struct SendAmountView: View {
                 amountSectionContent
             }
             .contentAlignment(.center)
-            .backgroundColor(Colors.Background.action, id: SendViewNamespaceId.amountContainer.rawValue, namespace: namespace)
+            .backgroundColor(Colors.Background.action)
+            .geometryEffect(.init(id: SendViewNamespaceId.amountContainer.rawValue, namespace: namespace))
 
             if !viewModel.animatingAuxiliaryViewsOnAppear {
                 HStack {

@@ -34,7 +34,10 @@ struct StakingAmountView: View {
 
             amountContent
         }
-        .defaultRoundedBackground(with: Colors.Background.action)
+        .defaultRoundedBackground(
+            with: Colors.Background.action,
+            geometryEffect: .init(id: namespace.names.amountContainer, namespace: namespace.id)
+        )
     }
 
     private var walletInfoView: some View {
@@ -51,18 +54,15 @@ struct StakingAmountView: View {
 
     private var amountContent: some View {
         VStack(spacing: 16) {
-            TokenIcon(
-                tokenIconInfo: viewModel.tokenIconInfo,
-                size: CGSize(width: 36, height: 36)
-            )
-            .matchedGeometryEffect(id: namespace.names.tokenIcon, in: namespace.id)
+            TokenIcon(tokenIconInfo: viewModel.tokenIconInfo, size: CGSize(width: 36, height: 36))
+                .matchedGeometryEffect(id: namespace.names.tokenIcon, in: namespace.id)
 
             VStack(spacing: 4) {
                 SendDecimalNumberTextField(viewModel: viewModel.decimalNumberTextFieldViewModel)
-                    .initialFocusBehavior(.immediateFocus)
+                    .initialFocusBehavior(.noFocus)
                     .alignment(.center)
                     .prefixSuffixOptions(viewModel.currentFieldOptions)
-                    .frame(maxWidth: .infinity)
+                    .toolbarType(.none)
                     .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
 
                 Text(viewModel.alternativeAmount ?? " ")
@@ -103,8 +103,10 @@ extension StakingAmountView {
 
 struct StakingAmountView_Preview: PreviewProvider {
     static let viewModel = StakingAmountViewModel(
-        input: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingAmountViewModel(),
-        coordinator: StakingAmountRoutableMock()
+        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingAmountInput(),
+        cryptoFiatAmountConverter: .init(),
+        input: StakingAmountInputMock(),
+        output: StakingAmountOutputMock()
     )
 
     @Namespace static var namespace

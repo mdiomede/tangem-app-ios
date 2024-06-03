@@ -30,14 +30,11 @@ class StakingCoordinator: CoordinatorObject {
     }
 
     func start(with options: Options) {
+        let manager = StakingManager()
         let builder = StakingStepsViewBuilder(userWalletName: options.userWalletModelName, wallet: options.walletModel)
+        let factory = StakingModulesFactory(wallet: options.walletModel, builder: builder)
 
-        let stakingAmountViewModel = StakingAmountViewModel(
-            input: builder.makeStakingAmountViewModel(),
-            coordinator: self
-        )
-
-        rootViewModel = .init(step: .amount(stakingAmountViewModel), coordinator: self)
+        rootViewModel = StakingViewModel(factory: factory, coordinator: self)
     }
 }
 
@@ -53,7 +50,3 @@ extension StakingCoordinator {
 // MARK: - StakingRoutable
 
 extension StakingCoordinator: StakingRoutable {}
-
-// MARK: - StakingAmountRoutable
-
-extension StakingCoordinator: StakingAmountRoutable {}

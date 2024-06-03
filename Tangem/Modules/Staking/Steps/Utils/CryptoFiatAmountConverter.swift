@@ -12,8 +12,8 @@ class CryptoFiatAmountConverter {
     private let formatter: DecimalNumberFormatter
     private var cached: Cache?
 
-    init(maximumFractionDigits: Int) {
-        formatter = DecimalNumberFormatter(maximumFractionDigits: maximumFractionDigits)
+    init() {
+        formatter = DecimalNumberFormatter(maximumFractionDigits: AppConstants.maximumFractionDigitsForBalance)
     }
 
     func convertToCrypto(_ fiatValue: Decimal?, tokenItem: TokenItem) -> Decimal? {

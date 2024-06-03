@@ -8,4 +8,6 @@
 
 import Foundation
 
+class StakingRoutableMock: StakingRoutable {}
+
 protocol StakingRoutable: AnyObject {}
