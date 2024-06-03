@@ -12,17 +12,21 @@ import SwiftUI
 final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
 
-    @Published var stakingAmountViewModel: StakingAmountViewModel?
+    @Published var step: Step? // Tempopary optional
 
     // MARK: - Dependencies
 
     private weak var coordinator: StakingRoutable?
 
-    init(
-        stakingAmountViewModel: StakingAmountViewModel?,
-        coordinator: StakingRoutable
-    ) {
-        self.stakingAmountViewModel = stakingAmountViewModel
+    init(step: Step?, coordinator: StakingRoutable) {
+        self.step = step
         self.coordinator = coordinator
+    }
+}
+
+extension StakingViewModel {
+    enum Step {
+        case amount(StakingAmountViewModel)
+        case summary
     }
 }

@@ -28,6 +28,7 @@ class TokenDetailsCoordinator: CoordinatorObject {
     @Published var sendCoordinator: SendCoordinator? = nil
     @Published var expressCoordinator: ExpressCoordinator? = nil
     @Published var tokenDetailsCoordinator: TokenDetailsCoordinator? = nil
+    @Published var stakingCoordinator: StakingCoordinator? = nil
 
     // MARK: - Child view models
 
@@ -296,7 +297,14 @@ extension TokenDetailsCoordinator: SingleTokenBaseRoutable {
     }
 
     func openStaking(wallet: WalletModel) {
-        assertionFailure()
+        let dismissAction: Action<Void> = { [weak self] navigationInfo in
+            self?.stakingCoordinator = nil
+        }
+
+        let coordinator = StakingCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
+        coordinator.start(with: .init(userWalletModelName: "Wallet", walletModel: wallet))
+
+        stakingCoordinator = coordinator
     }
 
     func openInSafari(url: URL) {

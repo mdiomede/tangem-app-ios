@@ -18,7 +18,7 @@ struct StakingAmountView: View {
     }
 
     var body: some View {
-        GroupedScrollView(spacing: 14) {
+        VStack(spacing: 14) {
             amountContainer
 
             segmentControl
@@ -73,11 +73,7 @@ struct StakingAmountView: View {
         GeometryReader { proxy in
             HStack(spacing: 8) {
                 SendCurrencyPicker(
-                    cryptoIconURL: viewModel.cryptoIconURL,
-                    cryptoCurrencyCode: viewModel.cryptoCurrencyCode,
-                    fiatIconURL: viewModel.fiatIconURL,
-                    fiatCurrencyCode: viewModel.fiatCurrencyCode,
-                    disabled: viewModel.currencyPickerDisabled,
+                    data: viewModel.currencyPickerData,
                     useFiatCalculation: $viewModel.useFiatCalculation
                 )
 

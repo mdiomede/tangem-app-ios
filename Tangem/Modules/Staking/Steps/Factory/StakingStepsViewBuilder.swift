@@ -23,11 +23,21 @@ struct StakingStepsViewBuilder {
             currencyCode: wallet.tokenItem.currencySymbol
         )
 
+        let fiatIconURL = IconURLBuilder().fiatIconURL(currencyCode: AppSettings.shared.selectedCurrencyCode)
+        let currencyPickerData = SendCurrencyPickerData(
+            cryptoIconURL: tokenIconInfo.imageURL,
+            cryptoCurrencyCode: wallet.tokenItem.currencySymbol,
+            fiatIconURL: fiatIconURL,
+            fiatCurrencyCode: AppSettings.shared.selectedCurrencyCode,
+            disabled: wallet.quote == nil
+        )
+
         return .init(
             userWalletName: userWalletName,
             tokenItem: wallet.tokenItem,
             tokenIconInfo: tokenIconInfo,
-            balanceFormatted: balanceFormatted
+            balanceFormatted: balanceFormatted,
+            currencyPickerData: currencyPickerData
         )
     }
 }

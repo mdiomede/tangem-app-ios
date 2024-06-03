@@ -47,6 +47,7 @@ final class StakingAmountViewModel: ObservableObject {
     @Published var userWalletName: String
     @Published var balance: LoadableTextView.State
     @Published var tokenIconInfo: TokenIconInfo
+    @Published var currencyPickerData: SendCurrencyPickerData
 
     @Published var decimalNumberTextFieldViewModel: DecimalNumberTextField.ViewModel
     @Published var alternativeAmount: LoadableTextView.State = .initialized
@@ -54,13 +55,6 @@ final class StakingAmountViewModel: ObservableObject {
     @Published var error: String?
     @Published var currentFieldOptions: SendDecimalNumberTextField.PrefixSuffixOptions
     @Published var useFiatCalculation: Bool = false
-
-    let currencyPickerDisabled: Bool = false
-    var cryptoIconURL: URL?
-    let cryptoCurrencyCode: String = "ETH"
-    var fiatIconURL: URL?
-    let fiatCurrencyCode: String = "USD"
-    let fiatCurrencySymbol: String = "USD"
 
     // MARK: - Dependencies
 
@@ -80,6 +74,7 @@ final class StakingAmountViewModel: ObservableObject {
         userWalletName = input.userWalletName
         balance = .loaded(text: input.balanceFormatted)
         tokenIconInfo = input.tokenIconInfo
+        currencyPickerData = input.currencyPickerData
 
         cryptoFiatAmountConverter = .init(maximumFractionDigits: input.tokenItem.decimalCount)
         prefixSuffixOptionsFactory = SendDecimalNumberTextField.PrefixSuffixOptionsFactory(
@@ -132,5 +127,6 @@ extension StakingAmountViewModel {
         let tokenItem: TokenItem
         let tokenIconInfo: TokenIconInfo
         let balanceFormatted: String
+        let currencyPickerData: SendCurrencyPickerData
     }
 }

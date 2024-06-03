@@ -17,7 +17,25 @@ struct StakingView: View {
     }
 
     var body: some View {
-        if let stakingAmountViewModel = viewModel.stakingAmountViewModel {
+        NavigationView {
+            ZStack {
+                Colors.Background.tertiary.ignoresSafeArea()
+
+                GroupedScrollView(spacing: 14) {
+                    content
+                }
+            }
+            .navigationTitle("Staking")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    @ViewBuilder
+    var content: some View {
+        switch viewModel.step {
+        case .none:
+            EmptyView()
+        case .amount(let stakingAmountViewModel):
             StakingAmountView(
                 viewModel: stakingAmountViewModel,
                 namespace: .init(
@@ -25,13 +43,15 @@ struct StakingView: View {
                     names: StakingViewNamespaceID()
                 )
             )
+        case .summary:
+            Text("Summary") // TODO:
         }
     }
 }
 
 struct StakingView_Preview: PreviewProvider {
     static let viewModel = StakingViewModel(
-        stakingAmountViewModel: nil,
+        step: nil,
         coordinator: StakingCoordinator()
     )
 

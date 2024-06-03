@@ -180,7 +180,7 @@ class SingleTokenBaseViewModel: NotificationTapDelegate {
         case .addHederaTokenAssociation:
             fulfillAssetRequirements()
         case .stake:
-            assertionFailure()
+            openStaking()
         default:
             break
         }
@@ -476,6 +476,10 @@ extension SingleTokenBaseViewModel {
         }
 
         tokenRouter.openExchange(walletModel: walletModel)
+    }
+
+    func openStaking() {
+        tokenRouter.openStaking(walletModel: walletModel)
     }
 
     func openSell() {

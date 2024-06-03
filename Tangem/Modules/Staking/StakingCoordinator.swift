@@ -30,7 +30,7 @@ class StakingCoordinator: CoordinatorObject {
     }
 
     func start(with options: Options) {
-        let builder = StakingStepsViewBuilder(userWalletName: options.userWalletModel.name, wallet: options.walletModel)
+        let builder = StakingStepsViewBuilder(userWalletName: options.userWalletModelName, wallet: options.walletModel)
 
         let stakingAmountViewModel = StakingAmountViewModel(
             walletModel: options.walletModel,
@@ -38,7 +38,7 @@ class StakingCoordinator: CoordinatorObject {
             coordinator: self
         )
 
-        rootViewModel = .init(stakingAmountViewModel: stakingAmountViewModel, coordinator: self)
+        rootViewModel = .init(step: .amount(stakingAmountViewModel), coordinator: self)
     }
 }
 
@@ -46,7 +46,7 @@ class StakingCoordinator: CoordinatorObject {
 
 extension StakingCoordinator {
     struct Options {
-        let userWalletModel: UserWalletModel
+        let userWalletModelName: String
         let walletModel: WalletModel
     }
 }
