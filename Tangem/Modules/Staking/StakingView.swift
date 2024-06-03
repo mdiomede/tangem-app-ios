@@ -25,7 +25,7 @@ struct StakingView: View {
                     content
                 }
             }
-            .navigationTitle("Staking")
+            .navigationTitle(Localization.commonStaking)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -44,7 +44,7 @@ struct StakingView: View {
                 )
             )
         case .summary:
-            Text("Summary") // TODO:
+            Text("Summary") // TODO: https://tangem.atlassian.net/browse/IOS-6894
         }
     }
 }
