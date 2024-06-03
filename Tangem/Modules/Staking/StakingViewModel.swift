@@ -9,6 +9,11 @@
 import Combine
 import SwiftUI
 
+class StakingManager {}
+
+extension StakingManager: StakingAmountOutput {}
+extension StakingManager: StakingSummaryOutput {}
+
 final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
 
