@@ -30,3 +30,7 @@ class StakingSummaryRoutableMock: StakingSummaryRoutable {
 protocol StakingSummaryRoutable: AnyObject {
     func openAmountStep()
 }
+
+class StakingSummaryOutputMock: StakingSummaryOutput {}
+
+protocol StakingSummaryOutput: AnyObject {}

@@ -59,7 +59,7 @@ struct StakingAmountView: View {
 
             VStack(spacing: 4) {
                 SendDecimalNumberTextField(viewModel: viewModel.decimalNumberTextFieldViewModel)
-                    .initialFocusBehavior(.immediateFocus)
+                    .initialFocusBehavior(.noFocus)
                     .alignment(.center)
                     .prefixSuffixOptions(viewModel.currentFieldOptions)
                     .toolbarType(.none)

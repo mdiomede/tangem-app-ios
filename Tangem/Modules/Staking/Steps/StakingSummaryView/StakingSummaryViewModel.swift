@@ -20,10 +20,11 @@ final class StakingSummaryViewModel: ObservableObject {
     // MARK: - Dependencies
 
     private let tokenItem: TokenItem
-
     private weak var input: StakingSummaryInput?
     private weak var output: StakingSummaryOutput?
     private weak var router: StakingSummaryRoutable?
+
+    private var bag: Set<AnyCancellable> = []
 
     private var bag: Set<AnyCancellable> = []
 
