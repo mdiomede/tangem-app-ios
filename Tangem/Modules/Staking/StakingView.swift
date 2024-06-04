@@ -27,7 +27,6 @@ struct StakingView: View {
                     content
                         .transition(transition)
                 }
-//                .animation(.default, value: viewModel.step)
             }
 
             mainButton
