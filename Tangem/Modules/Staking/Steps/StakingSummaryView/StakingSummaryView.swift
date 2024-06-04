@@ -21,9 +21,6 @@ struct StakingSummaryView: View {
         VStack(spacing: 14) {
             amountContainer
         }
-        .onAppear(perform: {
-            print("onAppear ->>")
-        })
     }
 
     private var amountContainer: some View {

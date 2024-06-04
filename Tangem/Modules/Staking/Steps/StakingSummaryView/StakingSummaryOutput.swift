@@ -34,3 +34,11 @@ protocol StakingSummaryRoutable: AnyObject {
 class StakingSummaryOutputMock: StakingSummaryOutput {}
 
 protocol StakingSummaryOutput: AnyObject {}
+
+class StakingSummaryRoutableMock: StakingSummaryRoutable {
+    func openAmountStep() {}
+}
+
+protocol StakingSummaryRoutable: AnyObject {
+    func openAmountStep()
+}

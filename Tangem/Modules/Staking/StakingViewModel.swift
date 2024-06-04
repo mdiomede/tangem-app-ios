@@ -19,8 +19,8 @@ final class StakingViewModel: ObservableObject {
     @Published var stakingAmountViewModel: StakingAmountViewModel?
     @Published var stakingSummaryViewModel: StakingSummaryViewModel?
 
-    @Published var stakingAmountViewModel: StakingAmountViewModel
-    @Published var stakingSummaryViewModel: StakingSummaryViewModel
+    @Published var stakingAmountViewModel: StakingAmountViewModel?
+    @Published var stakingSummaryViewModel: StakingSummaryViewModel?
 
     // MARK: - Dependencies
 
@@ -100,29 +100,11 @@ extension StakingViewModel {
     }
 }
 
-class StakingManager {
-    private let amount: CurrentValueSubject<Decimal?, Never> = .init(nil)
-}
-
-extension StakingManager: StakingAmountOutput {
-    func update(value: Decimal?) {
-        amount.send(value)
-    }
-}
-
-extension StakingManager: StakingSummaryInput, StakingAmountInput {
-    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
-        amount.eraseToAnyPublisher()
-    }
-}
-
-extension StakingManager: StakingSummaryOutput {}
-
 class StakingModulesFactory {
     private let wallet: WalletModel
     private let builder: StakingStepsViewBuilder
 
-    lazy var stakingManager = StakingManager()
+    lazy var stakingManager = makeStakingManager()
     lazy var cryptoFiatAmountConverter = CryptoFiatAmountConverter()
 
     init(wallet: WalletModel, builder: StakingStepsViewBuilder) {
@@ -139,12 +121,16 @@ class StakingModulesFactory {
         )
     }
 
-    func makeStakingSummaryViewModel() -> StakingSummaryViewModel {
+    func makeStakingSummaryViewModel(router: StakingSummaryRoutable) -> StakingSummaryViewModel {
         StakingSummaryViewModel(
             inputModel: builder.makeStakingSummaryInput(),
-            cryptoFiatAmountConverter: cryptoFiatAmountConverter,
             input: stakingManager,
-            output: stakingManager
+            output: stakingManager,
+            router: router
         )
+    }
+
+    func makeStakingManager() -> StakingManager {
+        StakingManager(wallet: wallet, converter: cryptoFiatAmountConverter)
     }
 }
