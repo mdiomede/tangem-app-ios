@@ -10,16 +10,15 @@ import Foundation
 
 class CryptoFiatAmountConverter {
     private let formatter: DecimalNumberFormatter
-    private var cached: Cache?
 
     init() {
         formatter = DecimalNumberFormatter(maximumFractionDigits: AppConstants.maximumFractionDigitsForBalance)
     }
 
     func convertToCrypto(_ fiatValue: Decimal?, tokenItem: TokenItem) -> Decimal? {
-        if cached?.fiat == fiatValue {
-            return cached?.crypto
-        }
+//        if cached?.fiat == fiatValue {
+//            return cached?.crypto
+//        }
 
         guard let fiatValue,
               let currencyId = tokenItem.currencyId,
@@ -28,16 +27,13 @@ class CryptoFiatAmountConverter {
         }
 
         formatter.update(maximumFractionDigits: tokenItem.decimalCount)
-        let formatted: Decimal? = formatter.format(value: cryptoValue)
-        cached = Cache(fiat: fiatValue, crypto: formatted)
-
-        return formatted
+        return formatter.format(value: cryptoValue)
     }
 
     func convertToFiat(_ cryptoValue: Decimal?, tokenItem: TokenItem) -> Decimal? {
-        if cached?.crypto == cryptoValue {
-            return cached?.fiat
-        }
+//        if cached?.crypto == cryptoValue {
+//            return cached?.fiat
+//        }
 
         guard let cryptoValue,
               let currencyId = tokenItem.currencyId,
@@ -46,16 +42,6 @@ class CryptoFiatAmountConverter {
         }
 
         formatter.update(maximumFractionDigits: 2)
-        let formatted: Decimal? = formatter.format(value: fiatValue)
-        cached = Cache(fiat: formatted, crypto: cryptoValue)
-
-        return formatted
-    }
-}
-
-extension CryptoFiatAmountConverter {
-    struct Cache: Hashable {
-        let fiat: Decimal?
-        let crypto: Decimal?
+        return formatter.format(value: fiatValue)
     }
 }

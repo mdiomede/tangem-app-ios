@@ -13,11 +13,11 @@ final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
 
     @Published var step: Step?
-    @Published var animation: StepAnimation
-    @Published var actionType: ActionType
+    @Published var animation: StepAnimation = .fade
+    @Published var actionType: ActionType = .next
 
-    @Published var stakingAmountViewModel: StakingAmountViewModel
-    @Published var stakingSummaryViewModel: StakingSummaryViewModel
+    @Published var stakingAmountViewModel: StakingAmountViewModel?
+    @Published var stakingSummaryViewModel: StakingSummaryViewModel?
 
     // MARK: - Dependencies
 
@@ -32,12 +32,12 @@ final class StakingViewModel: ObservableObject {
         self.coordinator = coordinator
 
         stakingAmountViewModel = factory.makeStakingAmountViewModel()
-        stakingSummaryViewModel = factory.makeStakingSummaryViewModel()
+        stakingSummaryViewModel = factory.makeStakingSummaryViewModel(router: self)
 
         // Intial setup
         animation = .fade
         actionType = .next
-        step = .amount(stakingAmountViewModel)
+        step = stakingAmountViewModel.map { .amount($0) }
     }
 
     func userDidTapActionButton() {
@@ -52,11 +52,16 @@ final class StakingViewModel: ObservableObject {
         case .none:
             break
         case .amount:
-            step = .summary(stakingSummaryViewModel)
-
+            step = stakingSummaryViewModel.map { .summary($0) }
         case .summary:
-            step = .amount(stakingAmountViewModel)
+            step = stakingAmountViewModel.map { .amount($0) }
         }
+    }
+}
+
+extension StakingViewModel: StakingSummaryRoutable {
+    func openAmountStep() {
+        step = stakingAmountViewModel.map { .amount($0) }
     }
 }
 
@@ -89,54 +94,5 @@ extension StakingViewModel {
                 return Localization.commonNext
             }
         }
-    }
-}
-
-class StakingManager {
-    private let amount: CurrentValueSubject<Decimal?, Never> = .init(nil)
-}
-
-extension StakingManager: StakingAmountOutput {
-    func update(value: Decimal?) {
-        amount.send(value)
-    }
-}
-
-extension StakingManager: StakingSummaryInput, StakingAmountInput {
-    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
-        amount.eraseToAnyPublisher()
-    }
-}
-
-extension StakingManager: StakingSummaryOutput {}
-
-class StakingModulesFactory {
-    private let wallet: WalletModel
-    private let builder: StakingStepsViewBuilder
-
-    lazy var stakingManager = StakingManager()
-    lazy var cryptoFiatAmountConverter = CryptoFiatAmountConverter()
-
-    init(wallet: WalletModel, builder: StakingStepsViewBuilder) {
-        self.wallet = wallet
-        self.builder = builder
-    }
-
-    func makeStakingAmountViewModel() -> StakingAmountViewModel {
-        StakingAmountViewModel(
-            inputModel: builder.makeStakingAmountInput(),
-            cryptoFiatAmountConverter: cryptoFiatAmountConverter,
-            input: stakingManager,
-            output: stakingManager
-        )
-    }
-
-    func makeStakingSummaryViewModel() -> StakingSummaryViewModel {
-        StakingSummaryViewModel(
-            inputModel: builder.makeStakingSummaryInput(),
-            cryptoFiatAmountConverter: cryptoFiatAmountConverter,
-            input: stakingManager,
-            output: stakingManager
-        )
     }
 }

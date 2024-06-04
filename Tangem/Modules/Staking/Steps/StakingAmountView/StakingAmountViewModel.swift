@@ -22,7 +22,16 @@ final class StakingAmountViewModel: ObservableObject {
 
     @Published var error: String?
     @Published var currentFieldOptions: SendDecimalNumberTextField.PrefixSuffixOptions
-    @Published var useFiatCalculation: Bool = false
+    @Published var amountType: AmountType = .crypto
+
+    var isFiatCalculation: BindingValue<Bool> {
+        .init(
+            root: self,
+            default: false,
+            get: { $0.amountType == .fiat },
+            set: { $0.amountType = $1 ? .fiat : .crypto }
+        )
+    }
 
     // MARK: - Dependencies
 
@@ -60,24 +69,23 @@ final class StakingAmountViewModel: ObservableObject {
         validator = inputModel.validator
 
         self.cryptoFiatAmountConverter = cryptoFiatAmountConverter
+        self.input = input
         self.output = output
 
         bind()
     }
 
     func userDidTapMaxAmount() {
-        let value: Decimal? = {
-            if useFiatCalculation {
-                let fiatValue = cryptoFiatAmountConverter.convertToFiat(balanceValue, tokenItem: tokenItem)
-                return fiatValue
-            }
+        let fiatValue = convertToFiat(value: balanceValue)
 
-            return balanceValue
-        }()
-
-        decimalNumberTextFieldViewModel.update(value: value)
-        updateAlternativeAmount(value: value)
-        output?.update(value: value)
+        switch amountType {
+        case .crypto:
+            decimalNumberTextFieldViewModel.update(value: balanceValue)
+            output?.update(amount: .typical(crypto: balanceValue, fiat: fiatValue))
+        case .fiat:
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+            output?.update(amount: .alternative(fiat: fiatValue, crypto: balanceValue))
+        }
     }
 }
 
@@ -85,12 +93,12 @@ final class StakingAmountViewModel: ObservableObject {
 
 private extension StakingAmountViewModel {
     func bind() {
-        $useFiatCalculation
+        $amountType
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .withWeakCaptureOf(self)
-            .sink { viewModel, useFiat in
-                viewModel.update(useFiat: useFiat)
+            .sink { viewModel, amountType in
+                viewModel.update(amountType: amountType)
             }
             .store(in: &bag)
 
@@ -98,47 +106,27 @@ private extension StakingAmountViewModel {
             .receive(on: DispatchQueue.main)
             .withWeakCaptureOf(self)
             .sink { viewModel, value in
-                viewModel.updateAlternativeAmount(value: value)
-                viewModel.validate(amount: value)
-                viewModel.output?.update(value: value)
+                viewModel.amountDidChange(value: value)
             }
+            .store(in: &bag)
+
+        input?
+            .alternativeAmountFormattedPublisher()
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.alternativeAmount, on: self, ownership: .weak)
             .store(in: &bag)
     }
 
-    func update(useFiat: Bool) {
-        if useFiat {
-            currentFieldOptions = prefixSuffixOptionsFactory.makeFiatOptions()
-            let fiatValue = cryptoFiatAmountConverter.convertToFiat(
-                decimalNumberTextFieldViewModel.value,
-                tokenItem: tokenItem
-            )
-            decimalNumberTextFieldViewModel.update(value: fiatValue)
-        } else {
-            currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
-            let fiatValue = cryptoFiatAmountConverter.convertToCrypto(
-                decimalNumberTextFieldViewModel.value,
-                tokenItem: tokenItem
-            )
-            decimalNumberTextFieldViewModel.update(value: fiatValue)
-        }
-
-        updateAlternativeAmount(value: decimalNumberTextFieldViewModel.value)
-    }
-
-    func updateAlternativeAmount(value: Decimal?) {
-        guard let value else {
-            alternativeAmount = nil
-            return
-        }
-
-        let formatter = BalanceFormatter()
-
-        if useFiatCalculation {
-            let cryptoValue = cryptoFiatAmountConverter.convertToCrypto(value, tokenItem: tokenItem)
-            alternativeAmount = formatter.formatCryptoBalance(cryptoValue, currencyCode: tokenItem.currencySymbol)
-        } else {
-            let fiatValue = cryptoFiatAmountConverter.convertToFiat(value, tokenItem: tokenItem)
-            alternativeAmount = formatter.formatFiatBalance(fiatValue)
+    func amountDidChange(value: Decimal?) {
+        switch amountType {
+        case .crypto:
+            let fiatValue = convertToFiat(value: value)
+            output?.update(amount: .typical(crypto: value, fiat: fiatValue))
+            validate(amount: value)
+        case .fiat:
+            let cryptoValue = convertToCrypto(value: value)
+            output?.update(amount: .alternative(fiat: value, crypto: cryptoValue))
+            validate(amount: cryptoValue)
         }
     }
 
@@ -155,9 +143,53 @@ private extension StakingAmountViewModel {
             self.error = error.localizedDescription
         }
     }
+
+    func update(amountType: AmountType) {
+        switch amountType {
+        case .crypto:
+            currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
+            decimalNumberTextFieldViewModel.update(maximumFractionDigits: tokenItem.decimalCount)
+            let uiValue = decimalNumberTextFieldViewModel.value
+            let cryptoValue = convertToCrypto(value: uiValue)
+
+            decimalNumberTextFieldViewModel.update(value: cryptoValue)
+            output?.update(amount: .typical(crypto: cryptoValue, fiat: uiValue))
+        case .fiat:
+            currentFieldOptions = prefixSuffixOptionsFactory.makeFiatOptions()
+            decimalNumberTextFieldViewModel.update(maximumFractionDigits: 2)
+            let uiValue = decimalNumberTextFieldViewModel.value
+            let fiatValue = convertToFiat(value: uiValue)
+
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+            output?.update(amount: .alternative(fiat: fiatValue, crypto: uiValue))
+        }
+    }
+
+    func convertToCrypto(value: Decimal?) -> Decimal? {
+        // If already have the converted the `crypto` amount associated with current `fiat` amount
+        if input?.amount.fiat == value {
+            return input?.amount.crypto
+        }
+
+        return cryptoFiatAmountConverter.convertToCrypto(value, tokenItem: tokenItem)
+    }
+
+    func convertToFiat(value: Decimal?) -> Decimal? {
+        // If already have the converted the `fiat` amount associated with current `crypto` amount
+        if input?.amount.crypto == value {
+            return input?.amount.fiat
+        }
+
+        return cryptoFiatAmountConverter.convertToFiat(value, tokenItem: tokenItem)
+    }
 }
 
 extension StakingAmountViewModel {
+    enum AmountType: Hashable {
+        case crypto
+        case fiat
+    }
+
     struct Input {
         let userWalletName: String
         let tokenItem: TokenItem

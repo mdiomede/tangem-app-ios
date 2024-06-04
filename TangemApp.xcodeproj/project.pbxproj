@@ -1139,6 +1139,9 @@
 		EF031A7F2C0DD243001535C9 /* CryptoFiatAmountConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */; };
 		EF031A282C08E65A001535C9 /* StakingCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A272C08E65A001535C9 /* StakingCalculator.swift */; };
 		EF031A932C0E1C70001535C9 /* GeometryEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A922C0E1C70001535C9 /* GeometryEffect.swift */; };
+		EF031A9B2C0F1B3C001535C9 /* StakingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A9A2C0F1B3C001535C9 /* StakingManager.swift */; };
+		EF031A9D2C0F376C001535C9 /* CryptoFiatAmount.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A9C2C0F376C001535C9 /* CryptoFiatAmount.swift */; };
+		EF031A9F2C0F3E87001535C9 /* StakingModulesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF031A9E2C0F3E87001535C9 /* StakingModulesFactory.swift */; };
 		EF032C502955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */; };
 		EF032C512955C59E006C1FF3 /* DefaultSelectableRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */; };
 		EF032C532955C725006C1FF3 /* CheckIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF032C522955C725006C1FF3 /* CheckIconView.swift */; };
@@ -2859,6 +2862,9 @@
 		EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmountConverter.swift; sourceTree = "<group>"; };
 		EF031A272C08E65A001535C9 /* StakingCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingCalculator.swift; sourceTree = "<group>"; };
 		EF031A922C0E1C70001535C9 /* GeometryEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryEffect.swift; sourceTree = "<group>"; };
+		EF031A9A2C0F1B3C001535C9 /* StakingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingManager.swift; sourceTree = "<group>"; };
+		EF031A9C2C0F376C001535C9 /* CryptoFiatAmount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmount.swift; sourceTree = "<group>"; };
+		EF031A9E2C0F3E87001535C9 /* StakingModulesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingModulesFactory.swift; sourceTree = "<group>"; };
 		EF032C4E2955C59E006C1FF3 /* DefaultSelectableRowViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowViewModel.swift; sourceTree = "<group>"; };
 		EF032C4F2955C59E006C1FF3 /* DefaultSelectableRowView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultSelectableRowView.swift; sourceTree = "<group>"; };
 		EF032C522955C725006C1FF3 /* CheckIconView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CheckIconView.swift; sourceTree = "<group>"; };
@@ -7088,6 +7094,7 @@
 		EF031A6C2C0A33ED001535C9 /* Factory */ = {
 			isa = PBXGroup;
 			children = (
+				EF031A9E2C0F3E87001535C9 /* StakingModulesFactory.swift */,
 				EF031A6D2C0A33F9001535C9 /* StakingStepsViewBuilder.swift */,
 			);
 			path = Factory;
@@ -7097,6 +7104,8 @@
 			isa = PBXGroup;
 			children = (
 				EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */,
+				EF031A9A2C0F1B3C001535C9 /* StakingManager.swift */,
+				EF031A9C2C0F376C001535C9 /* CryptoFiatAmount.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -9693,6 +9702,7 @@
 				DC0CC5B42B0D3F0E00E32CAC /* TwinPreflightReadFilter.swift in Sources */,
 				B09BB863259A075600B92000 /* NavigationConfigurator.swift in Sources */,
 				EF50A5B1288976140081C5BB /* View+ConditionalModifiers.swift in Sources */,
+				EF031A9D2C0F376C001535C9 /* CryptoFiatAmount.swift in Sources */,
 				2DA8AB122A433BDB00C75D85 /* Analytics+BlockchainExceptionHandler.swift in Sources */,
 				DC47F2D62C04C2AE0048092F /* PriceChangeFormatter.swift in Sources */,
 				DA19EF5F2B8CBB2600F7BDFD /* SendFeeRoutable.swift in Sources */,
@@ -9971,6 +9981,7 @@
 				DAB19D4A2B2C72A100DD08C4 /* AddCustomTokenView.swift in Sources */,
 				B0DCC81B2A8A1B4900D85E53 /* NotificationsFactory.swift in Sources */,
 				B0625A2529CB3D2700EDD245 /* OnboardingSeedPhraseImportViewModel.swift in Sources */,
+				EF031A9F2C0F3E87001535C9 /* StakingModulesFactory.swift in Sources */,
 				2DC5677D2B0E047700B0244F /* MainBottomSheetHeaderView.swift in Sources */,
 				DC66BC10285C405C00CDF765 /* CoordinatorObject.swift in Sources */,
 				DA070DE32ADD4F0F00F7C0E4 /* SprinklrSupportChatViewModel.swift in Sources */,
@@ -10338,6 +10349,7 @@
 				EF48E6DF2B02408500FE0072 /* ExpressCoordinatorView.swift in Sources */,
 				DCF2369129924C0900FE1855 /* AnalyticsContext.swift in Sources */,
 				DAC53CFF27BE63830027147D /* FinishStoryPage.swift in Sources */,
+				EF031A9B2C0F1B3C001535C9 /* StakingManager.swift in Sources */,
 				DC295B482861C4BE006CB7B6 /* DetailsCoordinator.swift in Sources */,
 				DC7D3A0B29E07829007BCD23 /* TwinTangemSdkFactory.swift in Sources */,
 				2DF5A81D2B13C33800AA5E73 /* WalletSelectorDataSource.swift in Sources */,

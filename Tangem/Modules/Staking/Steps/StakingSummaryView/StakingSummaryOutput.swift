@@ -10,15 +10,23 @@ import Foundation
 import Combine
 
 class StakingSummaryInputMock: StakingSummaryInput {
-    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
-        .just(output: 1)
-    }
+    func amountFormattedPublisher() -> AnyPublisher<String?, Never> { .just(output: "5 SOL") }
+    func alternativeAmountFormattedPublisher() -> AnyPublisher<String?, Never> { .just(output: "~ 456.34 $") }
 }
 
 protocol StakingSummaryInput: AnyObject {
-    func amountPublisher() -> AnyPublisher<Decimal?, Never>
+    func amountFormattedPublisher() -> AnyPublisher<String?, Never>
+    func alternativeAmountFormattedPublisher() -> AnyPublisher<String?, Never>
 }
 
 class StakingSummaryOutputMock: StakingSummaryOutput {}
 
 protocol StakingSummaryOutput: AnyObject {}
+
+class StakingSummaryRoutableMock: StakingSummaryRoutable {
+    func openAmountStep() {}
+}
+
+protocol StakingSummaryRoutable: AnyObject {
+    func openAmountStep()
+}

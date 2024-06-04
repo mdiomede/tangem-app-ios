@@ -21,9 +21,6 @@ struct StakingSummaryView: View {
         VStack(spacing: 14) {
             amountContainer
         }
-        .onAppear(perform: {
-            print("onAppear ->>")
-        })
     }
 
     private var amountContainer: some View {
@@ -35,20 +32,20 @@ struct StakingSummaryView: View {
             .matchedGeometryEffect(id: namespace.names.tokenIcon, in: namespace.id)
 
             VStack(spacing: 4) {
-                // We use the TextField here for better animation
-                TextField("", text: .constant(viewModel.sendingAmountFormatted))
+                // We have to use the TextField instead of Text here for same animaion
+                TextField("", text: .constant(viewModel.amount ?? " "))
                     .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
                     .multilineTextAlignment(.center)
                     .disabled(true)
                     .style(DecimalNumberTextField.Appearance().font, color: DecimalNumberTextField.Appearance().textColor)
 
-                Text(viewModel.alternativeAmount)
+                Text(viewModel.alternativeAmount ?? " ")
                     .matchedGeometryEffect(id: namespace.names.amountFiatText, in: namespace.id)
                     .style(Fonts.Regular.footnote, color: Colors.Text.tertiary)
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                print("onTapGesture ->>")
+                viewModel.userDidTapAmountSection()
             }
         }
         .infinityFrame(axis: .horizontal, alignment: .center)
@@ -71,9 +68,9 @@ extension StakingSummaryView {
 struct StakingSummaryView_Preview: PreviewProvider {
     static let viewModel = StakingSummaryViewModel(
         inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingSummaryInput(),
-        cryptoFiatAmountConverter: .init(),
         input: StakingSummaryInputMock(),
-        output: StakingSummaryOutputMock()
+        output: StakingSummaryOutputMock(),
+        router: StakingSummaryRoutableMock()
     )
 
     @Namespace static var namespace

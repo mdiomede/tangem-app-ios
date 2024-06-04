@@ -59,7 +59,7 @@ struct StakingAmountView: View {
 
             VStack(spacing: 4) {
                 SendDecimalNumberTextField(viewModel: viewModel.decimalNumberTextFieldViewModel)
-                    .initialFocusBehavior(.noFocus)
+                    .initialFocusBehavior(.immediateFocus)
                     .alignment(.center)
                     .prefixSuffixOptions(viewModel.currentFieldOptions)
                     .toolbarType(.none)
@@ -82,7 +82,7 @@ struct StakingAmountView: View {
             HStack(spacing: 8) {
                 SendCurrencyPicker(
                     data: viewModel.currencyPickerData,
-                    useFiatCalculation: $viewModel.useFiatCalculation
+                    useFiatCalculation: viewModel.isFiatCalculation.asBinding
                 )
 
                 MainButton(title: Localization.sendMaxAmount, style: .secondary) {

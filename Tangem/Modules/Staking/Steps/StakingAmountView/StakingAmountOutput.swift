@@ -10,19 +10,20 @@ import Foundation
 import Combine
 
 class StakingAmountOutputMock: StakingAmountOutput {
-    func update(value: Decimal?) {}
+    func update(amount: CryptoFiatAmount) {}
 }
 
 protocol StakingAmountOutput: AnyObject {
-    func update(value: Decimal?)
+    func update(amount: CryptoFiatAmount)
 }
 
 class StakingAmountInputMock: StakingAmountInput {
-    func amountPublisher() -> AnyPublisher<Decimal?, Never> {
-        .just(output: 1)
-    }
+    var amount: CryptoFiatAmount { .empty }
+
+    func alternativeAmountFormattedPublisher() -> AnyPublisher<String?, Never> { .just(output: "1") }
 }
 
 protocol StakingAmountInput: AnyObject {
-    func amountPublisher() -> AnyPublisher<Decimal?, Never>
+    var amount: CryptoFiatAmount { get }
+    func alternativeAmountFormattedPublisher() -> AnyPublisher<String?, Never>
 }
