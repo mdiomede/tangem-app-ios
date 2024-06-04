@@ -11,7 +11,7 @@ import Foundation
 // MARK: - All names
 
 struct StakingViewNamespaceID: StakingAmountViewGeometryEffectNames,
-                                StakingSummaryViewGeometryEffectNames {
+    StakingSummaryViewGeometryEffectNames {
     var amountContainer: String { "amountContainer" }
     var tokenIcon: String { "tokenIcon" }
     var amountCryptoText: String { "amountCryptoText" }

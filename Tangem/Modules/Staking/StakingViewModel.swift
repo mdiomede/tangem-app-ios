@@ -19,9 +19,6 @@ final class StakingViewModel: ObservableObject {
     @Published var stakingAmountViewModel: StakingAmountViewModel?
     @Published var stakingSummaryViewModel: StakingSummaryViewModel?
 
-    @Published var stakingAmountViewModel: StakingAmountViewModel?
-    @Published var stakingSummaryViewModel: StakingSummaryViewModel?
-
     // MARK: - Dependencies
 
     private let factory: StakingModulesFactory
