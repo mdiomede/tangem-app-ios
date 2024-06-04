@@ -52,7 +52,7 @@ struct StakingSummaryView: View {
         .roundedBackground(
             with: Colors.Background.action,
             verticalPadding: 16,
-            horizontalPadding: 0,
+            horizontalPadding: 14,
             geometryEffect: .init(id: namespace.names.amountContainer, namespace: namespace.id)
         )
     }

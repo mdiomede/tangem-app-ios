@@ -40,10 +40,12 @@ extension StakingManager: StakingAmountInput, StakingSummaryInput {
             .withWeakCaptureOf(self)
             .map { manager, amount in
                 switch amount {
+                case .empty:
+                    return nil
                 case .typical(let cachedCrypto, _):
-                    manager.balanceFormatter.formatCryptoBalance(cachedCrypto, currencyCode: manager.tokenItem.currencySymbol)
+                    return manager.balanceFormatter.formatCryptoBalance(cachedCrypto, currencyCode: manager.tokenItem.currencySymbol)
                 case .alternative(let cachedFiat, _):
-                    manager.balanceFormatter.formatFiatBalance(cachedFiat)
+                    return manager.balanceFormatter.formatFiatBalance(cachedFiat)
                 }
             }
             .eraseToAnyPublisher()
@@ -54,10 +56,12 @@ extension StakingManager: StakingAmountInput, StakingSummaryInput {
             .withWeakCaptureOf(self)
             .map { manager, amount in
                 switch amount {
+                case .empty:
+                    return nil
                 case .typical(_, let cachedFiat):
-                    manager.balanceFormatter.formatFiatBalance(cachedFiat)
+                    return manager.balanceFormatter.formatFiatBalance(cachedFiat)
                 case .alternative(_, let cachedCrypto):
-                    manager.balanceFormatter.formatCryptoBalance(cachedCrypto, currencyCode: manager.tokenItem.currencySymbol)
+                    return manager.balanceFormatter.formatCryptoBalance(cachedCrypto, currencyCode: manager.tokenItem.currencySymbol)
                 }
             }
             .eraseToAnyPublisher()

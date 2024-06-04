@@ -61,7 +61,7 @@ struct StakingView: View {
 
     @ViewBuilder
     var mainButton: some View {
-        MainButton(title: viewModel.actionType.title) {
+        MainButton(title: viewModel.action.title) {
             viewModel.userDidTapActionButton()
         }
         .padding(.horizontal, 16)

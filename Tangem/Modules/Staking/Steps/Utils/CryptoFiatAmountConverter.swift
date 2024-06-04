@@ -16,10 +16,6 @@ class CryptoFiatAmountConverter {
     }
 
     func convertToCrypto(_ fiatValue: Decimal?, tokenItem: TokenItem) -> Decimal? {
-//        if cached?.fiat == fiatValue {
-//            return cached?.crypto
-//        }
-
         guard let fiatValue,
               let currencyId = tokenItem.currencyId,
               let cryptoValue = BalanceConverter().convertFromFiat(fiatValue, currencyId: currencyId) else {
@@ -31,10 +27,6 @@ class CryptoFiatAmountConverter {
     }
 
     func convertToFiat(_ cryptoValue: Decimal?, tokenItem: TokenItem) -> Decimal? {
-//        if cached?.crypto == cryptoValue {
-//            return cached?.fiat
-//        }
-
         guard let cryptoValue,
               let currencyId = tokenItem.currencyId,
               let fiatValue = BalanceConverter().convertToFiat(cryptoValue, currencyId: currencyId) else {

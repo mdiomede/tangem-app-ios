@@ -13,8 +13,8 @@ final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
 
     @Published var step: Step?
-    @Published var animation: StepAnimation = .fade
-    @Published var actionType: ActionType = .next
+    @Published var animation: AnimationType = .fade
+    @Published var action: ActionType = .next
 
     @Published var stakingAmountViewModel: StakingAmountViewModel?
     @Published var stakingSummaryViewModel: StakingSummaryViewModel?
@@ -36,12 +36,12 @@ final class StakingViewModel: ObservableObject {
 
         // Intial setup
         animation = .fade
-        actionType = .next
+        action = .next
         step = stakingAmountViewModel.map { .amount($0) }
     }
 
     func userDidTapActionButton() {
-        switch actionType {
+        switch action {
         case .next:
             openNextStep()
         }
@@ -79,7 +79,7 @@ extension StakingViewModel {
         }
     }
 
-    enum StepAnimation {
+    enum AnimationType {
         case slideForward
         case slideBackward
         case fade
