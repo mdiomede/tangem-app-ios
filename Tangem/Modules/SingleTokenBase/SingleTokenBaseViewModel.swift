@@ -13,9 +13,11 @@ import TangemSdk
 import BlockchainSdk
 import TangemExpress
 import CombineExt
+import TangemStaking
 
 class SingleTokenBaseViewModel: NotificationTapDelegate {
     @Injected(\.swapAvailabilityProvider) private var swapAvailabilityProvider: SwapAvailabilityProvider
+    @Injected(\.stakingRepositoryProxy) private var stakingRepositoryProxy: StakingRepositoryProxy
 
     @Published var alert: AlertBinder? = nil
     @Published var transactionHistoryState: TransactionsListView.State = .loading
@@ -52,7 +54,7 @@ class SingleTokenBaseViewModel: NotificationTapDelegate {
             return .noData
         }
 
-        let result = priceChangeFormatter.format(value: change)
+        let result = priceChangeFormatter.format(change, option: .priceChange)
         return .loaded(signType: result.signType, text: result.formattedText)
     }
 
