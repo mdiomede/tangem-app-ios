@@ -499,7 +499,11 @@ extension MultiWalletMainContentViewModel: TokenItemContextActionDelegate {
             Analytics.log(event: .buttonExchange, params: [.token: walletModel.tokenItem.currencySymbol])
             tokenRouter.openExchange(walletModel: walletModel)
         case .stake:
-            tokenRouter.openStaking(walletModel: walletModel)
+            guard let yield = stakingRepository.getYield(item: walletModel.stakingTokenItem) else {
+                return
+            }
+
+            tokenRouter.openStaking(walletModel: walletModel, yield: yield)
         case .hide:
             return
         }

@@ -12,6 +12,8 @@ import TangemFoundation
 import TangemStaking
 
 final class StakingDetailsViewModel: ObservableObject {
+    @Injected(\.stakingRepositoryProxy) private var stakingRepositoryProxy: StakingRepositoryProxy
+
     // MARK: - ViewState
 
     var title: String { Localization.stakingDetailsTitle(wallet.name) }
@@ -22,7 +24,6 @@ final class StakingDetailsViewModel: ObservableObject {
     // MARK: - Dependencies
 
     private let wallet: WalletModel
-    private let manager: StakingManager
     private weak var coordinator: StakingDetailsRoutable?
 
     private let balanceFormatter = BalanceFormatter()
@@ -36,11 +37,9 @@ final class StakingDetailsViewModel: ObservableObject {
 
     init(
         wallet: WalletModel,
-        manager: StakingManager,
         coordinator: StakingDetailsRoutable
     ) {
         self.wallet = wallet
-        self.manager = manager
         self.coordinator = coordinator
     }
 
@@ -48,15 +47,16 @@ final class StakingDetailsViewModel: ObservableObject {
     func userDidTapActionButton() {}
 
     func onAppear() {
-        runTask(in: self) { viewModel in
-            let yield = try await viewModel.manager.getYield()
-            await viewModel.setupView(yield: yield)
+        // TODO: Will be include in main flow into staking coordinator
+        guard let yield = stakingRepositoryProxy.getYield(item: wallet.stakingTokenItem) else {
+            return
         }
+
+        setupView(yield: yield)
     }
 }
 
 private extension StakingDetailsViewModel {
-    @MainActor
     func setupView(yield: YieldInfo) {
         setupView(
             inputData: StakingDetailsData(

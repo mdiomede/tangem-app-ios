@@ -30,8 +30,7 @@ class StakingDetailsCoordinator: CoordinatorObject {
     }
 
     func start(with options: Options) {
-        let factory = StakingModulesFactory(wallet: options.wallet)
-        rootViewModel = factory.makeStakingDetailsViewModel(coordinator: self)
+        rootViewModel = StakingDetailsViewModel(wallet: options.wallet, coordinator: self)
     }
 }
 

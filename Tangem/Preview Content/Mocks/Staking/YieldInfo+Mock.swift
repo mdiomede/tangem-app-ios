@@ -11,15 +11,16 @@ import TangemStaking
 
 extension YieldInfo {
     static let mock = YieldInfo(
-        item: StakingTokenItem,
-        apy: <#T##Decimal#>,
-        rewardRate: <#T##Decimal#>,
-        rewardType: <#T##RewardType#>,
-        unbonding: <#T##Period#>,
-        minimumRequirement: <#T##Decimal#>,
-        rewardClaimingType: <#T##RewardClaimingType#>,
-        warmupPeriod: <#T##Period#>,
-        rewardScheduleType: <#T##RewardScheduleType#>,
-        validators: <#T##[ValidatorInfo]#>
+        id: "tron-trx-native-staking",
+        apy: 0.03712381,
+        rewardType: .apr,
+        rewardRate: 0.03712381,
+        minimumRequirement: 1,
+        item: .init(coinId: "tron", contractAdress: nil),
+        unbondingPeriod: .days(14),
+        warmupPeriod: .days(0),
+        rewardClaimingType: .manual,
+        rewardScheduleType: .block,
+        validators: []
     )
 }

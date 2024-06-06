@@ -87,7 +87,7 @@ struct StakingView: View {
 
 struct StakingView_Preview: PreviewProvider {
     static let viewModel = StakingViewModel(
-        factory: .init(wallet: .mockETH, builder: .init(userWalletName: "Wallet", wallet: .mockETH)),
+        factory: .init(wallet: .mockETH, builder: .init(userWalletName: "Wallet", wallet: .mockETH, yield: .mock)),
         coordinator: StakingRoutableMock()
     )
 

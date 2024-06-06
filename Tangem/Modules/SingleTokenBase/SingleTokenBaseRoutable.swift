@@ -9,6 +9,7 @@
 import Foundation
 import BlockchainSdk
 import TangemExpress
+import TangemStaking
 
 protocol SingleTokenBaseRoutable: AnyObject {
     func openReceiveScreen(tokenItem: TokenItem, addressInfos: [ReceiveAddressInfo])
@@ -19,6 +20,6 @@ protocol SingleTokenBaseRoutable: AnyObject {
     func openBankWarning(confirmCallback: @escaping () -> Void, declineCallback: @escaping () -> Void)
     func openP2PTutorial()
     func openExpress(input: CommonExpressModulesFactory.InputModel)
-    func openStaking(wallet: WalletModel)
+    func openStaking(wallet: WalletModel, yield: YieldInfo)
     func openInSafari(url: URL)
 }

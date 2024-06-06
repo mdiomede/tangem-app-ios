@@ -103,7 +103,7 @@ extension StakingAmountView {
 
 struct StakingAmountView_Preview: PreviewProvider {
     static let viewModel = StakingAmountViewModel(
-        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingAmountInput(),
+        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH, yield: .mock).makeStakingAmountInput(),
         cryptoFiatAmountConverter: .init(),
         input: StakingAmountInputMock(),
         output: StakingAmountOutputMock()

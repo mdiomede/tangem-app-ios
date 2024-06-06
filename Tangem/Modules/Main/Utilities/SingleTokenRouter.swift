@@ -10,13 +10,14 @@ import Foundation
 import Combine
 import BlockchainSdk
 import TangemExpress
+import TangemStaking
 
 protocol SingleTokenRoutable {
     func openReceive(walletModel: WalletModel)
     func openBuyCryptoIfPossible(walletModel: WalletModel)
     func openSend(walletModel: WalletModel)
     func openExchange(walletModel: WalletModel)
-    func openStaking(walletModel: WalletModel)
+    func openStaking(walletModel: WalletModel, yield: YieldInfo)
     func openSell(for walletModel: WalletModel)
     func openSendToSell(with request: SellCryptoRequest, for walletModel: WalletModel)
     func openExplorer(at url: URL, for walletModel: WalletModel)
@@ -81,8 +82,8 @@ final class SingleTokenRouter: SingleTokenRoutable {
         coordinator?.openExpress(input: input)
     }
 
-    func openStaking(walletModel: WalletModel) {
-        coordinator?.openStaking(wallet: walletModel)
+    func openStaking(walletModel: WalletModel, yield: YieldInfo) {
+        coordinator?.openStaking(wallet: walletModel, yield: yield)
     }
 
     func openSell(for walletModel: WalletModel) {

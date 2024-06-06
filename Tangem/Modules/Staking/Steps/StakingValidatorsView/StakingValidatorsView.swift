@@ -40,6 +40,7 @@ extension StakingValidatorsView {
 struct StakingValidatorsView_Preview: PreviewProvider {
     @Namespace static var namespace
     static let viewModel = StakingValidatorsViewModel(
+        inputModel: .init(validators: []),
         input: StakingValidatorsInputMock(),
         output: StakingValidatorsOutputMock(),
         coordinator: StakingValidatorsRoutableMock()

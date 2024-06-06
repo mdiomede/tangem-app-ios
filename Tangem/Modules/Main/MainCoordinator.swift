@@ -10,6 +10,7 @@ import Foundation
 import Combine
 import BlockchainSdk
 import TangemVisa
+import TangemStaking
 
 class MainCoordinator: CoordinatorObject {
     let dismissAction: Action<Void>
@@ -32,7 +33,7 @@ class MainCoordinator: CoordinatorObject {
     @Published var sendCoordinator: SendCoordinator? = nil
     @Published var expressCoordinator: ExpressCoordinator? = nil
     @Published var legacyTokenListCoordinator: LegacyTokenListCoordinator? = nil
-    @Published var stakingDetailsCoordinator: StakingDetailsCoordinator? = nil
+    @Published var stakingCoordinator: StakingCoordinator? = nil
 
     // MARK: - Child view models
 
@@ -324,14 +325,14 @@ extension MainCoordinator: SingleTokenBaseRoutable {
         expressCoordinator = coordinator
     }
 
-    func openStaking(wallet: WalletModel) {
+    func openStaking(wallet: WalletModel, yield: YieldInfo) {
         let dismissAction: Action<Void> = { [weak self] _ in
-            self?.stakingDetailsCoordinator = nil
+            self?.stakingCoordinator = nil
         }
 
-        let coordinator = StakingDetailsCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
-        coordinator.start(with: .init(wallet: wallet))
-        stakingDetailsCoordinator = coordinator
+        let coordinator = StakingCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
+        coordinator.start(with: .init(userWalletModelName: "Wallet", walletModel: wallet, yield: yield))
+        stakingCoordinator = coordinator
     }
 
     func openInSafari(url: URL) {

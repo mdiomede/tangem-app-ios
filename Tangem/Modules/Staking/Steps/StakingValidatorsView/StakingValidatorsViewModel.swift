@@ -35,7 +35,7 @@ final class StakingValidatorsViewModel: ObservableObject {
                 id: validator.address,
                 imageURL: validator.iconURL,
                 name: validator.name,
-                aprFormatted: validator.apr.map(percentFormatter.expressRatePercentFormat(value:))
+                aprFormatted: validator.apr.map { percentFormatter.format($0, option: .staking) }
             )
         }
 
@@ -46,24 +46,21 @@ final class StakingValidatorsViewModel: ObservableObject {
         bind()
     }
 
-    func onAppear() {
-//        setupView()
-    }
+    func onAppear() {}
 }
 
 extension StakingValidatorsViewModel {
-//    func setupView() {}
-
     func bind() {
         input?.validatorPublisher()
             .map { validator in
                 switch validator {
-                case .single(let validator): validator.address
-                case .multiple(let validators): validators.map { $0.address }
+                case .none: return []
+                case .single(let validator): return [validator.address]
+                case .multiple(let validators): return validators.map { $0.address }
                 }
             }
             .assign(to: \.selectedValidators, on: self, ownership: .weak)
-            .store(bag)
+            .store(in: &bag)
     }
 }
 

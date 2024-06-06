@@ -481,7 +481,11 @@ extension SingleTokenBaseViewModel {
     }
 
     func openStaking() {
-        tokenRouter.openStaking(walletModel: walletModel)
+        guard let yield = stakingRepositoryProxy.getYield(item: walletModel.stakingTokenItem) else {
+            return
+        }
+
+        tokenRouter.openStaking(walletModel: walletModel, yield: yield)
     }
 
     func openSell() {

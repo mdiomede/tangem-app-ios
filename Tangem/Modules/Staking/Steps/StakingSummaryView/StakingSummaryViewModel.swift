@@ -17,7 +17,7 @@ final class StakingSummaryViewModel: ObservableObject {
     @Published var amount: String?
     @Published var alternativeAmount: String?
 
-    @Published var validator: StakingValidatorViewData?
+    @Published var validators: [StakingValidatorViewData] = []
 
     // MARK: - Dependencies
 
@@ -25,8 +25,6 @@ final class StakingSummaryViewModel: ObservableObject {
     private weak var input: StakingSummaryInput?
     private weak var output: StakingSummaryOutput?
     private weak var router: StakingSummaryRoutable?
-
-    private var bag: Set<AnyCancellable> = []
 
     private var bag: Set<AnyCancellable> = []
 
@@ -60,6 +58,26 @@ private extension StakingSummaryViewModel {
 
         input?.alternativeAmountFormattedPublisher()
             .assign(to: \.alternativeAmount, on: self, ownership: .weak)
+            .store(in: &bag)
+
+        input?.validatorPublisher()
+            .map { validator in
+                switch validator {
+                case .none:
+                    return []
+                case .single(let validator):
+                    let aprFormatted = validator.apr.map { PercentFormatter().format($0, option: .staking) }
+                    return [StakingValidatorViewData(
+                        id: validator.address,
+                        imageURL: validator.iconURL,
+                        name: validator.name,
+                        aprFormatted: aprFormatted
+                    )]
+                case .multiple(let validators):
+                    return []
+                }
+            }
+            .assign(to: \.validators, on: self, ownership: .weak)
             .store(in: &bag)
     }
 }

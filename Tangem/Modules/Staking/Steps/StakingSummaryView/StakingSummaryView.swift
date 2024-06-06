@@ -60,7 +60,7 @@ struct StakingSummaryView: View {
     }
 
     private var validatorContainer: some View {
-        GroupedSection(viewModel.validator) {
+        GroupedSection(viewModel.validators) {
             StakingValidatorView(data: $0)
         }
         .backgroundColor(Colors.Background.action)
@@ -77,7 +77,7 @@ extension StakingSummaryView {
 
 struct StakingSummaryView_Preview: PreviewProvider {
     static let viewModel = StakingSummaryViewModel(
-        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH, yield: YieldInfo).makeStakingSummaryInput(),
+        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH, yield: .mock).makeStakingSummaryInput(),
         input: StakingSummaryInputMock(),
         output: StakingSummaryOutputMock(),
         router: StakingSummaryRoutableMock()

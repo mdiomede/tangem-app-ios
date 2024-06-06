@@ -9,6 +9,7 @@
 import Foundation
 import Combine
 import BlockchainSdk
+import TangemStaking
 
 class TokenDetailsCoordinator: CoordinatorObject {
     let dismissAction: Action<Void>
@@ -296,13 +297,13 @@ extension TokenDetailsCoordinator: SingleTokenBaseRoutable {
         expressCoordinator = coordinator
     }
 
-    func openStaking(wallet: WalletModel) {
+    func openStaking(wallet: WalletModel, yield: YieldInfo) {
         let dismissAction: Action<Void> = { [weak self] navigationInfo in
             self?.stakingCoordinator = nil
         }
 
         let coordinator = StakingCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
-        coordinator.start(with: .init(userWalletModelName: "Wallet", walletModel: wallet))
+        coordinator.start(with: .init(userWalletModelName: "Wallet", walletModel: wallet, yield: yield))
 
         stakingCoordinator = coordinator
     }

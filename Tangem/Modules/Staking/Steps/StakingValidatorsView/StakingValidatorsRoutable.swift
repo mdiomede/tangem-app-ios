@@ -9,24 +9,8 @@
 import Foundation
 import TangemStaking
 
-protocol StakingValidatorsInput: AnyObject {
-    func validatorPublisher() -> AnyPublisher<ValidatorType?, Never>
-}
-
-protocol StakingValidatorsOutput: AnyObject {
-    func userDidSelected(validators: [ValidatorInfo])
-}
-
 protocol StakingValidatorsRoutable: AnyObject {
     func userDidSelectedValidator()
-}
-
-class StakingValidatorsInputMock: StakingValidatorsInput {
-    func validatorPublisher() -> AnyPublisher<ValidatorType?, Never> { .just(output: nil) }
-}
-
-class StakingValidatorsOutputMock: StakingValidatorsOutput {
-    func userDidSelected(validators: [ValidatorInfo]) {}
 }
 
 class StakingValidatorsRoutableMock: StakingValidatorsRoutable {

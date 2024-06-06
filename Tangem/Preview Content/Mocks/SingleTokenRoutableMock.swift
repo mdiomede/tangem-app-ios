@@ -8,6 +8,7 @@
 
 import Foundation
 import Combine
+import TangemStaking
 
 class SingleTokenRoutableMock: SingleTokenRoutable {
     var errorAlertPublisher: AnyPublisher<AlertBinder?, Never> { .just(output: nil) }
@@ -20,7 +21,7 @@ class SingleTokenRoutableMock: SingleTokenRoutable {
 
     func openExchange(walletModel: WalletModel) {}
 
-    func openStaking(walletModel: WalletModel) {}
+    func openStaking(walletModel: WalletModel, yield: YieldInfo) {}
 
     func openSell(for walletModel: WalletModel) {}
 
