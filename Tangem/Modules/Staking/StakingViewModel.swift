@@ -34,6 +34,7 @@ final class StakingViewModel: ObservableObject {
         self.coordinator = coordinator
 
         stakingAmountViewModel = factory.makeStakingAmountViewModel()
+        stakingValidatorsViewModel = factory.makeStakingValidatorsViewModel(coordinator: self)
         stakingSummaryViewModel = factory.makeStakingSummaryViewModel(router: self)
 
         // Intial setup
@@ -56,9 +57,10 @@ final class StakingViewModel: ObservableObject {
         case .amount:
             step = stakingSummaryViewModel.map { .summary($0) }
         case .summary:
-            step = stakingAmountViewModel.map { .amount($0) }
+            break
+        // step = stakingAmountViewModel.map { .amount($0) }
         case .validators:
-            step = stakingValidatorsViewModel.map { .validators($0) }
+            step = stakingSummaryViewModel.map { .summary($0) }
         }
     }
 }

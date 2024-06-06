@@ -7,17 +7,22 @@
 //
 
 import Foundation
+import TangemStaking
 
 class StakingModulesFactory {
+    private let userWalletName: String
     private let wallet: WalletModel
+    private let yield: YieldInfo
     private let builder: StakingStepsViewBuilder
 
     lazy var stakingManager = makeStakingManager()
     lazy var cryptoFiatAmountConverter = CryptoFiatAmountConverter()
 
-    init(wallet: WalletModel, builder: StakingStepsViewBuilder) {
+    init(userWalletName: String, wallet: WalletModel, yield: YieldInfo) {
+        self.userWalletName = userWalletName
         self.wallet = wallet
-        self.builder = builder
+        self.yield = yield
+        builder = .init(userWalletName: userWalletName, wallet: wallet, yield: yield)
     }
 
     func makeStakingDetailsViewModel(coordinator: StakingDetailsRoutable) -> StakingDetailsViewModel {
@@ -37,6 +42,15 @@ class StakingModulesFactory {
         )
     }
 
+    func makeStakingValidatorsViewModel(coordinator: StakingValidatorsRoutable) -> StakingValidatorsViewModel {
+        StakingValidatorsViewModel(
+            inputModel: builder.makeStakingValidatorsInput(),
+            input: stakingManager,
+            output: stakingManager,
+            coordinator: coordinator
+        )
+    }
+
     func makeStakingSummaryViewModel(router: StakingSummaryRoutable) -> StakingSummaryViewModel {
         StakingSummaryViewModel(
             inputModel: builder.makeStakingSummaryInput(),
@@ -46,7 +60,9 @@ class StakingModulesFactory {
         )
     }
 
+    // MARK: - Services
+
     func makeStakingManager() -> StakingManager {
-        StakingManager(wallet: wallet, converter: cryptoFiatAmountConverter)
+        StakingManager(wallet: wallet, yield: yield, converter: cryptoFiatAmountConverter)
     }
 }

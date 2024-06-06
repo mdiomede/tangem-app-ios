@@ -14,6 +14,7 @@ class StakingManager {
     // MARK: - Dependicies
 
     private let wallet: WalletModel
+    private let yield: YieldInfo
     private let converter: CryptoFiatAmountConverter
 
     // MARK: - Internal
@@ -24,9 +25,16 @@ class StakingManager {
     private var tokenItem: TokenItem { wallet.tokenItem }
     private let balanceFormatter = BalanceFormatter()
 
-    init(wallet: WalletModel, converter: CryptoFiatAmountConverter) {
+    init(
+        wallet: WalletModel,
+        yield: YieldInfo,
+        converter: CryptoFiatAmountConverter
+    ) {
         self.wallet = wallet
+        self.yield = yield
         self.converter = converter
+
+        _validator.send(yield.validators.first.map { .single($0) })
     }
 }
 
@@ -73,14 +81,6 @@ extension StakingManager: StakingAmountInput, StakingSummaryInput, StakingValida
         _validator.eraseToAnyPublisher()
     }
 }
-
-// MARK: - StakingValidatorsInput
-
-// extension StakingManager: StakingValidatorsInput {
-//    func getValidators() -> [ValidatorInfo] {
-//
-//    }
-// }
 
 // MARK: - StakingAmountOutput
 

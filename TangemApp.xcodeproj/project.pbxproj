@@ -1324,11 +1324,9 @@
 		EF842DEE2AFA6D07006E472E /* ProviderRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF842DED2AFA6D07006E472E /* ProviderRowViewModel.swift */; };
 		EF8D780F2981458500B67418 /* UserTokenListManagerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8D780E2981458500B67418 /* UserTokenListManagerMock.swift */; };
 		EF8DBCD82C0607CC009072CF /* StakingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCD72C0607CC009072CF /* StakingRepository.swift */; };
-		EF8DBCDD2C060A03009072CF /* StakingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCDC2C060A03009072CF /* StakingManager.swift */; };
 		EF8DBCE02C060CCE009072CF /* StakingDependenciesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCDF2C060CCE009072CF /* StakingDependenciesFactory.swift */; };
 		EF8DBCE22C060E9E009072CF /* WalletModel+StakingWallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCE12C060E9E009072CF /* WalletModel+StakingWallet.swift */; };
 		EF8DBCE52C0618AA009072CF /* CommonStakingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCE42C0618AA009072CF /* CommonStakingRepository.swift */; };
-		EF8DBCEA2C061B0E009072CF /* CommonStakingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCE92C061B0E009072CF /* CommonStakingManager.swift */; };
 		EF8DBCEC2C061B93009072CF /* StakingRepositoryProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCEB2C061B93009072CF /* StakingRepositoryProxy.swift */; };
 		EF8DBCEF2C061D3F009072CF /* CommonStakingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBCEE2C061D3F009072CF /* CommonStakingRepository.swift */; };
 		EF8DBD442C073116009072CF /* AverageRewardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8DBD432C073116009072CF /* AverageRewardingView.swift */; };
@@ -3063,12 +3061,10 @@
 		EF842DED2AFA6D07006E472E /* ProviderRowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRowViewModel.swift; sourceTree = "<group>"; };
 		EF8D780E2981458500B67418 /* UserTokenListManagerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTokenListManagerMock.swift; sourceTree = "<group>"; };
 		EF8DBCD72C0607CC009072CF /* StakingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingRepository.swift; sourceTree = "<group>"; };
-		EF8DBCDC2C060A03009072CF /* StakingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingManager.swift; sourceTree = "<group>"; };
 		EF8DBCDF2C060CCE009072CF /* StakingDependenciesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingDependenciesFactory.swift; sourceTree = "<group>"; };
 		EF8DBCE12C060E9E009072CF /* WalletModel+StakingWallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WalletModel+StakingWallet.swift"; sourceTree = "<group>"; };
 		EF8DBCE42C0618AA009072CF /* CommonStakingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonStakingRepository.swift; sourceTree = "<group>"; };
 		EF8DBCE72C061A40009072CF /* StakingManagerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingManagerMock.swift; sourceTree = "<group>"; };
-		EF8DBCE92C061B0E009072CF /* CommonStakingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonStakingManager.swift; sourceTree = "<group>"; };
 		EF8DBCEB2C061B93009072CF /* StakingRepositoryProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingRepositoryProxy.swift; sourceTree = "<group>"; };
 		EF8DBCEE2C061D3F009072CF /* CommonStakingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonStakingRepository.swift; sourceTree = "<group>"; };
 		EF8DBD432C073116009072CF /* AverageRewardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AverageRewardingView.swift; sourceTree = "<group>"; };
@@ -7879,15 +7875,6 @@
 			path = ExpressTokensList;
 			sourceTree = "<group>";
 		};
-		EF8DBCDB2C0609F5009072CF /* Manager */ = {
-			isa = PBXGroup;
-			children = (
-				EF8DBCDC2C060A03009072CF /* StakingManager.swift */,
-				EF8DBCE92C061B0E009072CF /* CommonStakingManager.swift */,
-			);
-			path = Manager;
-			sourceTree = "<group>";
-		};
 		EF8DBCDE2C060CA1009072CF /* StakingFactories */ = {
 			isa = PBXGroup;
 			children = (
@@ -8548,7 +8535,6 @@
 		EFEE23892BFF62D50099917E /* TangemStaking */ = {
 			isa = PBXGroup;
 			children = (
-				EF8DBCDB2C0609F5009072CF /* Manager */,
 				EF407E332C04AF5C00366733 /* Factory */,
 				EF407E362C04B08F00366733 /* Interfaces */,
 				EFBC5C6F2C00A74100B662E0 /* Models */,
@@ -10934,14 +10920,12 @@
 				EFBC5C752C00A74100B662E0 /* StakingAPIService.swift in Sources */,
 				EFBC5C902C00B8B800B662E0 /* StakeKitDTO+Yield.swift in Sources */,
 				EF407E382C04B09A00366733 /* Logger.swift in Sources */,
-				EF8DBCEA2C061B0E009072CF /* CommonStakingManager.swift in Sources */,
 				EF407E682C04D7E700366733 /* RewardClaimingType.swift in Sources */,
 				EF407E6C2C04D80100366733 /* RewardType.swift in Sources */,
 				EFBC5C8E2C00B8A000B662E0 /* StakeKitDTO.swift in Sources */,
 				EF407E6E2C04D81100366733 /* Period.swift in Sources */,
 				EF407E662C04D75100366733 /* StakeKitDTO+Actions.swift in Sources */,
 				EF031A282C08E65A001535C9 /* StakingCalculator.swift in Sources */,
-				EF8DBCDD2C060A03009072CF /* StakingManager.swift in Sources */,
 				EFBC5C792C00A79E00B662E0 /* StakeKitStakingAPIService.swift in Sources */,
 				EF407E5F2C04D65B00366733 /* CommonStakingAPIProvider.swift in Sources */,
 				EF407E352C04AF6F00366733 /* TangemStakingFactory.swift in Sources */,

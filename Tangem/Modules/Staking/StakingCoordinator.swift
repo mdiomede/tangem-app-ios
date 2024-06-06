@@ -31,9 +31,7 @@ class StakingCoordinator: CoordinatorObject {
     }
 
     func start(with options: Options) {
-        let builder = StakingStepsViewBuilder(userWalletName: options.userWalletModelName, wallet: options.walletModel, yield: options.yield)
-        let factory = StakingModulesFactory(wallet: options.walletModel, builder: builder)
-
+        let factory = StakingModulesFactory(userWalletName: options.userWalletModelName, wallet: options.walletModel, yield: options.yield)
         rootViewModel = factory.makeStakingViewModel(coordinator: self)
     }
 }
