@@ -29,11 +29,11 @@ enum StakeKitDTO {
     struct Validator: Decodable {
         let address: String
         let status: Status
-        let name: String?
-        let image: String?
+        let name: String
+        let image: URL
         let website: String?
-        let apr: Double?
-        let commission: Double?
+        let apr: Decimal?
+        let commission: Decimal?
         let stakedBalance: String?
         let votingPower: Double?
         let preferred: Bool?

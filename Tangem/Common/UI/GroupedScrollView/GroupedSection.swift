@@ -38,7 +38,6 @@ struct GroupedSection<Model: Identifiable, Content: View, Footer: View, Header: 
     private var backgroundColor: Color = Colors.Background.primary
     private var contentAlignment: HorizontalAlignment = .leading
     private var innerHeaderPadding: CGFloat = GroupedSectionConstants.headerSpacing
-
     private var geometryEffect: GeometryEffect?
 
     init(

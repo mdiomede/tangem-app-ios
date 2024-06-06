@@ -7,10 +7,12 @@
 //
 
 import Foundation
+import TangemStaking
 
 struct StakingStepsViewBuilder {
     let userWalletName: String
     let wallet: WalletModel
+    let yield: YieldInfo
 
     func makeStakingAmountInput() -> StakingAmountViewModel.Input {
         let tokenIconInfo = TokenIconInfoBuilder().build(
@@ -41,6 +43,10 @@ struct StakingStepsViewBuilder {
             currencyPickerData: currencyPickerData,
             validator: wallet.transactionValidator
         )
+    }
+
+    func makeStakingValidatorsInput() -> StakingValidatorsViewModel.Input {
+        return .init(validators: yield.validators)
     }
 
     func makeStakingSummaryInput() -> StakingSummaryViewModel.Input {

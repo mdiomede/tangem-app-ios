@@ -9,6 +9,15 @@
 import Foundation
 
 struct StakeKitMapper {
+    func mapToValidatorInfo(from response: StakeKitDTO.Validator) -> ValidatorInfo {
+        ValidatorInfo(
+            address: response.address,
+            name: response.name,
+            iconURL: response.image,
+            apr: response.apr
+        )
+    }
+
     func mapToYieldInfo(from response: StakeKitDTO.Yield.Info.Response) throws -> YieldInfo {
         guard let enterAction = response.args.enter else {
             throw StakeKitMapperError.noData("EnterAction not found")
@@ -24,7 +33,8 @@ struct StakeKitMapper {
             unbondingPeriod: mapToPeriod(from: response.metadata.cooldownPeriod),
             warmupPeriod: mapToPeriod(from: response.metadata.warmupPeriod),
             rewardClaimingType: mapToRewardClaimingType(from: response.metadata.rewardClaiming),
-            rewardScheduleType: mapToRewardScheduleType(from: response.metadata.rewardSchedule)
+            rewardScheduleType: mapToRewardScheduleType(from: response.metadata.rewardSchedule),
+            validators: response.validators.map(mapToValidatorInfo(from:))
         )
     }
 

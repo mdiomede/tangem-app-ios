@@ -27,6 +27,8 @@ public struct YieldInfo {
     public let rewardClaimingType: RewardClaimingType
     public let rewardScheduleType: RewardScheduleType
 
+    public let validators: [ValidatorInfo]
+
     public init(
         id: String,
         apy: Decimal,
@@ -37,7 +39,8 @@ public struct YieldInfo {
         unbondingPeriod: Period,
         warmupPeriod: Period,
         rewardClaimingType: RewardClaimingType,
-        rewardScheduleType: RewardScheduleType
+        rewardScheduleType: RewardScheduleType,
+        validators: [ValidatorInfo]
     ) {
         self.id = id
         self.apy = apy
@@ -49,5 +52,6 @@ public struct YieldInfo {
         self.warmupPeriod = warmupPeriod
         self.rewardClaimingType = rewardClaimingType
         self.rewardScheduleType = rewardScheduleType
+        self.validators = validators
     }
 }

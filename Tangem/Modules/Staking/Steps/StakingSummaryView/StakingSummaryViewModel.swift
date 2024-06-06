@@ -17,6 +17,8 @@ final class StakingSummaryViewModel: ObservableObject {
     @Published var amount: String?
     @Published var alternativeAmount: String?
 
+    @Published var validator: StakingValidatorViewData?
+
     // MARK: - Dependencies
 
     private let tokenItem: TokenItem

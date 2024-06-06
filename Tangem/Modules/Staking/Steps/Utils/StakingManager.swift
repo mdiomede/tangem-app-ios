@@ -8,6 +8,7 @@
 
 import Foundation
 import Combine
+import TangemStaking
 
 class StakingManager {
     // MARK: - Dependicies
@@ -18,6 +19,7 @@ class StakingManager {
     // MARK: - Internal
 
     private let _amount: CurrentValueSubject<CryptoFiatAmount, Never> = .init(.empty)
+    private let _validator: CurrentValueSubject<ValidatorType?, Never> = .init(nil)
 
     private var tokenItem: TokenItem { wallet.tokenItem }
     private let balanceFormatter = BalanceFormatter()
@@ -28,9 +30,9 @@ class StakingManager {
     }
 }
 
-// MARK: - StakingAmountInput, StakingSummaryInput
+// MARK: - StakingAmountInput, StakingSummaryInput, StakingValidatorsInput
 
-extension StakingManager: StakingAmountInput, StakingSummaryInput {
+extension StakingManager: StakingAmountInput, StakingSummaryInput, StakingValidatorsInput {
     var amount: CryptoFiatAmount {
         _amount.value
     }
@@ -66,7 +68,19 @@ extension StakingManager: StakingAmountInput, StakingSummaryInput {
             }
             .eraseToAnyPublisher()
     }
+
+    func validatorPublisher() -> AnyPublisher<ValidatorType?, Never> {
+        _validator.eraseToAnyPublisher()
+    }
 }
+
+// MARK: - StakingValidatorsInput
+
+// extension StakingManager: StakingValidatorsInput {
+//    func getValidators() -> [ValidatorInfo] {
+//
+//    }
+// }
 
 // MARK: - StakingAmountOutput
 
@@ -76,6 +90,19 @@ extension StakingManager: StakingAmountOutput {
     }
 }
 
+// MARK: - StakingValidatorsOutput
+
+extension StakingManager: StakingValidatorsOutput {
+    func userDidSelected(validators: [ValidatorInfo]) {}
+}
+
 // MARK: - StakingSummaryOutput
 
 extension StakingManager: StakingSummaryOutput {}
+
+extension StakingManager {
+    enum ValidatorType: Hashable {
+        case single(ValidatorInfo)
+        case multiple([ValidatorInfo])
+    }
+}

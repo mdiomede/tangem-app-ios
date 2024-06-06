@@ -56,6 +56,11 @@ struct StakingView: View {
                 viewModel: viewModel,
                 namespace: .init(id: namespace, names: names)
             )
+        case .validators(let viewModel):
+            StakingValidatorsView(
+                viewModel: viewModel,
+                namespace: .init(id: namespace, names: names)
+            )
         }
     }
 

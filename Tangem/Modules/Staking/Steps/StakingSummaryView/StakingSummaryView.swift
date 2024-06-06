@@ -20,6 +20,8 @@ struct StakingSummaryView: View {
     var body: some View {
         VStack(spacing: 14) {
             amountContainer
+
+            validatorContainer
         }
     }
 
@@ -56,6 +58,14 @@ struct StakingSummaryView: View {
             geometryEffect: .init(id: namespace.names.amountContainer, namespace: namespace.id)
         )
     }
+
+    private var validatorContainer: some View {
+        GroupedSection(viewModel.validator) {
+            StakingValidatorView(data: $0)
+        }
+        .backgroundColor(Colors.Background.action)
+        .geometryEffect(.init(id: namespace.names.validatorContainer, namespace: namespace.id))
+    }
 }
 
 extension StakingSummaryView {
@@ -67,7 +77,7 @@ extension StakingSummaryView {
 
 struct StakingSummaryView_Preview: PreviewProvider {
     static let viewModel = StakingSummaryViewModel(
-        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH).makeStakingSummaryInput(),
+        inputModel: StakingStepsViewBuilder(userWalletName: "Wallet", wallet: .mockETH, yield: YieldInfo).makeStakingSummaryInput(),
         input: StakingSummaryInputMock(),
         output: StakingSummaryOutputMock(),
         router: StakingSummaryRoutableMock()

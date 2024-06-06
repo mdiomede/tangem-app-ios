@@ -8,6 +8,7 @@
 
 import Combine
 import SwiftUI
+import TangemStaking
 
 final class StakingViewModel: ObservableObject {
     // MARK: - ViewState
@@ -18,6 +19,7 @@ final class StakingViewModel: ObservableObject {
 
     @Published var stakingAmountViewModel: StakingAmountViewModel?
     @Published var stakingSummaryViewModel: StakingSummaryViewModel?
+    @Published var stakingValidatorsViewModel: StakingValidatorsViewModel?
 
     // MARK: - Dependencies
 
@@ -55,7 +57,15 @@ final class StakingViewModel: ObservableObject {
             step = stakingSummaryViewModel.map { .summary($0) }
         case .summary:
             step = stakingAmountViewModel.map { .amount($0) }
+        case .validators:
+            step = stakingValidatorsViewModel.map { .validators($0) }
         }
+    }
+}
+
+extension StakingViewModel: StakingValidatorsRoutable {
+    func userDidSelectedValidator() {
+        step = stakingSummaryViewModel.map { .summary($0) }
     }
 }
 
@@ -63,12 +73,17 @@ extension StakingViewModel: StakingSummaryRoutable {
     func openAmountStep() {
         step = stakingAmountViewModel.map { .amount($0) }
     }
+
+    func openValidatorsStep() {
+        step = stakingValidatorsViewModel.map { .validators($0) }
+    }
 }
 
 extension StakingViewModel {
     enum Step: Equatable {
         case amount(StakingAmountViewModel)
         case summary(StakingSummaryViewModel)
+        case validators(StakingValidatorsViewModel)
 
         static func == (lhs: StakingViewModel.Step, rhs: StakingViewModel.Step) -> Bool {
             switch (lhs, rhs) {
