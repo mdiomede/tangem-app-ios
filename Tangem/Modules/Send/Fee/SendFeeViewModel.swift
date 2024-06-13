@@ -154,7 +154,7 @@ class SendFeeViewModel: ObservableObject {
                 guard
                     let customFee,
                     let feeCurrencyId = self.walletInfo.feeCurrencyId,
-                    let fiatFee = self.balanceConverter.convertToFiat(value: customFee.amount.value, from: feeCurrencyId)
+                    let fiatFee = self.balanceConverter.convertToFiat(customFee.amount.value, currencyId: feeCurrencyId)
                 else {
                     return nil
                 }
