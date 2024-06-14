@@ -12,8 +12,6 @@ import Combine
 
 protocol SendAmountInput: AnyObject {
     var amount: CryptoFiatAmount? { get }
-
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never>
 }
 
 protocol SendAmountOutput: AnyObject {
@@ -57,7 +55,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     private weak var output: SendAmountOutput?
     private let validator: SendAmountValidator
     private let cryptoFiatAmountConverter: CryptoFiatAmountConverter
-    private let sendAmountFormatter: CryptoFiatAmountFormatter
+    private let cryptoFiatAmountFormatter: CryptoFiatAmountFormatter
     private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
 
     private var bag: Set<AnyCancellable> = []
@@ -67,8 +65,8 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         input: SendAmountInput,
         output: SendAmountOutput,
         validator: SendAmountValidator,
-        sendAmountFormatter: CryptoFiatAmountFormatter,
-        cryptoFiatAmountConverter: CryptoFiatAmountConverter
+        cryptoFiatAmountConverter: CryptoFiatAmountConverter,
+        cryptoFiatAmountFormatter: CryptoFiatAmountFormatter
     ) {
         userWalletName = initial.userWalletName
         balance = initial.balanceFormatted
@@ -89,7 +87,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         self.output = output
         self.validator = validator
         self.cryptoFiatAmountConverter = cryptoFiatAmountConverter
-        self.sendAmountFormatter = sendAmountFormatter
+        self.cryptoFiatAmountFormatter = cryptoFiatAmountFormatter
 
         bind()
 
@@ -112,16 +110,16 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         switch amountType {
         case .crypto:
             decimalNumberTextFieldViewModel.update(value: balanceValue)
-            output?.amountDidChanged(amount: .typical(crypto: balanceValue, fiat: fiatValue))
+            amountDidChanged(amount: .typical(crypto: balanceValue, fiat: fiatValue))
         case .fiat:
             decimalNumberTextFieldViewModel.update(value: fiatValue)
-            output?.amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: balanceValue))
+            amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: balanceValue))
         }
     }
 
     func setExternalAmount(_ amount: Decimal?) {
         decimalNumberTextFieldViewModel.update(value: amount)
-        amountDidChanged(amount: amount)
+        textFieldValueDidChanged(amount: amount)
     }
 }
 
@@ -131,10 +129,12 @@ private extension SendAmountViewModel {
     func bind() {
         $amountType
             .removeDuplicates()
-            .receive(on: DispatchQueue.main)
+            .pairwise()
             .withWeakCaptureOf(self)
+            .receive(on: DispatchQueue.main)
             .sink { viewModel, amountType in
-                viewModel.update(to: amountType)
+                let (previous, newAmountType) = amountType
+                viewModel.update(previous: previous, newAmountType: newAmountType)
             }
             .store(in: &bag)
 
@@ -142,24 +142,14 @@ private extension SendAmountViewModel {
             .receive(on: DispatchQueue.main)
             .withWeakCaptureOf(self)
             .sink { viewModel, value in
-                viewModel.amountDidChanged(amount: value)
+                viewModel.textFieldValueDidChanged(amount: value)
             }
-            .store(in: &bag)
-
-        input?
-            .amountPublisher()
-            .withWeakCaptureOf(self)
-            .map { viewModel, amount in
-                viewModel.sendAmountFormatter.formatAlternative(amount: amount)
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.alternativeAmount, on: self, ownership: .weak)
             .store(in: &bag)
     }
 
-    func amountDidChanged(amount: Decimal?) {
+    func textFieldValueDidChanged(amount: Decimal?) {
         guard let amount else {
-            output?.amountDidChanged(amount: .none)
+            amountDidChanged(amount: .none)
             error = nil
             return
         }
@@ -169,22 +159,27 @@ private extension SendAmountViewModel {
             case .crypto:
                 try validator.validate(amount: amount)
                 let fiatValue = convertToFiat(value: amount)
-                output?.amountDidChanged(amount: .typical(crypto: amount, fiat: fiatValue))
+                amountDidChanged(amount: .typical(crypto: amount, fiat: fiatValue))
             case .fiat:
                 guard let cryptoValue = convertToCrypto(value: amount) else {
                     throw CommonError.noData
                 }
 
                 try validator.validate(amount: cryptoValue)
-                output?.amountDidChanged(amount: .alternative(fiat: amount, crypto: cryptoValue))
+                amountDidChanged(amount: .alternative(fiat: amount, crypto: cryptoValue))
             }
         } catch {
             self.error = error.localizedDescription
-            output?.amountDidChanged(amount: .none)
+            amountDidChanged(amount: .none)
         }
     }
 
-    func update(to newAmountType: AmountType) {
+    func amountDidChanged(amount: CryptoFiatAmount?) {
+        output?.amountDidChanged(amount: amount)
+        alternativeAmount = cryptoFiatAmountFormatter.formatAlternative(amount: amount)
+    }
+
+    func update(previous amountType: AmountType, newAmountType: AmountType) {
         switch (amountType, newAmountType) {
         case (.fiat, .crypto):
             currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
@@ -193,7 +188,7 @@ private extension SendAmountViewModel {
             let cryptoValue = convertToCrypto(value: fiatValue)
 
             decimalNumberTextFieldViewModel.update(value: cryptoValue)
-            output?.amountDidChanged(amount: .typical(crypto: cryptoValue, fiat: fiatValue))
+            amountDidChanged(amount: .typical(crypto: cryptoValue, fiat: fiatValue))
         case (.crypto, .fiat):
             currentFieldOptions = prefixSuffixOptionsFactory.makeFiatOptions()
             decimalNumberTextFieldViewModel.update(maximumFractionDigits: 2)
@@ -201,7 +196,7 @@ private extension SendAmountViewModel {
             let fiatValue = convertToFiat(value: cryptoValue)
 
             decimalNumberTextFieldViewModel.update(value: fiatValue)
-            output?.amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: cryptoValue))
+            amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: cryptoValue))
         case (.crypto, .crypto), (.fiat, .fiat):
             break
         }

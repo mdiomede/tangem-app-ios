@@ -396,10 +396,6 @@ class SendModel {
 extension SendModel: SendAmountInput, SendAmountOutput {
     var amount: CryptoFiatAmount? { _amount.value }
 
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never> {
-        _amount.eraseToAnyPublisher()
-    }
-
     func amountDidChanged(amount: CryptoFiatAmount?) {
         _amount.send(amount)
     }
@@ -461,6 +457,10 @@ extension SendModel: SendFeeViewModelInput {
 // MARK: - SendSummaryViewModelInput
 
 extension SendModel: SendSummaryViewModelInput {
+    var amountPublisher: AnyPublisher<CryptoFiatAmount?, Never> {
+        _amount.eraseToAnyPublisher()
+    }
+
     var destinationTextPublisher: AnyPublisher<String, Never> {
         _destination
             .receive(on: DispatchQueue.main) // Move this to UI layer

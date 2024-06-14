@@ -16,6 +16,7 @@ protocol SendSummaryViewModelInput: AnyObject {
     var canEditDestination: Bool { get }
     var feeOptions: [FeeOption] { get }
 
+    var amountPublisher: AnyPublisher<CryptoFiatAmount?, Never> { get }
     var transactionAmountPublisher: AnyPublisher<Amount?, Never> { get }
     var destinationTextPublisher: AnyPublisher<String, Never> { get }
     var additionalFieldPublisher: AnyPublisher<(SendAdditionalFields, String)?, Never> { get }
@@ -24,8 +25,6 @@ protocol SendSummaryViewModelInput: AnyObject {
     var selectedFeeOptionPublisher: AnyPublisher<FeeOption, Never> { get }
 
     var isSending: AnyPublisher<Bool, Never> { get }
-
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never>
 }
 
 class SendSummaryViewModel: ObservableObject {
@@ -166,7 +165,7 @@ class SendSummaryViewModel: ObservableObject {
             .assign(to: \.destinationViewTypes, on: self)
             .store(in: &bag)
 
-        input.amountPublisher()
+        input.amountPublisher
             .withWeakCaptureOf(self)
             .map { viewModel, amount in
                 let formattedAmount = viewModel.sendAmountFormatter.format(amount: amount)

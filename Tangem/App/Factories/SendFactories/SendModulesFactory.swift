@@ -105,8 +105,8 @@ struct SendModulesFactory {
             input: input,
             output: output,
             validator: validator,
-            sendAmountFormatter: makeCryptoFiatAmountFormatter(),
-            cryptoFiatAmountConverter: makeCryptoFiatAmountConverter()
+            cryptoFiatAmountConverter: makeCryptoFiatAmountConverter(),
+            cryptoFiatAmountFormatter: makeCryptoFiatAmountFormatter()
         )
     }
 
