@@ -17,6 +17,7 @@ struct SendModulesFactory {
     private let walletModel: WalletModel
     private let builder: SendModulesStepsBuilder
 
+    private var userWalletName: String { userWalletModel.name }
     private var tokenItem: TokenItem { walletModel.tokenItem }
 
     init(userWalletModel: UserWalletModel, walletModel: WalletModel) {
@@ -43,7 +44,7 @@ struct SendModulesFactory {
             sendModel: sendModel,
             notificationManager: makeSendNotificationManager(sendModel: sendModel),
             customFeeService: makeCustomFeeService(sendModel: sendModel),
-            fiatCryptoAdapter: makeSendFiatCryptoAdapter(walletInfo: walletInfo),
+//            fiatCryptoAdapter: makeSendFiatCryptoAdapter(walletInfo: walletInfo),
             keyboardVisibilityService: KeyboardVisibilityService(),
             factory: self,
             processor: makeSendDestinationProcessor(),
@@ -85,14 +86,26 @@ struct SendModulesFactory {
     }
 
     func makeSendAmountViewModel(
-        sendModel: SendModel,
-        fiatCryptoAdapter: CommonSendFiatCryptoAdapter,
-        walletInfo: SendWalletInfo
+        input: SendAmountInput,
+        output: SendAmountOutput,
+        validator: SendAmountValidator
     ) -> SendAmountViewModel {
+        let initital = SendAmountViewModel.Initital(
+            userWalletName: userWalletName,
+            tokenItem: tokenItem,
+            tokenIconInfo: builder.makeTokenIconInfo(),
+            balanceValue: walletModel.balanceValue ?? 0,
+            balanceFormatted: walletModel.balance,
+            currencyPickerData: builder.makeCurrencyPickerData()
+        )
+
         return SendAmountViewModel(
-            input: sendModel,
-            fiatCryptoAdapter: fiatCryptoAdapter,
-            walletInfo: walletInfo
+            initial: initital,
+            input: input,
+            output: output,
+            validator: validator,
+            sendAmountFormatter: makeSendAmountFormatter(),
+            cryptoFiatAmountConverter: makeCryptoFiatAmountConverter()
         )
     }
 
@@ -175,13 +188,13 @@ struct SendModulesFactory {
         return CustomFeeServiceFactory(input: sendModel, output: sendModel, walletModel: walletModel).makeService()
     }
 
-    private func makeSendFiatCryptoAdapter(walletInfo: SendWalletInfo) -> CommonSendFiatCryptoAdapter {
-        return CommonSendFiatCryptoAdapter(
-            cryptoCurrencyId: walletInfo.currencyId,
-            currencySymbol: walletInfo.cryptoCurrencyCode,
-            decimals: walletInfo.amountFractionDigits
-        )
-    }
+//    private func makeSendFiatCryptoAdapter(walletInfo: SendWalletInfo) -> CommonSendFiatCryptoAdapter {
+//        CommonSendFiatCryptoAdapter(
+//            cryptoCurrencyId: walletInfo.currencyId,
+//            currencySymbol: walletInfo.cryptoCurrencyCode,
+//            decimals: walletInfo.amountFractionDigits
+//        )
+//    }
 
     private func makeSendSummarySectionViewModelFactory(walletInfo: SendWalletInfo) -> SendSummarySectionViewModelFactory {
         return SendSummarySectionViewModelFactory(
@@ -214,6 +227,16 @@ struct SendModulesFactory {
 
         return validator
     }
+
+    func makeSendAmountFormatter() -> SendAmountFormatter {
+        SendAmountFormatter(tokenItem: tokenItem)
+    }
+
+    func makeSendAmountValidator() -> SendAmountValidator {
+        CommonSendAmountValidator(tokenItem: tokenItem, validator: walletModel.transactionValidator)
+    }
+
+    func makeCryptoFiatAmountConverter() -> CryptoFiatAmountConverter { .init(maximumFractionDigits: tokenItem.decimalCount) }
 }
 
 private extension Blockchain {

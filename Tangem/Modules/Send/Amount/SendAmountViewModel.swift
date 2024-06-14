@@ -9,78 +9,92 @@
 import Foundation
 import SwiftUI
 import Combine
-import BlockchainSdk
 
-protocol SendAmountViewModelInput {
-    var userInputAmountValue: Amount? { get }
-    var amountError: AnyPublisher<Error?, Never> { get }
+protocol SendAmountInput: AnyObject {
+    var amount: CryptoFiatAmount { get }
+
+    func amountPublisher() -> AnyPublisher<CryptoFiatAmount, Never>
+}
+
+protocol SendAmountOutput: AnyObject {
+    func amountDidChanged(amount: CryptoFiatAmount)
 }
 
 class SendAmountViewModel: ObservableObject, Identifiable {
-    let walletName: String
-    let balance: String
-    let tokenIconInfo: TokenIconInfo
-    let currencyPickerDisabled: Bool
-    let cryptoIconURL: URL?
-    let cryptoCurrencyCode: String
-    let fiatIconURL: URL?
-    let fiatCurrencyCode: String
-    let fiatCurrencySymbol: String
-    let amountFractionDigits: Int
+    // MARK: - ViewState
+
+    @Published var animatingAuxiliaryViewsOnAppear: Bool = false
+
+    @Published var userWalletName: String
+    @Published var balance: String
+    @Published var tokenIconInfo: TokenIconInfo
+    @Published var currencyPickerData: SendCurrencyPickerData
 
     @Published var decimalNumberTextFieldViewModel: DecimalNumberTextField.ViewModel
-    @Published var useFiatCalculation = false
-    @Published var amountAlternative: String?
-    @Published var error: String?
-    @Published var animatingAuxiliaryViewsOnAppear = false
+    @Published var alternativeAmount: String?
 
-    var currentFieldOptions: SendDecimalNumberTextField.PrefixSuffixOptions {
-        useFiatCalculation ? fiatFieldOptions : cryptoFieldOptions
+    @Published var error: String?
+    @Published var currentFieldOptions: SendDecimalNumberTextField.PrefixSuffixOptions
+    @Published var amountType: AmountType = .crypto
+
+    var isFiatCalculation: BindingValue<Bool> {
+        .init(
+            root: self,
+            default: false,
+            get: { $0.amountType == .fiat },
+            set: { $0.amountType = $1 ? .fiat : .crypto }
+        )
     }
 
     var didProperlyDisappear = false
 
-    private weak var fiatCryptoAdapter: SendFiatCryptoAdapter?
+    // MARK: - Dependencies
 
-    private let input: SendAmountViewModelInput
-    private let cryptoFieldOptions: SendDecimalNumberTextField.PrefixSuffixOptions
-    private let fiatFieldOptions: SendDecimalNumberTextField.PrefixSuffixOptions
-    private let balanceValue: Decimal?
+    private let tokenItem: TokenItem
+    private let balanceValue: Decimal
+
+    private weak var input: SendAmountInput?
+    private weak var output: SendAmountOutput?
+    private let validator: SendAmountValidator
+    private let cryptoFiatAmountConverter: CryptoFiatAmountConverter
+    private let sendAmountFormatter: SendAmountFormatter
+    private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
+
     private var bag: Set<AnyCancellable> = []
 
-    init(input: SendAmountViewModelInput, fiatCryptoAdapter: SendFiatCryptoAdapter, walletInfo: SendWalletInfo) {
-        self.input = input
-        self.fiatCryptoAdapter = fiatCryptoAdapter
-        balanceValue = walletInfo.balanceValue
-        walletName = walletInfo.walletName
-        balance = walletInfo.balance
-        tokenIconInfo = walletInfo.tokenIconInfo
-        amountFractionDigits = walletInfo.amountFractionDigits
-        decimalNumberTextFieldViewModel = .init(maximumFractionDigits: walletInfo.amountFractionDigits)
+    init(
+        initial: SendAmountViewModel.Initital,
+        input: SendAmountInput,
+        output: SendAmountOutput,
+        validator: SendAmountValidator,
+        sendAmountFormatter: SendAmountFormatter,
+        cryptoFiatAmountConverter: CryptoFiatAmountConverter
+    ) {
+        userWalletName = initial.userWalletName
+        balance = initial.balanceFormatted
+        tokenIconInfo = initial.tokenIconInfo
+        currencyPickerData = initial.currencyPickerData
 
-        currencyPickerDisabled = !walletInfo.canUseFiatCalculation
-
-        cryptoIconURL = walletInfo.cryptoIconURL
-        cryptoCurrencyCode = walletInfo.cryptoCurrencyCode
-
-        let localizedCurrencySymbol = Locale.current.localizedCurrencySymbol(forCurrencyCode: walletInfo.fiatCurrencyCode)
-        fiatIconURL = walletInfo.fiatIconURL
-        fiatCurrencyCode = walletInfo.fiatCurrencyCode
-        fiatCurrencySymbol = localizedCurrencySymbol ?? walletInfo.fiatCurrencyCode
-
-        let factory = SendDecimalNumberTextField.PrefixSuffixOptionsFactory(
-            cryptoCurrencyCode: walletInfo.cryptoCurrencyCode,
-            fiatCurrencyCode: walletInfo.fiatCurrencyCode
+        prefixSuffixOptionsFactory = .init(
+            cryptoCurrencyCode: initial.tokenItem.currencySymbol,
+            fiatCurrencyCode: AppSettings.shared.selectedCurrencyCode
         )
-        cryptoFieldOptions = factory.makeCryptoOptions()
-        fiatFieldOptions = factory.makeFiatOptions()
+        currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
+        decimalNumberTextFieldViewModel = .init(maximumFractionDigits: initial.tokenItem.decimalCount)
 
-        bind(from: input)
+        tokenItem = initial.tokenItem
+        balanceValue = initial.balanceValue
+
+        self.input = input
+        self.output = output
+        self.validator = validator
+        self.cryptoFiatAmountConverter = cryptoFiatAmountConverter
+        self.sendAmountFormatter = sendAmountFormatter
+
+        bind()
     }
 
     func onAppear() {
-        fiatCryptoAdapter?.setCrypto(input.userInputAmountValue?.value)
-
         if animatingAuxiliaryViewsOnAppear {
             Analytics.log(.sendScreenReopened, params: [.source: .amount])
         } else {
@@ -88,67 +102,134 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         }
     }
 
-    func setUserInputAmount(_ userInputAmount: Decimal?) {
-        decimalNumberTextFieldViewModel.update(value: userInputAmount)
-    }
+    func userDidTapMaxAmount() {
+        let fiatValue = convertToFiat(value: balanceValue)
 
-    func didTapMaxAmount() {
-        guard let balanceValue else { return }
-
-        Analytics.log(.sendMaxAmountTapped)
-
-        provideButtonHapticFeedback()
-
-        fiatCryptoAdapter?.setCrypto(balanceValue)
-    }
-
-    private func bind(from input: SendAmountViewModelInput) {
-        input
-            .amountError
-            .map { $0?.localizedDescription }
-            .assign(to: \.error, on: self, ownership: .weak)
-            .store(in: &bag)
-
-        decimalNumberTextFieldViewModel
-            .valuePublisher
-            .sink { [weak self] decimal in
-                self?.fiatCryptoAdapter?.setAmount(decimal)
-            }
-            .store(in: &bag)
-
-        $useFiatCalculation
-            .dropFirst()
-            .removeDuplicates()
-            .withWeakCaptureOf(self)
-            .sink { viewModel, useFiatCalculation in
-                let maximumFractionDigits = useFiatCalculation ? 2 : viewModel.amountFractionDigits
-                viewModel.decimalNumberTextFieldViewModel.update(maximumFractionDigits: maximumFractionDigits)
-                viewModel.provideSelectionHapticFeedback()
-                viewModel.fiatCryptoAdapter?.setUseFiatCalculation(useFiatCalculation)
-            }
-            .store(in: &bag)
-
-        fiatCryptoAdapter?
-            .formattedAmountAlternativePublisher
-            .assign(to: \.amountAlternative, on: self, ownership: .weak)
-            .store(in: &bag)
-    }
-
-    private func provideButtonHapticFeedback() {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-    }
-
-    private func provideSelectionHapticFeedback() {
-        let generator = UISelectionFeedbackGenerator()
-        generator.selectionChanged()
+        switch amountType {
+        case .crypto:
+            decimalNumberTextFieldViewModel.update(value: balanceValue)
+            output?.amountDidChanged(amount: .typical(crypto: balanceValue, fiat: fiatValue))
+        case .fiat:
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+            output?.amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: balanceValue))
+        }
     }
 }
 
+// MARK: - Private
+
+private extension SendAmountViewModel {
+    func bind() {
+        $amountType
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .withWeakCaptureOf(self)
+            .sink { viewModel, amountType in
+                viewModel.update(amountType: amountType)
+            }
+            .store(in: &bag)
+
+        decimalNumberTextFieldViewModel.valuePublisher
+            .receive(on: DispatchQueue.main)
+            .withWeakCaptureOf(self)
+            .sink { viewModel, value in
+                viewModel.amountDidChanged(value: value)
+            }
+            .store(in: &bag)
+
+        input?
+            .amountPublisher()
+            .withWeakCaptureOf(self)
+            .map { viewModel, amount in
+                viewModel.sendAmountFormatter.formatAlternative(amount: amount)
+            }
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.alternativeAmount, on: self, ownership: .weak)
+            .store(in: &bag)
+    }
+
+    func amountDidChanged(value: Decimal?) {
+        switch amountType {
+        case .crypto:
+            let fiatValue = convertToFiat(value: value)
+            output?.amountDidChanged(amount: .typical(crypto: value, fiat: fiatValue))
+            validate(amount: value)
+        case .fiat:
+            let cryptoValue = convertToCrypto(value: value)
+            output?.amountDidChanged(amount: .alternative(fiat: value, crypto: cryptoValue))
+            validate(amount: cryptoValue)
+        }
+    }
+
+    func validate(amount: Decimal?) {
+        guard let amount else {
+            error = nil
+            return
+        }
+
+        do {
+            try validator.validate(amount: amount)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    func update(amountType: AmountType) {
+        switch amountType {
+        case .crypto:
+            currentFieldOptions = prefixSuffixOptionsFactory.makeCryptoOptions()
+            decimalNumberTextFieldViewModel.update(maximumFractionDigits: tokenItem.decimalCount)
+            let uiValue = decimalNumberTextFieldViewModel.value
+            let cryptoValue = convertToCrypto(value: uiValue)
+
+            decimalNumberTextFieldViewModel.update(value: cryptoValue)
+            output?.amountDidChanged(amount: .typical(crypto: cryptoValue, fiat: uiValue))
+        case .fiat:
+            currentFieldOptions = prefixSuffixOptionsFactory.makeFiatOptions()
+            decimalNumberTextFieldViewModel.update(maximumFractionDigits: 2)
+            let uiValue = decimalNumberTextFieldViewModel.value
+            let fiatValue = convertToFiat(value: uiValue)
+
+            decimalNumberTextFieldViewModel.update(value: fiatValue)
+            output?.amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: uiValue))
+        }
+    }
+
+    func convertToCrypto(value: Decimal?) -> Decimal? {
+        // If already have the converted the `crypto` amount associated with current `fiat` amount
+        if input?.amount.fiat == value {
+            return input?.amount.crypto
+        }
+
+        return cryptoFiatAmountConverter.convertToCrypto(value, tokenItem: tokenItem)
+    }
+
+    func convertToFiat(value: Decimal?) -> Decimal? {
+        // If already have the converted the `fiat` amount associated with current `crypto` amount
+        if input?.amount.crypto == value {
+            return input?.amount.fiat
+        }
+
+        return cryptoFiatAmountConverter.convertToFiat(value, tokenItem: tokenItem)
+    }
+}
+
+// MARK: - AuxiliaryViewAnimatable
+
 extension SendAmountViewModel: AuxiliaryViewAnimatable {}
 
-extension SendAmountViewModel: SendFiatCryptoAdapterInput {
-    var amountPublisher: AnyPublisher<Decimal?, Never> {
-        decimalNumberTextFieldViewModel.valuePublisher
+extension SendAmountViewModel {
+    enum AmountType: Hashable {
+        case crypto
+        case fiat
+    }
+
+    struct Initital {
+        let userWalletName: String
+        let tokenItem: TokenItem
+        let tokenIconInfo: TokenIconInfo
+        let balanceValue: Decimal
+        let balanceFormatted: String
+        let currencyPickerData: SendCurrencyPickerData
     }
 }

@@ -1445,6 +1445,8 @@
 		EFAD02492A8274D500E9B959 /* CoinsResponseMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAD02482A8274D500E9B959 /* CoinsResponseMapper.swift */; };
 		EFAD40AC2A976E7500364D65 /* TransactionListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAD40AB2A976E7500364D65 /* TransactionListItem.swift */; };
 		EFAD40B62A9CB22500364D65 /* SensitiveTextVisibilityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAD40B52A9CB22500364D65 /* SensitiveTextVisibilityViewModel.swift */; };
+		EFAECCF12C1B702D0051710F /* SendAmountValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAECCF02C1B702D0051710F /* SendAmountValidator.swift */; };
+		EFAECCF32C1B713D0051710F /* CryptoFiatAmount.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAECCF22C1B713D0051710F /* CryptoFiatAmount.swift */; };
 		EFAF63E92927CA63004B3227 /* Setupable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAF63E82927CA63004B3227 /* Setupable.swift */; };
 		EFB4C1322837C51700E991C1 /* TextHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB4C1312837C51700E991C1 /* TextHint.swift */; };
 		EFB6800E2B29BD4B00842BE3 /* SheetModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB6800D2B29BD4B00842BE3 /* SheetModifier.swift */; };
@@ -3188,6 +3190,8 @@
 		EFAD02482A8274D500E9B959 /* CoinsResponseMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinsResponseMapper.swift; sourceTree = "<group>"; };
 		EFAD40AB2A976E7500364D65 /* TransactionListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionListItem.swift; sourceTree = "<group>"; };
 		EFAD40B52A9CB22500364D65 /* SensitiveTextVisibilityViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitiveTextVisibilityViewModel.swift; sourceTree = "<group>"; };
+		EFAECCF02C1B702D0051710F /* SendAmountValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendAmountValidator.swift; sourceTree = "<group>"; };
+		EFAECCF22C1B713D0051710F /* CryptoFiatAmount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmount.swift; sourceTree = "<group>"; };
 		EFAF63E82927CA63004B3227 /* Setupable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Setupable.swift; sourceTree = "<group>"; };
 		EFB4C1312837C51700E991C1 /* TextHint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextHint.swift; sourceTree = "<group>"; };
 		EFB6800D2B29BD4B00842BE3 /* SheetModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetModifier.swift; sourceTree = "<group>"; };
@@ -6201,8 +6205,7 @@
 			children = (
 				DA559C2C2B0261F400F59584 /* SendAmountView.swift */,
 				DA559C2D2B0261F400F59584 /* SendAmountViewModel.swift */,
-				DAF3D58C2B3AD9050047D65F /* SendCurrencyPicker.swift */,
-				DA151FBF2C05B70600BB208D /* SendCryptoValueFormatter.swift */,
+				EFAECCEF2C1B6F760051710F /* SendCurrencyPicker */,
 				EF031A7D2C0DD234001535C9 /* Utils */,
 			);
 			path = Amount;
@@ -7145,7 +7148,10 @@
 		EF031A7D2C0DD234001535C9 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				DA151FBF2C05B70600BB208D /* SendCryptoValueFormatter.swift */,
 				EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */,
+				EFAECCF02C1B702D0051710F /* SendAmountValidator.swift */,
+				EFAECCF22C1B713D0051710F /* CryptoFiatAmount.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -8334,6 +8340,14 @@
 				EFAD40B52A9CB22500364D65 /* SensitiveTextVisibilityViewModel.swift */,
 			);
 			path = SensitiveTextVisibilityViewModel;
+			sourceTree = "<group>";
+		};
+		EFAECCEF2C1B6F760051710F /* SendCurrencyPicker */ = {
+			isa = PBXGroup;
+			children = (
+				DAF3D58C2B3AD9050047D65F /* SendCurrencyPicker.swift */,
+			);
+			path = SendCurrencyPicker;
 			sourceTree = "<group>";
 		};
 		EFB150572BD6B29E0023B128 /* UserWalletSettings */ = {
@@ -10300,6 +10314,7 @@
 				B046EE182578D38E00EA38A5 /* SceneDelegate.swift in Sources */,
 				DA7046172AAA180A00808FA8 /* LineChartView.swift in Sources */,
 				B06A828029C81E3A00B6160E /* SeedPhraseTextView.swift in Sources */,
+				EFAECCF32C1B713D0051710F /* CryptoFiatAmount.swift in Sources */,
 				DAF72F432B0F480A0006B44F /* SendFinishView.swift in Sources */,
 				DC51186128609F71004FB954 /* CardOperationRoutable.swift in Sources */,
 				B0B8670626DF60E7008DAA67 /* CardStackAnimator.swift in Sources */,
@@ -10669,6 +10684,7 @@
 				EF0295592A9DCDEE000B2142 /* SensitiveText.swift in Sources */,
 				DA8C67342B0B451F00E1C9B8 /* AmountSummaryViewData.swift in Sources */,
 				B0BDFD1D2A8B68B600479F53 /* NotificationViewInput.swift in Sources */,
+				EFAECCF12C1B702D0051710F /* SendAmountValidator.swift in Sources */,
 				5D51036D27C535AB0025EA55 /* ABIEncoder.swift in Sources */,
 				B6E932C32A2F2D860068D466 /* OrganizeTokensViewModel.swift in Sources */,
 				EF0DD7A12B02B3230099527D /* ExpressFeeRow.swift in Sources */,
