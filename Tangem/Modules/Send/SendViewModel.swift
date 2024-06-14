@@ -70,9 +70,9 @@ final class SendViewModel: ObservableObject {
     let sendSummaryViewModel: SendSummaryViewModel
 
     lazy var sendFinishViewModel: SendFinishViewModel? = factory.makeSendFinishViewModel(
+        amount: sendModel.amount,
         sendModel: sendModel,
         notificationManager: notificationManager,
-        fiatCryptoAdapter: fiatCryptoAdapter,
         addressTextViewHeightModel: addressTextViewHeightModel,
         feeTypeAnalyticsParameter: selectedFeeTypeAnalyticsParameter(),
         walletInfo: walletInfo
@@ -90,7 +90,7 @@ final class SendViewModel: ObservableObject {
     private let notificationManager: SendNotificationManager
     private let addressTextViewHeightModel: AddressTextViewHeightModel
     private let customFeeService: CustomFeeService?
-    private let fiatCryptoAdapter: CommonSendFiatCryptoAdapter
+//    private let fiatCryptoAdapter: CommonSendFiatCryptoAdapter
     private let sendStepParameters: SendStep.Parameters
     private let keyboardVisibilityService: KeyboardVisibilityService
     private let factory: SendModulesFactory
@@ -184,7 +184,7 @@ final class SendViewModel: ObservableObject {
         sendAmountViewModel = factory.makeSendAmountViewModel(
             input: sendModel,
             output: sendModel,
-            validator: factory.makeSendAmountFormatter() as! SendAmountValidator
+            validator: factory.makeSendAmountValidator()
         )
 
         sendDestinationViewModel = factory.makeSendDestinationViewModel(
@@ -200,10 +200,10 @@ final class SendViewModel: ObservableObject {
             customFeeService: customFeeService,
             walletInfo: walletInfo
         )
+
         sendSummaryViewModel = factory.makeSendSummaryViewModel(
             sendModel: sendModel,
             notificationManager: notificationManager,
-            fiatCryptoAdapter: fiatCryptoAdapter,
             addressTextViewHeightModel: addressTextViewHeightModel,
             walletInfo: walletInfo
         )
@@ -817,11 +817,11 @@ extension SendViewModel: NotificationTapDelegate {
             newAmount = newAmount - feeValue
         }
 
-        fiatCryptoAdapter.setCrypto(newAmount)
+        sendAmountViewModel.setExternalAmount(newAmount)
     }
 
     private func reduceAmountTo(_ amount: Decimal) {
-        fiatCryptoAdapter.setCrypto(amount)
+        sendAmountViewModel.setExternalAmount(amount)
     }
 }
 

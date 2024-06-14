@@ -57,7 +57,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     private weak var output: SendAmountOutput?
     private let validator: SendAmountValidator
     private let cryptoFiatAmountConverter: CryptoFiatAmountConverter
-    private let sendAmountFormatter: SendAmountFormatter
+    private let sendAmountFormatter: CryptoFiatAmountFormatter
     private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
 
     private var bag: Set<AnyCancellable> = []
@@ -67,7 +67,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         input: SendAmountInput,
         output: SendAmountOutput,
         validator: SendAmountValidator,
-        sendAmountFormatter: SendAmountFormatter,
+        sendAmountFormatter: CryptoFiatAmountFormatter,
         cryptoFiatAmountConverter: CryptoFiatAmountConverter
     ) {
         userWalletName = initial.userWalletName
@@ -113,6 +113,10 @@ class SendAmountViewModel: ObservableObject, Identifiable {
             decimalNumberTextFieldViewModel.update(value: fiatValue)
             output?.amountDidChanged(amount: .alternative(fiat: fiatValue, crypto: balanceValue))
         }
+    }
+
+    func setExternalAmount(_ amount: Decimal?) {
+        decimalNumberTextFieldViewModel.update(value: amount)
     }
 }
 

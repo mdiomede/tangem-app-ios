@@ -24,6 +24,8 @@ protocol SendSummaryViewModelInput: AnyObject {
     var selectedFeeOptionPublisher: AnyPublisher<FeeOption, Never> { get }
 
     var isSending: AnyPublisher<Bool, Never> { get }
+
+    func amountPublisher() -> AnyPublisher<CryptoFiatAmount, Never>
 }
 
 class SendSummaryViewModel: ObservableObject {
@@ -71,16 +73,23 @@ class SendSummaryViewModel: ObservableObject {
     private let input: SendSummaryViewModelInput
     private let walletInfo: SendWalletInfo
     private let notificationManager: SendNotificationManager
-    private let fiatCryptoValueProvider: SendFiatCryptoValueProvider
+    private let sendAmountFormatter: CryptoFiatAmountFormatter
     private var isVisible = false
 
     let addressTextViewHeightModel: AddressTextViewHeightModel
 
-    init(input: SendSummaryViewModelInput, notificationManager: SendNotificationManager, fiatCryptoValueProvider: SendFiatCryptoValueProvider, addressTextViewHeightModel: AddressTextViewHeightModel, walletInfo: SendWalletInfo, sectionViewModelFactory: SendSummarySectionViewModelFactory) {
+    init(
+        input: SendSummaryViewModelInput,
+        notificationManager: SendNotificationManager,
+        sendAmountFormatter: CryptoFiatAmountFormatter,
+        addressTextViewHeightModel: AddressTextViewHeightModel,
+        walletInfo: SendWalletInfo,
+        sectionViewModelFactory: SendSummarySectionViewModelFactory
+    ) {
         self.input = input
         self.walletInfo = walletInfo
         self.notificationManager = notificationManager
-        self.fiatCryptoValueProvider = fiatCryptoValueProvider
+        self.sendAmountFormatter = sendAmountFormatter
         self.addressTextViewHeightModel = addressTextViewHeightModel
         self.sectionViewModelFactory = sectionViewModelFactory
 
@@ -157,18 +166,20 @@ class SendSummaryViewModel: ObservableObject {
             .assign(to: \.destinationViewTypes, on: self)
             .store(in: &bag)
 
-        Publishers.CombineLatest(
-            fiatCryptoValueProvider.formattedAmountPublisher,
-            fiatCryptoValueProvider.formattedAmountAlternativePublisher
-        )
-        .compactMap { [weak self] formattedAmount, formattedAmountAlternative in
-            self?.sectionViewModelFactory.makeAmountViewData(
-                from: formattedAmount,
-                amountAlternative: formattedAmountAlternative
-            )
-        }
-        .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
-        .store(in: &bag)
+        input.amountPublisher()
+            .withWeakCaptureOf(self)
+            .map { viewModel, amount in
+                let formattedAmount = viewModel.sendAmountFormatter.format(amount: amount)
+                let formattedAlternativeAmount = viewModel.sendAmountFormatter.formatAlternative(amount: amount)
+
+                return viewModel.sectionViewModelFactory.makeAmountViewData(
+                    from: formattedAmount,
+                    amountAlternative: formattedAlternativeAmount
+                )
+            }
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
+            .store(in: &bag)
 
         Publishers.CombineLatest(input.feeValues, input.selectedFeeOptionPublisher)
             .sink { [weak self] feeValues, selectedFeeOption in

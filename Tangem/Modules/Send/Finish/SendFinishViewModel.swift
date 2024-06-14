@@ -35,7 +35,16 @@ class SendFinishViewModel: ObservableObject {
     private let feeTypeAnalyticsParameter: Analytics.ParameterValue
     private let walletInfo: SendWalletInfo
 
-    init?(input: SendFinishViewModelInput, fiatCryptoValueProvider: SendFiatCryptoValueProvider, addressTextViewHeightModel: AddressTextViewHeightModel, feeTypeAnalyticsParameter: Analytics.ParameterValue, walletInfo: SendWalletInfo, sectionViewModelFactory: SendSummarySectionViewModelFactory) {
+    init?(
+        initial: Initial,
+        input: SendFinishViewModelInput,
+        sendAmountFormatter: CryptoFiatAmountFormatter,
+        addressTextViewHeightModel: AddressTextViewHeightModel,
+        feeTypeAnalyticsParameter: Analytics.ParameterValue,
+        walletInfo: SendWalletInfo,
+        sectionViewModelFactory: SendSummarySectionViewModelFactory
+    ) {
+        // TODO: Move all logic into factory
         guard
             let destinationText = input.destinationText,
             let transactionTime = input.transactionTime,
@@ -48,10 +57,10 @@ class SendFinishViewModel: ObservableObject {
             address: destinationText,
             additionalField: input.additionalField
         )
-        amountSummaryViewData = sectionViewModelFactory.makeAmountViewData(
-            from: fiatCryptoValueProvider.formattedAmount,
-            amountAlternative: fiatCryptoValueProvider.formattedAmountAlternative
-        )
+
+        let formattedAmount = sendAmountFormatter.format(amount: initial.amount)
+        let formattedAmountAlternative = sendAmountFormatter.formatAlternative(amount: initial.amount)
+        amountSummaryViewData = sectionViewModelFactory.makeAmountViewData(from: formattedAmount, amountAlternative: formattedAmountAlternative)
         feeSummaryViewData = sectionViewModelFactory.makeFeeViewData(from: .loaded(feeValue), feeOption: input.selectedFeeOption)
 
         let formatter = DateFormatter()
@@ -73,5 +82,11 @@ class SendFinishViewModel: ObservableObject {
         withAnimation(SendView.Constants.defaultAnimation) {
             showHeader = true
         }
+    }
+}
+
+extension SendFinishViewModel {
+    struct Initial {
+        let amount: CryptoFiatAmount
     }
 }

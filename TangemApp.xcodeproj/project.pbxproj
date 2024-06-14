@@ -755,8 +755,6 @@
 		DA11F9842B2978CC0075F028 /* SendCustomFeeInputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA11F9822B2978CC0075F028 /* SendCustomFeeInputField.swift */; };
 		DA11F9852B2978CC0075F028 /* SendCustomFeeInputFieldModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA11F9832B2978CC0075F028 /* SendCustomFeeInputFieldModel.swift */; };
 		DA129DD5292B8EBB004291EC /* UserWalletEncryptionKeyFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA129DD4292B8EBB004291EC /* UserWalletEncryptionKeyFactory.swift */; };
-		DA151FBE2C058B6E00BB208D /* SendCryptoValueFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA151FBD2C058B6E00BB208D /* SendCryptoValueFormatterTests.swift */; };
-		DA151FC02C05B70600BB208D /* SendCryptoValueFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA151FBF2C05B70600BB208D /* SendCryptoValueFormatter.swift */; };
 		DA19D8C62B39AE3C001C91C4 /* QRCodeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA19D8C52B39AE3C001C91C4 /* QRCodeParser.swift */; };
 		DA19D8C82B39AE6C001C91C4 /* QRCodeParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA19D8C72B39AE6B001C91C4 /* QRCodeParserTests.swift */; };
 		DA19DBD229477E7C00E43675 /* ContinuousCornerRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA19DBD129477E7C00E43675 /* ContinuousCornerRadius.swift */; };
@@ -776,10 +774,6 @@
 		DA1DF0612BA4630D008310E4 /* FormattedFeeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA1DF0602BA4630D008310E4 /* FormattedFeeComponents.swift */; };
 		DA28D57D290AAE2000F0C335 /* ScrollView+.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA28D57C290AAE2000F0C335 /* ScrollView+.swift */; };
 		DA34BDF52B26F1AD00F606C2 /* SendWalletInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA34BDF42B26F1AD00F606C2 /* SendWalletInfo.swift */; };
-		DA393F522BACA05A00735B41 /* SendFiatCryptoAdapterMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA393F512BACA05A00735B41 /* SendFiatCryptoAdapterMock.swift */; };
-		DA393F542BACA29D00735B41 /* SendFiatCryptoAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA393F532BACA29D00735B41 /* SendFiatCryptoAdapter.swift */; };
-		DA393F572BAD642C00735B41 /* SendFiatCryptoValueProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA393F562BAD642C00735B41 /* SendFiatCryptoValueProvider.swift */; };
-		DA393F592BAD661500735B41 /* SendFiatCryptoValueProviderMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA393F582BAD661500735B41 /* SendFiatCryptoValueProviderMock.swift */; };
 		DA4055252ABDD3A300353F8A /* AddCustomTokenNetworksListItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4055202ABDD3A300353F8A /* AddCustomTokenNetworksListItemViewModel.swift */; };
 		DA4055262ABDD3A300353F8A /* AddCustomTokenNetworksListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4055212ABDD3A300353F8A /* AddCustomTokenNetworksListItemView.swift */; };
 		DA4055272ABDD3A300353F8A /* AddCustomTokenNetworkSelectorDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4055222ABDD3A300353F8A /* AddCustomTokenNetworkSelectorDelegate.swift */; };
@@ -917,7 +911,6 @@
 		DAE324162B986F9A00C5D335 /* SendAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE324152B986F9A00C5D335 /* SendAddress.swift */; };
 		DAE6F76D2800011400411F45 /* AppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE6F76C2800011400411F45 /* AppError.swift */; };
 		DAF1EB9B2A9F83EF00467490 /* KingfisherImageProcessors.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF1EB9A2A9F83EF00467490 /* KingfisherImageProcessors.swift */; };
-		DAF1FE6A2B8E1513009FDBDA /* CommonSendFiatCryptoAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF1FE692B8E1513009FDBDA /* CommonSendFiatCryptoAdapter.swift */; };
 		DAF3D58D2B3AD9050047D65F /* SendCurrencyPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF3D58C2B3AD9050047D65F /* SendCurrencyPicker.swift */; };
 		DAF59CC12ACC4D8C004FCA86 /* AddCustomTokenDerivationOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF59CBB2ACC4D8C004FCA86 /* AddCustomTokenDerivationOption.swift */; };
 		DAF59CC22ACC4D8C004FCA86 /* AddCustomTokenDerivationPathSelectorItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAF59CBC2ACC4D8C004FCA86 /* AddCustomTokenDerivationPathSelectorItemViewModel.swift */; };
@@ -1482,6 +1475,7 @@
 		EFE7D57B2AA209990047D93A /* TokenQuote.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE7D57A2AA209990047D93A /* TokenQuote.swift */; };
 		EFE7D57E2AA20E2B0047D93A /* TokenPriceChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE7D57D2AA20E2B0047D93A /* TokenPriceChangeView.swift */; };
 		EFE7D5842AA224C50047D93A /* FetchMore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE7D5832AA224C50047D93A /* FetchMore.swift */; };
+		EFE831062C1C50E3000FB729 /* CryptoFiatAmountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE831052C1C50E3000FB729 /* CryptoFiatAmountFormatter.swift */; };
 		EFEBCE2B29265CF300B0C886 /* TokenIconInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEBCE2A29265CF300B0C886 /* TokenIconInfo.swift */; };
 		EFEE22BA2BFCE3D10099917E /* WithdrawalNotificationEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEE22B92BFCE3D10099917E /* WithdrawalNotificationEvent.swift */; };
 		EFEE22BC2BFCE44B0099917E /* ValidationErrorEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEE22BB2BFCE44B0099917E /* ValidationErrorEvent.swift */; };
@@ -2486,8 +2480,6 @@
 		DA11F9822B2978CC0075F028 /* SendCustomFeeInputField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendCustomFeeInputField.swift; sourceTree = "<group>"; };
 		DA11F9832B2978CC0075F028 /* SendCustomFeeInputFieldModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendCustomFeeInputFieldModel.swift; sourceTree = "<group>"; };
 		DA129DD4292B8EBB004291EC /* UserWalletEncryptionKeyFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserWalletEncryptionKeyFactory.swift; sourceTree = "<group>"; };
-		DA151FBD2C058B6E00BB208D /* SendCryptoValueFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendCryptoValueFormatterTests.swift; sourceTree = "<group>"; };
-		DA151FBF2C05B70600BB208D /* SendCryptoValueFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendCryptoValueFormatter.swift; sourceTree = "<group>"; };
 		DA19D8C52B39AE3C001C91C4 /* QRCodeParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QRCodeParser.swift; sourceTree = "<group>"; };
 		DA19D8C72B39AE6B001C91C4 /* QRCodeParserTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QRCodeParserTests.swift; sourceTree = "<group>"; };
 		DA19DBD129477E7C00E43675 /* ContinuousCornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousCornerRadius.swift; sourceTree = "<group>"; };
@@ -2507,10 +2499,6 @@
 		DA1DF0602BA4630D008310E4 /* FormattedFeeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattedFeeComponents.swift; sourceTree = "<group>"; };
 		DA28D57C290AAE2000F0C335 /* ScrollView+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScrollView+.swift"; sourceTree = "<group>"; };
 		DA34BDF42B26F1AD00F606C2 /* SendWalletInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendWalletInfo.swift; sourceTree = "<group>"; };
-		DA393F512BACA05A00735B41 /* SendFiatCryptoAdapterMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFiatCryptoAdapterMock.swift; sourceTree = "<group>"; };
-		DA393F532BACA29D00735B41 /* SendFiatCryptoAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFiatCryptoAdapter.swift; sourceTree = "<group>"; };
-		DA393F562BAD642C00735B41 /* SendFiatCryptoValueProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFiatCryptoValueProvider.swift; sourceTree = "<group>"; };
-		DA393F582BAD661500735B41 /* SendFiatCryptoValueProviderMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFiatCryptoValueProviderMock.swift; sourceTree = "<group>"; };
 		DA4055202ABDD3A300353F8A /* AddCustomTokenNetworksListItemViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenNetworksListItemViewModel.swift; sourceTree = "<group>"; };
 		DA4055212ABDD3A300353F8A /* AddCustomTokenNetworksListItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenNetworksListItemView.swift; sourceTree = "<group>"; };
 		DA4055222ABDD3A300353F8A /* AddCustomTokenNetworkSelectorDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenNetworkSelectorDelegate.swift; sourceTree = "<group>"; };
@@ -2654,7 +2642,6 @@
 		DAE324152B986F9A00C5D335 /* SendAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendAddress.swift; sourceTree = "<group>"; };
 		DAE6F76C2800011400411F45 /* AppError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppError.swift; sourceTree = "<group>"; };
 		DAF1EB9A2A9F83EF00467490 /* KingfisherImageProcessors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KingfisherImageProcessors.swift; sourceTree = "<group>"; };
-		DAF1FE692B8E1513009FDBDA /* CommonSendFiatCryptoAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSendFiatCryptoAdapter.swift; sourceTree = "<group>"; };
 		DAF3D58C2B3AD9050047D65F /* SendCurrencyPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendCurrencyPicker.swift; sourceTree = "<group>"; };
 		DAF59CBB2ACC4D8C004FCA86 /* AddCustomTokenDerivationOption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenDerivationOption.swift; sourceTree = "<group>"; };
 		DAF59CBC2ACC4D8C004FCA86 /* AddCustomTokenDerivationPathSelectorItemViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddCustomTokenDerivationPathSelectorItemViewModel.swift; sourceTree = "<group>"; };
@@ -3227,6 +3214,7 @@
 		EFE7D57A2AA209990047D93A /* TokenQuote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenQuote.swift; sourceTree = "<group>"; };
 		EFE7D57D2AA20E2B0047D93A /* TokenPriceChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenPriceChangeView.swift; sourceTree = "<group>"; };
 		EFE7D5832AA224C50047D93A /* FetchMore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchMore.swift; sourceTree = "<group>"; };
+		EFE831052C1C50E3000FB729 /* CryptoFiatAmountFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFiatAmountFormatter.swift; sourceTree = "<group>"; };
 		EFEBCE2A29265CF300B0C886 /* TokenIconInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenIconInfo.swift; sourceTree = "<group>"; };
 		EFEE22B92BFCE3D10099917E /* WithdrawalNotificationEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawalNotificationEvent.swift; sourceTree = "<group>"; };
 		EFEE22BB2BFCE44B0099917E /* ValidationErrorEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationErrorEvent.swift; sourceTree = "<group>"; };
@@ -3757,7 +3745,6 @@
 				5D3F77DC24BF56DC00E8695B /* TangemTests.swift */,
 				DC4BF174298A4B810052EC19 /* IncomingActionsTests.swift */,
 				EF6221B2292B5FCD00D1D4A0 /* DecimalNumberFormatterTests.swift */,
-				DA151FBD2C058B6E00BB208D /* SendCryptoValueFormatterTests.swift */,
 				5D51037A27C53E6E0025EA55 /* EIP712TypedDataTests.swift */,
 				DA19D8C72B39AE6B001C91C4 /* QRCodeParserTests.swift */,
 				5D20811427D23DED00D8A970 /* EIP712Data */,
@@ -6114,16 +6101,6 @@
 			path = AddCustomToken;
 			sourceTree = "<group>";
 		};
-		DA393F552BAD641A00735B41 /* FiatCrypto */ = {
-			isa = PBXGroup;
-			children = (
-				DA393F532BACA29D00735B41 /* SendFiatCryptoAdapter.swift */,
-				DA393F562BAD642C00735B41 /* SendFiatCryptoValueProvider.swift */,
-				DAF1FE692B8E1513009FDBDA /* CommonSendFiatCryptoAdapter.swift */,
-			);
-			path = FiatCrypto;
-			sourceTree = "<group>";
-		};
 		DA40551F2ABDD3A300353F8A /* AddCustomTokenNetworkSelector */ = {
 			isa = PBXGroup;
 			children = (
@@ -6234,8 +6211,6 @@
 				DA559C482B02622600F59584 /* SendAmountViewModelInputMock.swift */,
 				DA559C492B02622600F59584 /* SendSummaryRoutableMock.swift */,
 				DAF72F452B0F49800006B44F /* SendFinishViewModelInputMock.swift */,
-				DA393F512BACA05A00735B41 /* SendFiatCryptoAdapterMock.swift */,
-				DA393F582BAD661500735B41 /* SendFiatCryptoValueProviderMock.swift */,
 			);
 			path = Send;
 			sourceTree = "<group>";
@@ -6437,7 +6412,6 @@
 			isa = PBXGroup;
 			children = (
 				EF031A632C0A32AB001535C9 /* Namespace */,
-				DA393F552BAD641A00735B41 /* FiatCrypto */,
 				DA7B2C4E2B6B893500FB9622 /* SendNotifications */,
 				DA1D3B6F2B56C7DC00247393 /* QRScanView */,
 				DA559C2E2B0261F400F59584 /* Destination */,
@@ -7148,10 +7122,10 @@
 		EF031A7D2C0DD234001535C9 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				DA151FBF2C05B70600BB208D /* SendCryptoValueFormatter.swift */,
 				EF031A7E2C0DD243001535C9 /* CryptoFiatAmountConverter.swift */,
 				EFAECCF02C1B702D0051710F /* SendAmountValidator.swift */,
 				EFAECCF22C1B713D0051710F /* CryptoFiatAmount.swift */,
+				EFE831052C1C50E3000FB729 /* CryptoFiatAmountFormatter.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -9511,7 +9485,6 @@
 				B06ADFD829B9CEEC00E92E5E /* OnboardingSeedPhraseGenerateView.swift in Sources */,
 				2D788E872ADD657000E0884B /* WalletSelectorItemView.swift in Sources */,
 				B6C4D7342B1A74DB0084AF1E /* BottomScrollableSheetState.swift in Sources */,
-				DA393F542BACA29D00735B41 /* SendFiatCryptoAdapter.swift in Sources */,
 				B06ADFDB29BAFA4600E92E5E /* SeedPhraseManager.swift in Sources */,
 				EF1E17302BF64224000364AE /* SettingsUserWalletRowViewModel.swift in Sources */,
 				DC22535728A4F5BF0094F30C /* GenericDemoConfig.swift in Sources */,
@@ -9570,7 +9543,6 @@
 				B0C4F77F26F0C0BF0086D815 /* TransitionWithoutOpacity.swift in Sources */,
 				EF0DD7A32B02B5C00099527D /* ExpressFeeRowData.swift in Sources */,
 				DC0A57D92822A3C80031BECC /* InjectedWrapper.swift in Sources */,
-				DA393F522BACA05A00735B41 /* SendFiatCryptoAdapterMock.swift in Sources */,
 				DAF59CC22ACC4D8C004FCA86 /* AddCustomTokenDerivationPathSelectorItemViewModel.swift in Sources */,
 				DC7DA8192844EAFF00AD6DBD /* WelcomeCoordinator.swift in Sources */,
 				B0CAE5A92AAB193300670C2B /* SingleTokenRoutableMock.swift in Sources */,
@@ -9765,7 +9737,6 @@
 				EF56B3D12A03AFDB002CCE27 /* DefaultMenuRowViewModel.swift in Sources */,
 				B00D7150258A1B6C00A9442C /* JsonUtils.swift in Sources */,
 				B6ACD00A2AD698B4005A6CA3 /* DragAndDropGestureView.swift in Sources */,
-				DAF1FE6A2B8E1513009FDBDA /* CommonSendFiatCryptoAdapter.swift in Sources */,
 				5DFE855724EF051400194106 /* Error+.swift in Sources */,
 				DC261CB6292CF6B700875E64 /* UncompletedBackupViewModel.swift in Sources */,
 				B0BDF9BC2B4D3D9C00EEBE4F /* MainHeaderBalanceFormatter.swift in Sources */,
@@ -10060,7 +10031,6 @@
 				EF08A0F1283D2382008BD923 /* CoinsList.swift in Sources */,
 				B68E5E7F2A9526BD00216281 /* SectionModel.swift in Sources */,
 				DC3DCAE52A41FA6A00F72554 /* KeysRepository.swift in Sources */,
-				DA393F592BAD661500735B41 /* SendFiatCryptoValueProviderMock.swift in Sources */,
 				DAB19D4A2B2C72A100DD08C4 /* AddCustomTokenView.swift in Sources */,
 				B0DCC81B2A8A1B4900D85E53 /* NotificationsFactory.swift in Sources */,
 				DCC5C99E2C136EFD001B970A /* OnboardingPushNotificationsDelegateStub.swift in Sources */,
@@ -10223,7 +10193,6 @@
 				DA5044E32ABACA6600D1E5CF /* MarketPriceView.swift in Sources */,
 				EF5A5AD028D86089002544AC /* TotalBalanceProviding.swift in Sources */,
 				B6E9A8C92A9A410A005CF137 /* CardsInfoPagerView+.swift in Sources */,
-				DA393F572BAD642C00735B41 /* SendFiatCryptoValueProvider.swift in Sources */,
 				B0323F2C258C041D005C7CD5 /* SignerUtils.swift in Sources */,
 				5DBBAB0824D850EA00E78F1C /* CircleView.swift in Sources */,
 				DC3B49F62893E51B00C207EA /* UserWalletConfig.swift in Sources */,
@@ -10471,7 +10440,6 @@
 				B0CFD6CB2A027E2E009DF4D5 /* TokenQuotesRepository.swift in Sources */,
 				5D9004E424FA79F700E90939 /* ViewStateHandler.swift in Sources */,
 				DA7859E12AB0451F004FAE04 /* GenerateAddressesView.swift in Sources */,
-				DA151FC02C05B70600BB208D /* SendCryptoValueFormatter.swift in Sources */,
 				EFAD40B62A9CB22500364D65 /* SensitiveTextVisibilityViewModel.swift in Sources */,
 				DAF97FC92BAAF2CC006D9A44 /* Locale+.swift in Sources */,
 				6596AD4B28738F0100508D0A /* WarningBankCardViewModel.swift in Sources */,
@@ -10732,6 +10700,7 @@
 				B0B335E329FA9EB800E2082E /* BalanceFormattingOptions.swift in Sources */,
 				DCFCA17528F4232F0037586C /* Array+.swift in Sources */,
 				B69E7FC62B21C0F200B78D9A /* RateAppService.swift in Sources */,
+				EFE831062C1C50E3000FB729 /* CryptoFiatAmountFormatter.swift in Sources */,
 				B0AF2DF42B1DF29F001A8696 /* PendingExpressTransactionsConverter.swift in Sources */,
 				EF5D83DB2B0B7A2B00516B5F /* ExpressSuccessSentRoutable.swift in Sources */,
 				EFA6B044295334AF0090A92F /* ResetToFactoryView.swift in Sources */,
@@ -10812,7 +10781,6 @@
 				0A1992A62B5FBDF800344312 /* CurrencyTests.swift in Sources */,
 				EF6221B3292B5FCD00D1D4A0 /* DecimalNumberFormatterTests.swift in Sources */,
 				DC7AC96A292BE2C900580668 /* TangemTests.swift in Sources */,
-				DA151FBE2C058B6E00BB208D /* SendCryptoValueFormatterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

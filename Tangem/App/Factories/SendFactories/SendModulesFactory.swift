@@ -104,7 +104,7 @@ struct SendModulesFactory {
             input: input,
             output: output,
             validator: validator,
-            sendAmountFormatter: makeSendAmountFormatter(),
+            sendAmountFormatter: makeCryptoFiatAmountFormatter(),
             cryptoFiatAmountConverter: makeCryptoFiatAmountConverter()
         )
     }
@@ -126,14 +126,13 @@ struct SendModulesFactory {
     func makeSendSummaryViewModel(
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
-        fiatCryptoAdapter: CommonSendFiatCryptoAdapter,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         walletInfo: SendWalletInfo
     ) -> SendSummaryViewModel {
         return SendSummaryViewModel(
             input: sendModel,
             notificationManager: notificationManager,
-            fiatCryptoValueProvider: fiatCryptoAdapter,
+            sendAmountFormatter: makeCryptoFiatAmountFormatter(),
             addressTextViewHeightModel: addressTextViewHeightModel,
             walletInfo: walletInfo,
             sectionViewModelFactory: makeSendSummarySectionViewModelFactory(walletInfo: walletInfo)
@@ -141,16 +140,19 @@ struct SendModulesFactory {
     }
 
     func makeSendFinishViewModel(
+        amount: CryptoFiatAmount,
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
-        fiatCryptoAdapter: CommonSendFiatCryptoAdapter,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         feeTypeAnalyticsParameter: Analytics.ParameterValue,
         walletInfo: SendWalletInfo
     ) -> SendFinishViewModel? {
+        let initial = SendFinishViewModel.Initial(amount: amount)
+
         return SendFinishViewModel(
+            initial: initial,
             input: sendModel,
-            fiatCryptoValueProvider: fiatCryptoAdapter,
+            sendAmountFormatter: makeCryptoFiatAmountFormatter(),
             addressTextViewHeightModel: addressTextViewHeightModel,
             feeTypeAnalyticsParameter: feeTypeAnalyticsParameter,
             walletInfo: walletInfo,
@@ -228,8 +230,8 @@ struct SendModulesFactory {
         return validator
     }
 
-    func makeSendAmountFormatter() -> SendAmountFormatter {
-        SendAmountFormatter(tokenItem: tokenItem)
+    func makeCryptoFiatAmountFormatter() -> CryptoFiatAmountFormatter {
+        CryptoFiatAmountFormatter(currencySymbol: tokenItem.currencySymbol)
     }
 
     func makeSendAmountValidator() -> SendAmountValidator {
