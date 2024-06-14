@@ -12,6 +12,8 @@ import BlockchainSdk
 
 class SendAmountInputMock: SendAmountInput {
     var amount: CryptoFiatAmount? { .none }
+}
 
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never> { .just(output: .none) }
+class SendAmountOutputMock: SendAmountOutput {
+    func amountDidChanged(amount: CryptoFiatAmount?) {}
 }

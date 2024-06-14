@@ -90,7 +90,6 @@ final class SendViewModel: ObservableObject {
     private let notificationManager: SendNotificationManager
     private let addressTextViewHeightModel: AddressTextViewHeightModel
     private let customFeeService: CustomFeeService?
-//    private let fiatCryptoAdapter: CommonSendFiatCryptoAdapter
     private let sendStepParameters: SendStep.Parameters
     private let keyboardVisibilityService: KeyboardVisibilityService
     private let factory: SendModulesFactory

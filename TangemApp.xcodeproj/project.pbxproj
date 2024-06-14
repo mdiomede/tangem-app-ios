@@ -819,7 +819,7 @@
 		DA559C4B2B02622600F59584 /* SendFeeViewModelInputMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C452B02622600F59584 /* SendFeeViewModelInputMock.swift */; };
 		DA559C4C2B02622600F59584 /* SendSummaryViewModelInputMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C462B02622600F59584 /* SendSummaryViewModelInputMock.swift */; };
 		DA559C4D2B02622600F59584 /* SendDestinationViewModelInputMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C472B02622600F59584 /* SendDestinationViewModelInputMock.swift */; };
-		DA559C4E2B02622600F59584 /* SendAmountViewModelInputMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C482B02622600F59584 /* SendAmountViewModelInputMock.swift */; };
+		DA559C4E2B02622600F59584 /* SendAmountInputMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C482B02622600F59584 /* SendAmountInputMock.swift */; };
 		DA559C4F2B02622600F59584 /* SendSummaryRoutableMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C492B02622600F59584 /* SendSummaryRoutableMock.swift */; };
 		DA559C522B0265E700F59584 /* SendDestinationTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C502B0265E700F59584 /* SendDestinationTextView.swift */; };
 		DA559C532B0265E700F59584 /* SendDestinationTextViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA559C512B0265E700F59584 /* SendDestinationTextViewModel.swift */; };
@@ -2544,7 +2544,7 @@
 		DA559C452B02622600F59584 /* SendFeeViewModelInputMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendFeeViewModelInputMock.swift; sourceTree = "<group>"; };
 		DA559C462B02622600F59584 /* SendSummaryViewModelInputMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendSummaryViewModelInputMock.swift; sourceTree = "<group>"; };
 		DA559C472B02622600F59584 /* SendDestinationViewModelInputMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendDestinationViewModelInputMock.swift; sourceTree = "<group>"; };
-		DA559C482B02622600F59584 /* SendAmountViewModelInputMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendAmountViewModelInputMock.swift; sourceTree = "<group>"; };
+		DA559C482B02622600F59584 /* SendAmountInputMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendAmountInputMock.swift; sourceTree = "<group>"; };
 		DA559C492B02622600F59584 /* SendSummaryRoutableMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendSummaryRoutableMock.swift; sourceTree = "<group>"; };
 		DA559C502B0265E700F59584 /* SendDestinationTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendDestinationTextView.swift; sourceTree = "<group>"; };
 		DA559C512B0265E700F59584 /* SendDestinationTextViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendDestinationTextViewModel.swift; sourceTree = "<group>"; };
@@ -6208,7 +6208,7 @@
 				DA559C452B02622600F59584 /* SendFeeViewModelInputMock.swift */,
 				DA559C462B02622600F59584 /* SendSummaryViewModelInputMock.swift */,
 				DA559C472B02622600F59584 /* SendDestinationViewModelInputMock.swift */,
-				DA559C482B02622600F59584 /* SendAmountViewModelInputMock.swift */,
+				DA559C482B02622600F59584 /* SendAmountInputMock.swift */,
 				DA559C492B02622600F59584 /* SendSummaryRoutableMock.swift */,
 				DAF72F452B0F49800006B44F /* SendFinishViewModelInputMock.swift */,
 			);
@@ -9668,7 +9668,7 @@
 				B04BA23426F0837C0036784C /* OnboardingTopupLayoutCalculator.swift in Sources */,
 				B06C084E2A73FB4D00D982BC /* MainView.swift in Sources */,
 				DC5DBBC9289B951600C21E35 /* DemoUtil.swift in Sources */,
-				DA559C4E2B02622600F59584 /* SendAmountViewModelInputMock.swift in Sources */,
+				DA559C4E2B02622600F59584 /* SendAmountInputMock.swift in Sources */,
 				EFD39C982A6A916C0055D215 /* EnvironmentSetupCoordinatorView.swift in Sources */,
 				5D6784E425EBC94B00149995 /* Blockchain+.swift in Sources */,
 				5DD95B8C24FA959C00E6B9D0 /* VerticalAlignment+.swift in Sources */,
