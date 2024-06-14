@@ -11,8 +11,7 @@ import Combine
 import BlockchainSdk
 
 class SendAmountInputMock: SendAmountInput {
-    var amount: CryptoFiatAmount { .empty }
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount, Never> {
-        .just(output: amount)
-    }
+    var amount: CryptoFiatAmount? { .none }
+
+    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never> { .just(output: .none) }
 }

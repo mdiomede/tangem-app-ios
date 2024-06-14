@@ -17,8 +17,6 @@ enum CryptoFiatAmount: Hashable {
     case typical(crypto: Decimal?, fiat: Decimal?)
     case alternative(fiat: Decimal?, crypto: Decimal?)
 
-    static let empty: CryptoFiatAmount = .typical(crypto: nil, fiat: nil)
-
     var fiat: Decimal? {
         switch self {
         case .typical(_, let fiat): fiat

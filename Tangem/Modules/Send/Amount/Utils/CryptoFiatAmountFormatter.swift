@@ -24,25 +24,25 @@ struct CryptoFiatAmountFormatter {
         self.balanceFormatter = balanceFormatter
     }
 
-    func format(amount: CryptoFiatAmount) -> String? {
+    func format(amount: CryptoFiatAmount?) -> String? {
         switch amount {
-        case .empty:
+        case .none:
             return nil
-        case .typical(let cachedCrypto, _):
-            return balanceFormatter.formatCryptoBalance(cachedCrypto, currencyCode: currencySymbol, formattingOptions: formattingOptions)
-        case .alternative(let cachedFiat, _):
-            return balanceFormatter.formatFiatBalance(cachedFiat)
+        case .typical(let crypto, _):
+            return balanceFormatter.formatCryptoBalance(crypto, currencyCode: currencySymbol, formattingOptions: formattingOptions)
+        case .alternative(let fiat, _):
+            return fiat.map { balanceFormatter.formatFiatBalance($0) }
         }
     }
 
-    func formatAlternative(amount: CryptoFiatAmount) -> String? {
+    func formatAlternative(amount: CryptoFiatAmount?) -> String? {
         switch amount {
-        case .empty:
+        case .none:
             return nil
-        case .typical(_, let cachedFiat):
-            return balanceFormatter.formatFiatBalance(cachedFiat)
-        case .alternative(_, let cachedCrypto):
-            return balanceFormatter.formatCryptoBalance(cachedCrypto, currencyCode: currencySymbol, formattingOptions: formattingOptions)
+        case .typical(_, let fiat):
+            return fiat.map { balanceFormatter.formatFiatBalance($0) }
+        case .alternative(_, let crypto):
+            return balanceFormatter.formatCryptoBalance(crypto, currencyCode: currencySymbol, formattingOptions: formattingOptions)
         }
     }
 }

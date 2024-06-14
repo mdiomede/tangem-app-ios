@@ -151,7 +151,6 @@ final class SendViewModel: ObservableObject {
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
         customFeeService: CustomFeeService?,
-//        fiatCryptoAdapter: CommonSendFiatCryptoAdapter,
         keyboardVisibilityService: KeyboardVisibilityService,
         factory: SendModulesFactory,
         processor: SendDestinationProcessor,
@@ -166,7 +165,6 @@ final class SendViewModel: ObservableObject {
         self.sendModel = sendModel
         self.notificationManager = notificationManager
         self.customFeeService = customFeeService
-//        self.fiatCryptoAdapter = fiatCryptoAdapter
         self.keyboardVisibilityService = keyboardVisibilityService
         self.processor = processor
         self.factory = factory
@@ -184,7 +182,8 @@ final class SendViewModel: ObservableObject {
         sendAmountViewModel = factory.makeSendAmountViewModel(
             input: sendModel,
             output: sendModel,
-            validator: factory.makeSendAmountValidator()
+            validator: factory.makeSendAmountValidator(),
+            sendType: sendType
         )
 
         sendDestinationViewModel = factory.makeSendDestinationViewModel(
@@ -207,10 +206,6 @@ final class SendViewModel: ObservableObject {
             addressTextViewHeightModel: addressTextViewHeightModel,
             walletInfo: walletInfo
         )
-
-//        fiatCryptoAdapter.setAmount(sendType.predefinedAmount?.value)
-//        fiatCryptoAdapter.setInput(sendAmountViewModel)
-//        fiatCryptoAdapter.setOutput(sendModel)
 
         sendFeeViewModel.router = coordinator
         sendSummaryViewModel.router = self
@@ -789,7 +784,7 @@ extension SendViewModel: NotificationTapDelegate {
         case .leaveAmount(let amount, _):
             reduceAmountBy(amount, from: walletInfo.balanceValue)
         case .reduceAmountBy(let amount, _):
-            reduceAmountBy(amount, from: sendModel.amount.crypto) // TODO: Check it
+            reduceAmountBy(amount, from: sendModel.amount?.crypto)
         case .reduceAmountTo(let amount, _):
             reduceAmountTo(amount)
         case .generateAddresses,

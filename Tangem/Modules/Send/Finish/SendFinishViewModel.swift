@@ -87,6 +87,6 @@ class SendFinishViewModel: ObservableObject {
 
 extension SendFinishViewModel {
     struct Initial {
-        let amount: CryptoFiatAmount
+        let amount: CryptoFiatAmount?
     }
 }

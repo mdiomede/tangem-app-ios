@@ -24,7 +24,7 @@ class SendModel {
     }
 
     var amountValid: AnyPublisher<Bool, Never> {
-        _amount.map { $0 != .empty }.eraseToAnyPublisher()
+        _amount.map { $0 != nil }.eraseToAnyPublisher()
     }
 
     var feeValid: AnyPublisher<Bool, Never> {
@@ -46,10 +46,6 @@ class SendModel {
             .eraseToAnyPublisher()
     }
 
-//    var validatedAmountValue: Amount? {
-//        validatedAmount.value
-//    }
-
     var destinationPublisher: AnyPublisher<SendAddress?, Never> {
         _destination.eraseToAnyPublisher()
     }
@@ -58,9 +54,8 @@ class SendModel {
 
     private let _destination: CurrentValueSubject<SendAddress?, Never>
     private let _destinationAdditionalField: CurrentValueSubject<DestinationAdditionalFieldType, Never>
-    private let _amount = CurrentValueSubject<CryptoFiatAmount, Never>(.empty)
+    private let _amount = CurrentValueSubject<CryptoFiatAmount?, Never>(nil)
 
-//    private let validatedAmount = CurrentValueSubject<Amount?, Never>(nil)
     private let fee = CurrentValueSubject<Fee?, Never>(nil)
 
     private let _transactionCreationError = CurrentValueSubject<Error?, Never>(nil)
@@ -108,11 +103,8 @@ class SendModel {
         self.transactionSigner = transactionSigner
         self.sendType = sendType
 
-        if let destination = sendType.predefinedDestination {
-            _destination = .init(SendAddress(value: destination, source: .sellProvider))
-        } else {
-            _destination = .init(nil)
-        }
+        let destination = sendType.predefinedDestination.map { SendAddress(value: $0, source: .sellProvider) }
+        _destination = .init(destination)
 
         let fields = SendAdditionalFields.fields(for: walletModel.blockchainNetwork.blockchain)
         let type = fields.map { DestinationAdditionalFieldType.empty(type: $0) } ?? .notSupported
@@ -120,32 +112,20 @@ class SendModel {
 
         bind()
 
-//        if let amount = sendType.predefinedAmount {
-//            setAmount(amount)
-//            updateAndValidateAmount(amount)
-//        }
-
         // Update the fees in case we have all prerequisites specified
-//        if let predefinedDestination = sendType.predefinedDestination {
-//            updateFees(amount: validatedAmountValue, destination: predefinedDestination)
-//                .sink()
-//                .store(in: &bag)
-//        }
+        if let amount = sendType.predefinedAmount, let predefinedDestination = sendType.predefinedDestination {
+            updateFees(amount: amount, destination: predefinedDestination)
+                .sink()
+                .store(in: &bag)
+        }
     }
-
-//    func useMaxAmount() {
-//        let amountType = walletModel.amountType
-//        if let amount = walletModel.wallet.amounts[amountType] {
-//            setAmount(amount)
-//        }
-//    }
 
     func currentTransaction() -> BlockchainSdk.Transaction? {
         transaction.value
     }
 
     func updateFees() -> AnyPublisher<FeeUpdateResult, Error> {
-        updateFees(amount: amount.crypto.flatMap { makeAmount(decimal: $0) }, destination: _destination.value?.value)
+        updateFees(amount: amount?.crypto.flatMap { makeAmount(decimal: $0) }, destination: _destination.value?.value)
     }
 
     func setCustomFee(_ customFee: Fee?) {
@@ -203,13 +183,6 @@ class SendModel {
     }
 
     private func bind() {
-//        userInputAmount
-//            .removeDuplicates()
-//            .sink { [weak self] amount in
-//                self?.updateAndValidateAmount(amount)
-//            }
-//            .store(in: &bag)
-
         fee
             .removeDuplicates()
             .sink { [weak self] fee in
@@ -285,7 +258,6 @@ class SendModel {
         }
     }
 
-    @discardableResult
     private func updateFees(amount: Amount?, destination: String?) -> AnyPublisher<FeeUpdateResult, Error> {
         guard let amount, let destination else {
             _feeValues.send([:])
@@ -363,49 +335,6 @@ class SendModel {
         Amount(with: walletModel.tokenItem.blockchain, type: walletModel.tokenItem.amountType, value: decimal)
     }
 
-//    func setAmount(_ amount: Amount?) {
-//        let newAmount: Amount? = (amount?.isZero ?? true) ? nil : amount
-//
-//        guard userInputAmount.value != newAmount else { return }
-//
-//        userInputAmount.send(newAmount)
-//    }
-
-    /// Convenience method
-    /// NOTE: this action resets the "is fee included" flag
-//    func setAmount(_ decimal: Decimal?) {
-//        let amount: Amount?
-//        if let decimal {
-//            amount = Amount(type: walletModel.amountType, currencySymbol: currencySymbol, value: decimal, decimals: walletModel.decimalCount)
-//        } else {
-//            amount = nil
-//        }
-//        setAmount(amount)
-//    }
-
-//    private func updateAndValidateAmount(_ newAmount: Amount?) {
-//        let validatedAmount: Amount?
-//        let amountError: Error?
-//
-//        if let newAmount {
-//            do {
-//                try walletModel.transactionValidator.validate(amount: newAmount)
-//
-//                validatedAmount = newAmount
-//                amountError = nil
-//            } catch let validationError {
-//                validatedAmount = nil
-//                amountError = validationError
-//            }
-//        } else {
-//            validatedAmount = nil
-//            amountError = nil
-//        }
-//
-//        self.validatedAmount.send(validatedAmount)
-//        _amountError.send(amountError)
-//    }
-
     private func validateFee(_ fee: Fee?) {
         let feeError: Error?
 
@@ -465,13 +394,13 @@ class SendModel {
 // MARK: - SendAmountInput, SendAmountOutput
 
 extension SendModel: SendAmountInput, SendAmountOutput {
-    var amount: CryptoFiatAmount { _amount.value }
+    var amount: CryptoFiatAmount? { _amount.value }
 
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount, Never> {
+    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never> {
         _amount.eraseToAnyPublisher()
     }
 
-    func amountDidChanged(amount: CryptoFiatAmount) {
+    func amountDidChanged(amount: CryptoFiatAmount?) {
         _amount.send(amount)
     }
 }
@@ -633,10 +562,6 @@ extension SendModel: SendNotificationManagerInput {
     }
 }
 
-// MARK: - SendFiatCryptoAdapterOutput
-
-// extension SendModel: SendFiatCryptoAdapterOutput {}
-
 // MARK: - CustomFeeServiceInput, CustomFeeServiceOutput
 
 extension SendModel: CustomFeeServiceInput, CustomFeeServiceOutput {
@@ -644,7 +569,7 @@ extension SendModel: CustomFeeServiceInput, CustomFeeServiceOutput {
         _amount
             .withWeakCaptureOf(self)
             .map { model, amount in
-                amount.crypto.flatMap { model.makeAmount(decimal: $0) }
+                amount?.crypto.flatMap { model.makeAmount(decimal: $0) }
             }
             .eraseToAnyPublisher()
     }

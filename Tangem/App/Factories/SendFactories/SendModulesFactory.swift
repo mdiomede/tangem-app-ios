@@ -44,7 +44,6 @@ struct SendModulesFactory {
             sendModel: sendModel,
             notificationManager: makeSendNotificationManager(sendModel: sendModel),
             customFeeService: makeCustomFeeService(sendModel: sendModel),
-//            fiatCryptoAdapter: makeSendFiatCryptoAdapter(walletInfo: walletInfo),
             keyboardVisibilityService: KeyboardVisibilityService(),
             factory: self,
             processor: makeSendDestinationProcessor(),
@@ -88,7 +87,8 @@ struct SendModulesFactory {
     func makeSendAmountViewModel(
         input: SendAmountInput,
         output: SendAmountOutput,
-        validator: SendAmountValidator
+        validator: SendAmountValidator,
+        sendType: SendType
     ) -> SendAmountViewModel {
         let initital = SendAmountViewModel.Initital(
             userWalletName: userWalletName,
@@ -96,7 +96,8 @@ struct SendModulesFactory {
             tokenIconInfo: builder.makeTokenIconInfo(),
             balanceValue: walletModel.balanceValue ?? 0,
             balanceFormatted: walletModel.balance,
-            currencyPickerData: builder.makeCurrencyPickerData()
+            currencyPickerData: builder.makeCurrencyPickerData(),
+            predefinedAmount: sendType.predefinedAmount?.value
         )
 
         return SendAmountViewModel(
@@ -140,7 +141,7 @@ struct SendModulesFactory {
     }
 
     func makeSendFinishViewModel(
-        amount: CryptoFiatAmount,
+        amount: CryptoFiatAmount?,
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
         addressTextViewHeightModel: AddressTextViewHeightModel,

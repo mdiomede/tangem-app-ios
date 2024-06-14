@@ -13,7 +13,6 @@ import BigInt
 import BlockchainSdk
 
 protocol SendFeeViewModelInput {
-//    var amountPublisher: AnyPublisher<Amount?, Never> { get }
     var selectedFeeOption: FeeOption { get }
     var feeOptions: [FeeOption] { get }
     var feeValues: AnyPublisher<[FeeOption: LoadingValue<Fee>], Never> { get }
