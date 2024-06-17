@@ -72,15 +72,11 @@ struct SendSummarySectionViewModelFactory {
         return FeeRowViewModel(
             option: feeOption,
             formattedFeeComponents: formattedFeeComponents(from: value),
-            isSelected: .init(get: {
-                false
-            }, set: { _ in
-
-            })
+            isSelected: .constant(false)
         )
     }
 
-    private func formattedFeeComponents(from feeValue: LoadingValue<Fee>) -> LoadingValue<FormattedFeeComponents?> {
+    private func formattedFeeComponents(from feeValue: LoadingValue<Fee>) -> LoadingValue<FormattedFeeComponents> {
         switch feeValue {
         case .loading:
             return .loading

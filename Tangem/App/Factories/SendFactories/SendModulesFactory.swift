@@ -106,16 +106,22 @@ struct SendModulesFactory {
     }
 
     func makeSendFeeViewModel(
-        sendModel: SendModel,
-        notificationManager: SendNotificationManager,
-        customFeeService: CustomFeeService?,
-        walletInfo: SendWalletInfo
+        input: SendFeeInput,
+        output: SendFeeOutput,
+        router: SendFeeRoutable,
+        processor: SendFeeProcessor,
+        notificationManager: SendNotificationManager
     ) -> SendFeeViewModel {
+        let feeOptions = builder.makeFeeOptions()
+        let initital = SendFeeViewModel.Initial(tokenItem: tokenItem, feeOptions: feeOptions)
+
         return SendFeeViewModel(
-            input: sendModel,
-            notificationManager: notificationManager,
-            customFeeService: customFeeService,
-            walletInfo: walletInfo
+            initial: initital,
+            input: input,
+            output: output,
+            router: router,
+            processor: processor,
+            notificationManager: notificationManager
         )
     }
 
@@ -237,6 +243,23 @@ struct SendModulesFactory {
             validator: validator,
             type: .crypto
         )
+    }
+
+    func makeCryptoFiatAmountConverter() -> CryptoFiatAmountConverter { .init(maximumFractionDigits: tokenItem.decimalCount) }
+
+    func makeSendFeeProcessor(input: SendFeeProcessorInput) -> SendFeeProcessor {
+        let factory = CustomFeeServiceFactory(input: <#T##any CustomFeeServiceInput#>, output: <#T##any CustomFeeServiceOutput#>, walletModel: <#T##WalletModel#>)
+        let customFeeService = factory.makeService()
+
+        return CommonSendFeeProcessor(
+            input: input,
+            provider: makeSendFeeProvider(),
+            customFeeService: customFeeService
+        )
+    }
+
+    func makeSendFeeProvider() -> CommonSendFeeProvider {
+        CommonSendFeeProvider(walletModel: walletModel)
     }
 }
 
