@@ -28,102 +28,197 @@ protocol SendFeeProvider {
     func getFee(amount: Amount, destination: String) -> AnyPublisher<[Fee], Error>
 }
 
-class CommonSendFeeProcessor {
-    private weak var input: SendFeeProcessorInput?
-    private let provider: SendFeeProvider
-    private let customFeeService: CustomFeeService?
+struct SendFee: Hashable {
+    let option: FeeOption
+    let value: LoadingValue<Fee>
+}
 
-    private let _fees: CurrentValueSubject<[FeeOption: LoadingValue<BlockchainSdk.Fee>], Never> = .init([:])
-    private var _customFee: BlockchainSdk.Fee?
+class CommonSendFeeProcessor {
+    private let provider: SendFeeProvider
+    private var customFeeService: CustomFeeService?
+
+    private let _cryptoAmount: CurrentValueSubject<Amount?, Never> = .init(.none)
+    private let _destination: CurrentValueSubject<String?, Never> = .init(.none)
+    private let _fees: CurrentValueSubject<[SendFee], Never> = .init([])
+
+    private let _customFee: CurrentValueSubject<SendFee?, Never> = .init(.none)
+    private let defaultFeeOptions: [FeeOption]
+    private var feeOptions: [FeeOption] {
+        var options = defaultFeeOptions
+        if supportCustomFee {
+            options.append(.custom)
+        }
+        return options
+    }
+
+    private var supportCustomFee: Bool {
+        customFeeService != nil
+    }
+
+    private var bag: Set<AnyCancellable> = []
 
     init(
-        input: SendFeeProcessorInput,
         provider: SendFeeProvider,
+        defaultFeeOptions: [FeeOption],
         customFeeServiceFactory: CustomFeeServiceFactory
     ) {
-        self.input = input
         self.provider = provider
+        self.defaultFeeOptions = defaultFeeOptions
 
         customFeeService = customFeeServiceFactory.makeService(input: self, output: self)
-        bind()
     }
 
-    func bind() {}
+    func bind(input: SendFeeProcessorInput) {
+        input.cryptoAmountPublisher
+            .withWeakCaptureOf(self)
+            .sink { processor, amount in
+                processor._cryptoAmount.send(amount)
+            }
+            .store(in: &bag)
+
+        input.destinationPublisher
+            .withWeakCaptureOf(self)
+            .sink { processor, destination in
+                processor._destination.send(destination)
+            }
+            .store(in: &bag)
+    }
 }
 
-// MARK: - CustomFeeServiceInput, CustomFeeServiceOutput
+// MARK: - CustomFeeServiceInput
 
-extension CommonSendFeeProcessor: CustomFeeServiceInput, CustomFeeServiceOutput {
-    var customFee: BlockchainSdk.Fee? {
-        _customFee
+extension CommonSendFeeProcessor: CustomFeeServiceInput {
+    var cryptoAmountPublisher: AnyPublisher<Amount, Never> {
+        _cryptoAmount.compactMap { $0 }.eraseToAnyPublisher()
     }
-    
-    var cryptoAmountPublisher: AnyPublisher<BlockchainSdk.Amount?, Never> {
-        <#code#>
-    }
-    
-    var destinationPublisher: AnyPublisher<SendAddress?, Never> {
-        <#code#>
-    }
-    
-    var feeValuePublisher: AnyPublisher<BlockchainSdk.Fee?, Never> {
-        <#code#>
-    }
-    
-    func setCustomFee(_ customFee: BlockchainSdk.Fee?) {
-        _customFee = customFee
+
+    var destinationPublisher: AnyPublisher<String, Never> {
+        _destination.compactMap { $0 }.eraseToAnyPublisher()
     }
 }
+
+// MARK: - CustomFeeServiceOutput
+
+extension CommonSendFeeProcessor: CustomFeeServiceOutput {
+    func customFeeDidChanged(_ customFee: Fee?) {
+        let fee = customFee.map { SendFee(option: .custom, value: .loaded($0)) }
+        _customFee.send(fee)
+    }
+}
+
+// MARK: - SendFeeProcessor
 
 extension CommonSendFeeProcessor: SendFeeProcessor {
-    func feesPublisher() -> AnyPublisher<[FeeOption: LoadingValue<BlockchainSdk.Fee>], Never> {
-        _fees.eraseToAnyPublisher()
+    func setup(input: SendFeeProcessorInput) {
+        bind(input: input)
     }
 
-    func userDidUpdateCustomFee(value: Decimal) {
-        guard let customFeeService = customFeeService as? EditableCustomFeeService else {
+    func updateFees() {
+        guard let amount = _cryptoAmount.value,
+              let destination = _destination.value else {
+            assertionFailure("SendFeeProcessor is not ready to update fees")
             return
         }
 
-        customFeeService.setCustomFee(value: value)
+        provider
+            .getFee(amount: amount, destination: destination)
+            .sink(receiveCompletion: { [weak self] completion in
+                guard case .failure(let error) = completion else {
+                    return
+                }
+
+                self?.update(fees: .failedToLoad(error: error))
+            }, receiveValue: { [weak self] fees in
+                self?.update(fees: .loaded(fees))
+            })
+            .store(in: &bag)
+    }
+
+    func feesPublisher() -> AnyPublisher<[SendFee], Never> {
+        _fees.dropFirst().eraseToAnyPublisher()
+    }
+
+    func customFeeInputFieldModels() -> [SendCustomFeeInputFieldModel] {
+        customFeeService?.inputFieldModels() ?? []
+    }
+}
+
+// MARK: - Private
+
+private extension CommonSendFeeProcessor {
+    func update(fees value: LoadingValue<[Fee]>) {
+        switch value {
+        case .loading:
+            _fees.send(feeOptions.map { SendFee(option: $0, value: .loading) })
+        case .loaded(let fees):
+            _fees.send(mapToFees(fees: fees))
+        case .failedToLoad(let error):
+            _fees.send(feeOptions.map { SendFee(option: $0, value: .failedToLoad(error: error)) })
+        }
+    }
+
+    func mapToFees(fees: [Fee]) -> [SendFee] {
+        var defaultOptions = mapToDefaultFees(fees: fees)
+
+        if supportCustomFee {
+            var customFee = _customFee.value
+
+            if customFee == nil, let market = defaultOptions.first(where: { $0.option == .market }) {
+                customFee = SendFee(option: .custom, value: market.value)
+            }
+
+            if let custom = customFee {
+                defaultOptions.append(custom)
+            }
+        }
+
+        return defaultOptions
+    }
+
+    func mapToDefaultFees(fees: [Fee]) -> [SendFee] {
+        switch fees.count {
+        case 1:
+            return [SendFee(option: .market, value: .loaded(fees[1]))]
+        case 3:
+            return [
+                SendFee(option: .slow, value: .loaded(fees[0])),
+                SendFee(option: .market, value: .loaded(fees[1])),
+                SendFee(option: .fast, value: .loaded(fees[2])),
+            ]
+        default:
+            assertionFailure("Wrong count of fees")
+            return []
+        }
     }
 }
 
 protocol SendFeeProcessorInput: AnyObject {
-    func updateFee()
+    var cryptoAmountPublisher: AnyPublisher<Amount, Never> { get }
+    var destinationPublisher: AnyPublisher<String, Never> { get }
 }
 
 protocol SendFeeProcessor {
-    func feesPublisher() -> AnyPublisher<[FeeOption: LoadingValue<Fee>], Never>
+    func updateFees()
+    func feesPublisher() -> AnyPublisher<[SendFee], Never>
+    func customFeeInputFieldModels() -> [SendCustomFeeInputFieldModel]
 
-    func userDidUpdateCustomFee(value: Decimal)
+    func setup(input: SendFeeProcessorInput)
 }
 
 protocol SendFeeInput: AnyObject {
-    var selectedFee: FeeOption { get }
+    var selectedFee: SendFee? { get }
+    var selectedFeePublisher: AnyPublisher<SendFee?, Never> { get }
 }
 
 protocol SendFeeOutput: AnyObject {
-    func feeDidChanged(fee: Fee)
-}
-
-protocol SendFeeViewModelInput {
-    var selectedFeeOption: FeeOption { get }
-//    var feeOptions: [FeeOption] { get }
-    var feeValues: AnyPublisher<[FeeOption: LoadingValue<Fee>], Never> { get }
-
-    var customFeePublisher: AnyPublisher<Fee?, Never> { get }
-
-    var canIncludeFeeIntoAmount: Bool { get }
-    var isFeeIncludedPublisher: AnyPublisher<Bool, Never> { get }
-
-    func didSelectFeeOption(_ feeOption: FeeOption)
+    func feeDidChanged(fee: SendFee?)
 }
 
 class SendFeeViewModel: ObservableObject {
     @Published private(set) var selectedFeeOption: FeeOption?
     @Published private(set) var feeRowViewModels: [FeeRowViewModel] = []
-    @Published private(set) var showCustomFeeFields: Bool = false
+    @Published private(set) var customFeeModels: [SendCustomFeeInputFieldModel] = []
+
     @Published private(set) var deselectedFeeViewsVisible: Bool = false
     @Published var animatingAuxiliaryViewsOnAppear: Bool = false
 
@@ -133,19 +228,12 @@ class SendFeeViewModel: ObservableObject {
 
     var didProperlyDisappear = true
 
-    var lastFeeOption: FeeOption? { feeOptions.last }
-
-    private(set) var customFeeModels: [SendCustomFeeInputFieldModel] = []
-
-//    @Published private var isFeeIncluded: Bool = false
-
     @Published private(set) var feeLevelsNotificationInputs: [NotificationViewInput] = []
     @Published private(set) var customFeeNotificationInputs: [NotificationViewInput] = []
     @Published private(set) var feeCoverageNotificationInputs: [NotificationViewInput] = []
     @Published private(set) var notificationInputs: [NotificationViewInput] = []
 
     private let tokenItem: TokenItem
-    private let feeOptions: [FeeOption]
 
     private weak var input: SendFeeInput?
     private weak var output: SendFeeOutput?
@@ -181,7 +269,7 @@ class SendFeeViewModel: ObservableObject {
         notificationManager: SendNotificationManager
     ) {
         tokenItem = initial.tokenItem
-        feeOptions = initial.feeOptions
+        selectedFeeOption = input.selectedFee?.option
 
         self.input = input
         self.output = output
@@ -200,7 +288,7 @@ class SendFeeViewModel: ObservableObject {
 
 //        feeRowViewModels = makeFeeRowViewModels([:])
 
-        setupView()
+//        setupView()
         bind()
     }
 
@@ -259,16 +347,25 @@ class SendFeeViewModel: ObservableObject {
      }
      */
 
-    private func setupView() {
-        updateViewModels(values: feeOptions.reduce(into: [:]) { $0[$1] = .loading })
-    }
+//    private func setupView() {
+//        updateViewModels(values: feeOptions.reduce(into: [:]) { $0[$1] = .loading })
+//    }
 
     private func bind() {
         processor.feesPublisher()
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
             .sink { viewModel, values in
+                viewModel.updateIfNeeded(values: values)
                 viewModel.updateViewModels(values: values)
+            }
+            .store(in: &bag)
+
+        input?.selectedFeePublisher
+            .withWeakCaptureOf(self)
+            .receive(on: DispatchQueue.main)
+            .sink { viewModel, selectedFee in
+                viewModel.updateSelectedOption(selectedFee: selectedFee)
             }
             .store(in: &bag)
 
@@ -312,23 +409,39 @@ class SendFeeViewModel: ObservableObject {
             .store(in: &bag)
     }
 
-    private func updateViewModels(values: [FeeOption: LoadingValue<Fee>]) {
-        feeRowViewModels = values.map { option, fee in
-            mapToFeeRowViewModel(option: option, fee: fee)
+    private func updateSelectedOption(selectedFee: SendFee?) {
+        selectedFeeOption = selectedFee?.option
+
+        let showCustomFeeFields = selectedFee?.option == .custom
+        customFeeModels = showCustomFeeFields ? processor.customFeeInputFieldModels() : []
+    }
+
+    private func updateIfNeeded(values: [SendFee]) {
+        guard input?.selectedFee == nil,
+              let market = values.first(where: { $0.option == .market }) else {
+            return
+        }
+
+        output?.feeDidChanged(fee: market)
+    }
+
+    private func updateViewModels(values: [SendFee]) {
+        feeRowViewModels = values.map { fee in
+            mapToFeeRowViewModel(fee: fee)
         }
     }
 
-    private func mapToFeeRowViewModel(option: FeeOption, fee: LoadingValue<Fee>) -> FeeRowViewModel {
-        let feeComponents = mapToFormattedFeeComponents(fee: fee)
+    private func mapToFeeRowViewModel(fee: SendFee) -> FeeRowViewModel {
+        let feeComponents = mapToFormattedFeeComponents(fee: fee.value)
 
         return FeeRowViewModel(
-            option: option,
+            option: fee.option,
             formattedFeeComponents: feeComponents,
             isSelected: .init(root: self, default: false, get: { root in
-                root.selectedFeeOption == option
+                root.selectedFeeOption == fee.option
             }, set: { root, newValue in
-                if newValue, let fee = fee.value {
-                    root.userDidSelected(option: option, fee: fee)
+                if newValue {
+                    root.userDidSelected(fee: fee)
                 }
             })
         )
@@ -346,27 +459,14 @@ class SendFeeViewModel: ObservableObject {
         }
     }
 
-    private func userDidSelected(option: FeeOption, fee: Fee) {
-        if option == .custom {
+    private func userDidSelected(fee: SendFee) {
+        if fee.option == .custom {
             Analytics.log(.sendCustomFeeClicked)
         }
 
-//        selectedFeeOption = feeOption
+        selectedFeeOption = fee.option
         output?.feeDidChanged(fee: fee)
-//        showCustomFeeFields = feeOption == .custom
     }
-
-//    private func onCustomFeeChanged(_ focused: Bool) {
-//        if focused {
-//            customFeeBeforeEditing = customFeeValue
-//        } else {
-//            if customFeeValue != customFeeBeforeEditing {
-//                Analytics.log(.sendPriorityFeeInserted)
-//            }
-//
-//            customFeeBeforeEditing = nil
-//        }
-//    }
 }
 
 extension SendFeeViewModel: AuxiliaryViewAnimatable {}

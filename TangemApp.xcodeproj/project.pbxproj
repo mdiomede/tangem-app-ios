@@ -6409,9 +6409,9 @@
 		DADBECD92BBE910C007E7885 /* CustomFeeService */ = {
 			isa = PBXGroup;
 			children = (
+				DADBECDC2BBE910C007E7885 /* CustomFeeServiceFactory.swift */,
 				DADBECDA2BBE910C007E7885 /* CustomFeeService.swift */,
 				DADBECDB2BBE910C007E7885 /* CustomBitcoinFeeService.swift */,
-				DADBECDC2BBE910C007E7885 /* CustomFeeServiceFactory.swift */,
 				DADBECDD2BBE910C007E7885 /* CustomEvmFeeService.swift */,
 				DADBECDE2BBE910C007E7885 /* CustomFeeServiceInputOutput.swift */,
 			);

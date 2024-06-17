@@ -89,7 +89,6 @@ final class SendViewModel: ObservableObject {
     private let walletInfo: SendWalletInfo
     private let notificationManager: SendNotificationManager
     private let addressTextViewHeightModel: AddressTextViewHeightModel
-    private let customFeeService: CustomFeeService?
     private let sendStepParameters: SendStep.Parameters
     private let keyboardVisibilityService: KeyboardVisibilityService
     private let factory: SendModulesFactory
@@ -149,7 +148,7 @@ final class SendViewModel: ObservableObject {
         emailDataProvider: EmailDataProvider,
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
-        customFeeService: CustomFeeService?,
+        sendFeeProcessor: SendFeeProcessor,
         keyboardVisibilityService: KeyboardVisibilityService,
         factory: SendModulesFactory,
         processor: SendDestinationProcessor,
@@ -163,7 +162,6 @@ final class SendViewModel: ObservableObject {
         self.emailDataProvider = emailDataProvider
         self.sendModel = sendModel
         self.notificationManager = notificationManager
-        self.customFeeService = customFeeService
         self.keyboardVisibilityService = keyboardVisibilityService
         self.processor = processor
         self.factory = factory
@@ -193,22 +191,24 @@ final class SendViewModel: ObservableObject {
         )
 
         sendFeeViewModel = factory.makeSendFeeViewModel(
-            sendModel: sendModel,
-            notificationManager: notificationManager,
-            customFeeService: customFeeService,
-            walletInfo: walletInfo
+            input: sendModel,
+            output: sendModel,
+            router: coordinator,
+            processorInput: sendModel,
+            sendFeeProcessor: sendFeeProcessor,
+            notificationManager: notificationManager
         )
 
         sendSummaryViewModel = factory.makeSendSummaryViewModel(
             sendModel: sendModel,
             notificationManager: notificationManager,
+            sendFeeProcessor: sendFeeProcessor,
             addressTextViewHeightModel: addressTextViewHeightModel,
             walletInfo: walletInfo
         )
 
-        sendFeeViewModel.router = coordinator
         sendSummaryViewModel.router = self
-
+        sendModel.delegate = self
         notificationManager.setupManager(with: self)
 
         updateTransactionHistoryIfNeeded()
@@ -269,7 +269,7 @@ final class SendViewModel: ObservableObject {
             let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
             openStep(nextStep, stepAnimation: .moveAndFade, checkCustomFee: checkCustomFee, updateFee: updateFee)
         case .send:
-            send()
+            sendModel.send()
         case .close:
             coordinator?.dismiss()
         }
@@ -353,7 +353,7 @@ final class SendViewModel: ObservableObject {
             .store(in: &bag)
 
         sendModel
-            .destinationPublisher
+            .destination
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
             .sink { viewModel, destination in
@@ -564,13 +564,7 @@ final class SendViewModel: ObservableObject {
     }
 
     private func updateFee() {
-        feeUpdateSubscription = sendModel.updateFees()
-            .receive(on: DispatchQueue.main)
-            .sink()
-    }
-
-    private func cancelUpdatingFee() {
-        feeUpdateSubscription = nil
+        sendModel.updateFees()
     }
 
     private func shouldCheckCustomFee(currentStep: SendStep) -> Bool {
@@ -674,7 +668,7 @@ final class SendViewModel: ObservableObject {
             return .transactionFeeFixed
         }
 
-        switch sendModel.selectedFeeOption {
+        switch sendModel.feeValue!.option {
         case .slow:
             return .transactionFeeMin
         case .market:
@@ -726,35 +720,6 @@ extension SendViewModel: SendSummaryRoutable {
         openStep(step, stepAnimation: .moveAndFade, updateFee: updateFee)
     }
 
-    func send() {
-        guard let screenIdleStartTime else { return }
-
-        let feeValidityInterval: TimeInterval = 60
-        let now = Date()
-        if now.timeIntervalSince(screenIdleStartTime) <= feeValidityInterval {
-            sendModel.send()
-            return
-        }
-
-        sendModel.updateFees()
-            .sink { [weak self] completion in
-                if case .failure = completion {
-                    self?.alert = SendAlertBuilder.makeFeeRetryAlert {
-                        self?.send()
-                    }
-                }
-            } receiveValue: { [weak self] result in
-                self?.screenIdleStartTime = Date()
-
-                if let oldFee = result.oldFee, result.newFee > oldFee {
-                    self?.alert = AlertBuilder.makeOkGotItAlert(message: Localization.sendNotificationHighFeeTitle)
-                } else {
-                    self?.sendModel.send()
-                }
-            }
-            .store(in: &bag)
-    }
-
     private func auxiliaryViewAnimatable(_ step: SendStep) -> AuxiliaryViewAnimatable? {
         switch step {
         case .amount:
@@ -771,15 +736,23 @@ extension SendViewModel: SendSummaryRoutable {
     }
 }
 
+// MARK: - SendModelUIDelegate
+
+extension SendViewModel: SendModelUIDelegate {
+    func showAlert(_ alert: AlertBinder) {
+        self.alert = alert
+    }
+}
+
+// MARK: - NotificationTapDelegate
+
 extension SendViewModel: NotificationTapDelegate {
     func didTapNotification(with id: NotificationViewId) {}
 
     func didTapNotificationButton(with id: NotificationViewId, action: NotificationButtonActionType) {
         switch action {
         case .refreshFee:
-            feeUpdateSubscription = sendModel.updateFees()
-                .mapToVoid()
-                .sink()
+            sendModel.updateFees()
         case .openFeeCurrency:
             openNetworkCurrency()
         case .leaveAmount(let amount, _):
@@ -809,7 +782,7 @@ extension SendViewModel: NotificationTapDelegate {
         }
 
         var newAmount = source - amount
-        if sendModel.isFeeIncluded, let feeValue = sendModel.feeValue?.amount.value {
+        if sendModel.isFeeIncluded, let feeValue = sendModel.feeValue?.value.value?.amount.value {
             newAmount = newAmount - feeValue
         }
 
