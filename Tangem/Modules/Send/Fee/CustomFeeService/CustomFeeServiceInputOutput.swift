@@ -8,14 +8,3 @@
 
 import BlockchainSdk
 import Combine
-
-protocol CustomFeeServiceInput: AnyObject {
-    var customFee: Fee? { get }
-    var cryptoAmountPublisher: AnyPublisher<Amount?, Never> { get }
-    var destinationPublisher: AnyPublisher<SendAddress?, Never> { get }
-    var feeValuePublisher: AnyPublisher<BlockchainSdk.Fee?, Never> { get }
-}
-
-protocol CustomFeeServiceOutput: AnyObject {
-    func setCustomFee(_ customFee: Fee?)
-}
