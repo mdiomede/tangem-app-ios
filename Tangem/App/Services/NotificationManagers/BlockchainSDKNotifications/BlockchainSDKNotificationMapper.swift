@@ -52,6 +52,8 @@ struct BlockchainSDKNotificationMapper {
             return .cardanoCannotBeSentBecauseHasTokens
         case .cardanoInsufficientBalanceToSendToken:
             return .cardanoInsufficientBalanceToSendToken(tokenSymbol: tokenItemSymbol)
+        case .insufficientFeeResource(let type, let current, let max):
+            return .invalidNumber // TODO: [KOINOS] Notification
         }
     }
 
