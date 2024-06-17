@@ -44,6 +44,8 @@ struct SendModulesFactory {
         let initial = SendViewModel.Initial(feeOptions: builder.makeFeeOptions())
         sendFeeInteractor.setup(input: sendModel, output: sendModel)
 
+        sendFeeProcessor.setup(input: sendModel)
+
         return SendViewModel(
             initial: initial,
             walletInfo: walletInfo,
@@ -260,7 +262,7 @@ struct SendModulesFactory {
         )
     }
 
-    func makeSendFeeInteractor(predefinedAmount: Amount?, predefinedDestination: String?) -> SendFeeInteractor {
+    private func makeSendFeeInteractor(predefinedAmount: Amount?, predefinedDestination: String?) -> SendFeeInteractor {
         let customFeeService = CustomFeeServiceFactory(walletModel: walletModel).makeService()
         let interactor = CommonSendFeeInteractor(
             provider: makeSendFeeProvider(),
@@ -273,11 +275,11 @@ struct SendModulesFactory {
         return interactor
     }
 
-    func makeSendFeeProvider() -> CommonSendFeeProvider {
+    private func makeSendFeeProvider() -> CommonSendFeeProvider {
         CommonSendFeeProvider(walletModel: walletModel)
     }
 
-    func makeInformationRelevanceService(sendFeeInteractor: SendFeeInteractor) -> InformationRelevanceService {
+    private func makeInformationRelevanceService(sendFeeInteractor: SendFeeInteractor) -> InformationRelevanceService {
         CommonInformationRelevanceService(sendFeeInteractor: sendFeeInteractor)
     }
 }

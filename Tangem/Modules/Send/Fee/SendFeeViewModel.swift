@@ -90,6 +90,7 @@ class SendFeeViewModel: ObservableObject {
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
             .sink { viewModel, values in
+                viewModel.updateIfNeeded(values: values)
                 viewModel.updateViewModels(values: values)
             }
             .store(in: &bag)
