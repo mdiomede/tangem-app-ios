@@ -9,13 +9,8 @@
 import SwiftUI
 
 struct SendAmountView: View {
-    @ObservedObject private var viewModel: SendAmountViewModel
-    private let namespace: Namespace
-
-    init(viewModel: SendAmountViewModel, namespace: Namespace) {
-        self.viewModel = viewModel
-        self.namespace = namespace
-    }
+    @ObservedObject var viewModel: SendAmountViewModel
+    let namespace: Namespace
 
     var body: some View {
         GroupedScrollView(spacing: 14) {
