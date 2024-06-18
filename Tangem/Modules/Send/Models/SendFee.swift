@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import struct BlockchainSdk.Fee
 
 struct SendFee: Hashable {
     let option: FeeOption

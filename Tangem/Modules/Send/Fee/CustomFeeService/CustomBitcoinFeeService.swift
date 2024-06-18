@@ -108,11 +108,12 @@ class CustomBitcoinFeeService {
 extension CustomBitcoinFeeService: CustomFeeService {
     func initialSetupCustomFee(_ fee: BlockchainSdk.Fee) {
         assert(customFee.value == nil, "Duplicate initial setup")
-        guard customFee.value == nil,
-              let bitcoinFeeParameters = fee.parameters as? BitcoinFeeParameters else {
+
+        guard let bitcoinFeeParameters = fee.parameters as? BitcoinFeeParameters else {
             return
         }
 
+        customFee.send(fee)
         satoshiPerByte.send(bitcoinFeeParameters.rate)
     }
 
