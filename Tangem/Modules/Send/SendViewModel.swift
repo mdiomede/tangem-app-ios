@@ -669,7 +669,10 @@ final class SendViewModel: ObservableObject {
             return .transactionFeeFixed
         }
 
-        switch sendModel.feeValue!.option {
+        switch sendModel.feeValue?.option {
+        case .none:
+            assertionFailure("selectedFeeTypeAnalyticsParameter not found")
+            return .null
         case .slow:
             return .transactionFeeMin
         case .market:
