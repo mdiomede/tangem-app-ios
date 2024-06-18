@@ -43,20 +43,17 @@ class CommonSendFeeProcessor {
         self.defaultFeeOptions = defaultFeeOptions
 
         customFeeService = customFeeServiceFactory.makeService(input: self, output: self)
+        bind()
     }
 
-    func bind(input: SendFeeProcessorInput) {
-        input.cryptoAmountPublisher
+    func bind() {
+        _fees
+            .compactMap { $0.first(where: { $0.option == .market })?.value.value }
             .withWeakCaptureOf(self)
-            .sink { processor, amount in
-                processor._cryptoAmount.send(amount)
-            }
-            .store(in: &bag)
-
-        input.destinationPublisher
-            .withWeakCaptureOf(self)
-            .sink { processor, destination in
-                processor._destination.send(destination)
+            // Only once
+            .first()
+            .sink { processor, fee in
+                processor.customFeeService?.initialSetupCustomFee(fee)
             }
             .store(in: &bag)
     }
@@ -87,7 +84,19 @@ extension CommonSendFeeProcessor: CustomFeeServiceOutput {
 
 extension CommonSendFeeProcessor: SendFeeProcessor {
     func setup(input: SendFeeProcessorInput) {
-        bind(input: input)
+        input.cryptoAmountPublisher
+            .withWeakCaptureOf(self)
+            .sink { processor, amount in
+                processor._cryptoAmount.send(amount)
+            }
+            .store(in: &bag)
+
+        input.destinationPublisher
+            .withWeakCaptureOf(self)
+            .sink { processor, destination in
+                processor._destination.send(destination)
+            }
+            .store(in: &bag)
     }
 
     func updateFees() {

@@ -45,6 +45,8 @@ class CustomEvmFeeService {
 
     private func bind() {
         customFee
+            .dropFirst()
+            .removeDuplicates()
             .withWeakCaptureOf(self)
             .sink { service, customFee in
                 service.customFeeDidChanged(fee: customFee)
@@ -67,6 +69,13 @@ class CustomEvmFeeService {
 
         let fiat = BalanceConverter().convertToFiat(value, currencyId: currencyId)
         return BalanceFormatter().formatFiatBalance(fiat)
+    }
+
+    private func didChangeCustomFee(_ feeValue: Decimal?) {
+        let fee = calculateFee(for: feeValue)
+
+        output?.customFeeDidChanged(fee)
+        updateProperties(fee: fee)
     }
 
     private func didChangeCustomFeeMaxFee(_ value: BigUInt?) {
@@ -96,14 +105,14 @@ class CustomEvmFeeService {
         return Fee(amount, parameters: parameters)
     }
 
-    private func recalculateFee(from value: Decimal?) -> Fee? {
+    private func calculateFee(for feeValue: Decimal?) -> Fee? {
         let feeDecimalValue = feeTokenItem.decimalValue
 
         guard
-            let value,
+            let feeValue,
             let currentGasLimit = gasLimit.value,
             let currentPriorityFee = priorityFee.value,
-            let enteredFeeInSmallestDenomination = BigUInt(decimal: (value * feeDecimalValue).rounded(roundingMode: .down))
+            let enteredFeeInSmallestDenomination = (feeValue * feeDecimalValue).rounded(roundingMode: .down).bigUIntValue
         else {
             return nil
         }
@@ -121,6 +130,7 @@ class CustomEvmFeeService {
             return
         }
 
+        customFee.send(fee)
         gasLimit.send(ethereumFeeParameters.gasLimit)
         maxFeePerGas.send(ethereumFeeParameters.maxFeePerGas)
         priorityFee.send(ethereumFeeParameters.priorityFee)
@@ -132,7 +142,6 @@ class CustomEvmFeeService {
 extension CustomEvmFeeService: CustomFeeService {
     func initialSetupCustomFee(_ fee: Fee) {
         updateProperties(fee: fee)
-        //        output?.customFeeDidChanged(fee)
     }
 
     func inputFieldModels() -> [SendCustomFeeInputFieldModel] {
@@ -141,12 +150,14 @@ extension CustomEvmFeeService: CustomFeeService {
         let customFeeModel = SendCustomFeeInputFieldModel(
             title: Localization.sendMaxFee,
             amountPublisher: mainCustomAmount.eraseToAnyPublisher(),
-            disabled: true,
+            disabled: false,
             fieldSuffix: feeTokenItem.currencySymbol,
             fractionDigits: feeTokenItem.decimalCount,
             amountAlternativePublisher: customFeeInFiat.eraseToAnyPublisher(),
             footer: Localization.sendEvmCustomFeeFooter,
-            onFieldChange: nil
+            onFieldChange: { [weak self] value in
+                self?.didChangeCustomFee(value)
+            }
         ) { [weak self] focused in
             self?.onCustomFeeChanged(focused)
         }
@@ -193,13 +204,6 @@ extension CustomEvmFeeService: CustomFeeService {
         }
 
         return [customFeeModel, maxFeeModel, priorityFeeModel, gasLimitModel]
-    }
-
-    func userDidEditCustomFee(value: Decimal?) {
-        let fee = recalculateFee(from: value)
-
-        output?.customFeeDidChanged(fee)
-        updateProperties(fee: fee)
     }
 }
 
