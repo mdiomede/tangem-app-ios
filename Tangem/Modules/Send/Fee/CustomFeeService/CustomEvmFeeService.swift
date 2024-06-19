@@ -47,6 +47,7 @@ class CustomEvmFeeService {
 
     private func bind() {
         customFee
+            .compactMap { $0 }
             .dropFirst()
             .removeDuplicates()
             .withWeakCaptureOf(self)
