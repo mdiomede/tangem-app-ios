@@ -230,6 +230,7 @@ struct SendModulesFactory {
     ) -> SendAmountInteractor {
         CommonSendAmountInteractor(
             tokenItem: walletModel.tokenItem,
+            balanceValue: walletModel.balanceValue ?? 0,
             input: input,
             output: output,
             validator: validator,

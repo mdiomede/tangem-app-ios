@@ -12,12 +12,14 @@ import Combine
 protocol SendAmountInteractor {
     func update(amount: Decimal?) -> SendAmount?
     func update(type: SendAmountCalculationType) -> SendAmount?
+    func updateToMaxAmount() -> SendAmount?
 
     func errorPublisher() -> AnyPublisher<String?, Never>
 }
 
 class CommonSendAmountInteractor {
     private let tokenItem: TokenItem
+    private let balanceValue: Decimal
 
     private weak var input: SendAmountInput?
     private weak var output: SendAmountOutput?
@@ -28,12 +30,14 @@ class CommonSendAmountInteractor {
 
     init(
         tokenItem: TokenItem,
+        balanceValue: Decimal,
         input: SendAmountInput,
         output: SendAmountOutput,
         validator: SendAmountValidator,
         type: SendAmountCalculationType
     ) {
         self.tokenItem = tokenItem
+        self.balanceValue = balanceValue
         self.input = input
         self.output = output
         self.validator = validator
@@ -51,7 +55,7 @@ class CommonSendAmountInteractor {
         }
     }
 
-    private func sendAmount(value: Decimal) -> SendAmount? {
+    private func makeSendAmount(value: Decimal) -> SendAmount? {
         switch type {
         case .crypto:
             let fiat = fiat(cryptoValue: value)
@@ -62,7 +66,7 @@ class CommonSendAmountInteractor {
         }
     }
 
-    func crypto(fiatValue: Decimal?) -> Decimal? {
+    private func crypto(fiatValue: Decimal?) -> Decimal? {
         // If already have the converted the `crypto` amount associated with current `fiat` amount
         if input?.amount?.fiat == fiatValue {
             return input?.amount?.crypto
@@ -71,7 +75,7 @@ class CommonSendAmountInteractor {
         return SendAmountConverter().convertToCrypto(fiatValue, tokenItem: tokenItem)
     }
 
-    func fiat(cryptoValue: Decimal?) -> Decimal? {
+    private func fiat(cryptoValue: Decimal?) -> Decimal? {
         // If already have the converted the `fiat` amount associated with current `crypto` amount
         if input?.amount?.crypto == cryptoValue {
             return input?.amount?.fiat
@@ -88,7 +92,7 @@ extension CommonSendAmountInteractor: SendAmountInteractor {
             return nil
         }
 
-        let sendAmount = sendAmount(value: amount)
+        let sendAmount = makeSendAmount(value: amount)
         validateAndUpdate(amount: sendAmount)
         return sendAmount
     }
@@ -100,6 +104,21 @@ extension CommonSendAmountInteractor: SendAmountInteractor {
 
         self.type = type
         return input?.amount?.toggle(type: type)
+    }
+
+    func updateToMaxAmount() -> SendAmount? {
+        switch type {
+        case .crypto:
+            let fiat = fiat(cryptoValue: balanceValue)
+            let amount = SendAmount(type: .typical(crypto: balanceValue, fiat: fiat))
+            validateAndUpdate(amount: amount)
+            return amount
+        case .fiat:
+            let fiat = fiat(cryptoValue: balanceValue)
+            let amount = SendAmount(type: .alternative(fiat: fiat, crypto: balanceValue))
+            validateAndUpdate(amount: amount)
+            return amount
+        }
     }
 
     func errorPublisher() -> AnyPublisher<String?, Never> {

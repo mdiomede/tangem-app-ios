@@ -49,7 +49,6 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     // MARK: - Dependencies
 
     private let tokenItem: TokenItem
-    private let balanceValue: Decimal
     private let interactor: SendAmountInteractor
     private let prefixSuffixOptionsFactory: SendDecimalNumberTextField.PrefixSuffixOptionsFactory
 
@@ -72,7 +71,6 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         decimalNumberTextFieldViewModel = .init(maximumFractionDigits: initial.tokenItem.decimalCount)
 
         tokenItem = initial.tokenItem
-        balanceValue = initial.balanceValue
 
         self.interactor = interactor
 
@@ -92,7 +90,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     }
 
     func userDidTapMaxAmount() {
-        let amount = interactor.update(amount: balanceValue)
+        let amount = interactor.updateToMaxAmount()
         decimalNumberTextFieldViewModel.update(value: amount?.main)
         alternativeAmount = amount?.formatAlternative(currencySymbol: tokenItem.currencySymbol)
     }
