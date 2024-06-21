@@ -1,5 +1,5 @@
 //
-//  SendFeeProcessor.swift
+//  SendFeeInteractor.swift
 //  Tangem
 //
 //  Created by Sergey Balashov on 18.06.2024.
@@ -10,12 +10,12 @@ import Foundation
 import Combine
 import BlockchainSdk
 
-protocol SendFeeProcessorInput: AnyObject {
+protocol SendFeeInteractorInput: AnyObject {
     var cryptoAmountPublisher: AnyPublisher<Amount, Never> { get }
     var destinationPublisher: AnyPublisher<String, Never> { get }
 }
 
-protocol SendFeeProcessor {
+protocol SendFeeInteractor {
     func updateFees()
 
     func feesPublisher() -> AnyPublisher<[SendFee], Never>
@@ -23,5 +23,5 @@ protocol SendFeeProcessor {
     func customFeePublisher() -> AnyPublisher<SendFee, Never>
     func customFeeInputFieldModels() -> [SendCustomFeeInputFieldModel]
 
-    func setup(input: SendFeeProcessorInput)
+    func setup(input: SendFeeInteractorInput)
 }

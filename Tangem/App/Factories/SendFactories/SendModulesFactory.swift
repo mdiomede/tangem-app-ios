@@ -27,7 +27,7 @@ struct SendModulesFactory {
     // MARK: - ViewModels
 
     func makeSendViewModel(type: SendType, coordinator: SendRoutable) -> SendViewModel {
-        let sendFeeProcessor = makeSendFeeProcessor()
+        let sendFeeProcessor = makeSendFeeInteractor()
         let sendModel = makeSendModel(type: type, sendFeeProcessor: sendFeeProcessor)
         let canUseFiatCalculation = quotesRepository.quote(for: walletModel.tokenItem) != nil
         let walletInfo = builder.makeSendWalletInfo(canUseFiatCalculation: canUseFiatCalculation)
@@ -112,12 +112,12 @@ struct SendModulesFactory {
         input: SendFeeInput,
         output: SendFeeOutput,
         router: SendFeeRoutable,
-        processorInput: SendFeeProcessorInput,
-        sendFeeProcessor: SendFeeProcessor,
+        processorInput: SendFeeInteractorInput,
+        sendFeeProcessor: SendFeeInteractor,
         notificationManager: SendNotificationManager
     ) -> SendFeeViewModel {
         let feeOptions = builder.makeFeeOptions()
-        let initital = SendFeeViewModel.Initial(tokenItem: tokenItem, feeOptions: feeOptions)
+        let initital = SendFeeViewModel.Initial(tokenItem: walletModel.tokenItem, feeOptions: feeOptions)
 
         return SendFeeViewModel(
             initial: initital,
@@ -132,7 +132,7 @@ struct SendModulesFactory {
     func makeSendSummaryViewModel(
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
-        sendFeeProcessor: SendFeeProcessor,
+        sendFeeProcessor: SendFeeInteractor,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         walletInfo: SendWalletInfo
     ) -> SendSummaryViewModel {
@@ -179,7 +179,7 @@ struct SendModulesFactory {
         return userWalletModel.signer
     }
 
-    private func makeSendModel(type: SendType, sendFeeProcessor: SendFeeProcessor) -> SendModel {
+    private func makeSendModel(type: SendType, sendFeeProcessor: SendFeeInteractor) -> SendModel {
         let feeIncludedCalculator = FeeIncludedCalculator(validator: walletModel.transactionValidator)
 
         return SendModel(
@@ -251,11 +251,9 @@ struct SendModulesFactory {
         )
     }
 
-    func makeCryptoFiatAmountConverter() -> CryptoFiatAmountConverter { .init(maximumFractionDigits: tokenItem.decimalCount) }
-
-    func makeSendFeeProcessor() -> SendFeeProcessor {
+    func makeSendFeeInteractor() -> SendFeeInteractor {
         let factory = CustomFeeServiceFactory(walletModel: walletModel)
-        return CommonSendFeeProcessor(
+        return CommonSendFeeInteractor(
             provider: makeSendFeeProvider(),
             defaultFeeOptions: builder.makeFeeOptions(),
             customFeeServiceFactory: factory

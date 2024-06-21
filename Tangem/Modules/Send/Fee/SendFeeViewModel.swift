@@ -45,7 +45,7 @@ class SendFeeViewModel: ObservableObject {
     private weak var output: SendFeeOutput?
     private weak var router: SendFeeRoutable?
 
-    private let processor: SendFeeProcessor
+    private let processor: SendFeeInteractor
     private let notificationManager: SendNotificationManager
 
     private let feeExplanationUrl = TangemBlogUrlBuilder().url(post: .fee)
@@ -64,7 +64,7 @@ class SendFeeViewModel: ObservableObject {
         input: SendFeeInput,
         output: SendFeeOutput,
         router: SendFeeRoutable,
-        processor: SendFeeProcessor,
+        processor: SendFeeInteractor,
         notificationManager: SendNotificationManager
     ) {
         tokenItem = initial.tokenItem
