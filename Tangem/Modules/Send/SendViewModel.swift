@@ -150,7 +150,7 @@ final class SendViewModel: ObservableObject {
         emailDataProvider: EmailDataProvider,
         sendModel: SendModel,
         notificationManager: SendNotificationManager,
-        sendFeeProcessor: SendFeeProcessor,
+        sendFeeProcessor: SendFeeInteractor,
         keyboardVisibilityService: KeyboardVisibilityService,
         factory: SendModulesFactory,
         processor: SendDestinationProcessor,

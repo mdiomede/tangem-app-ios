@@ -76,7 +76,7 @@ class SendModel {
 
     private let walletModel: WalletModel
     private let transactionSigner: TransactionSigner
-    private let sendFeeProcessor: SendFeeProcessor
+    private let sendFeeProcessor: SendFeeInteractor
     private let feeIncludedCalculator: FeeIncludedCalculator
     private let sendType: SendType
 
@@ -92,7 +92,7 @@ class SendModel {
     init(
         walletModel: WalletModel,
         transactionSigner: TransactionSigner,
-        sendFeeProcessor: SendFeeProcessor,
+        sendFeeProcessor: SendFeeInteractor,
         feeIncludedCalculator: FeeIncludedCalculator,
         sendType: SendType
     ) {
@@ -312,9 +312,9 @@ extension SendModel: SendFeeInput, SendFeeOutput {
     }
 }
 
-// MARK: - SendFeeProcessorInput
+// MARK: - SendFeeInteractorInput
 
-extension SendModel: SendFeeProcessorInput {
+extension SendModel: SendFeeInteractorInput {
     var cryptoAmountPublisher: AnyPublisher<BlockchainSdk.Amount, Never> {
         _amount
             .withWeakCaptureOf(self)

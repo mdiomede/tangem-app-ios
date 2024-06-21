@@ -22,8 +22,6 @@ protocol SendSummaryViewModelInput: AnyObject {
     var selectedFeePublisher: AnyPublisher<SendFee?, Never> { get }
 
     var isSending: AnyPublisher<Bool, Never> { get }
-
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never>
 }
 
 class SendSummaryViewModel: ObservableObject {
@@ -72,7 +70,7 @@ class SendSummaryViewModel: ObservableObject {
     private let tokenItem: TokenItem
     private let walletInfo: SendWalletInfo
     private let notificationManager: SendNotificationManager
-    private let sendFeeProcessor: SendFeeProcessor
+    private let sendFeeProcessor: SendFeeInteractor
     private var isVisible = false
 
     let addressTextViewHeightModel: AddressTextViewHeightModel
@@ -81,7 +79,7 @@ class SendSummaryViewModel: ObservableObject {
         initial: Initial,
         input: SendSummaryViewModelInput,
         notificationManager: SendNotificationManager,
-        sendFeeProcessor: SendFeeProcessor,
+        sendFeeProcessor: SendFeeInteractor,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         walletInfo: SendWalletInfo,
         sectionViewModelFactory: SendSummarySectionViewModelFactory

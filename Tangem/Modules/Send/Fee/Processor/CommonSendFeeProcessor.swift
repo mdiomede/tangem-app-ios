@@ -1,5 +1,5 @@
 //
-//  CommonSendFeeProcessor.swift
+//  CommonSendFeeInteractor.swift
 //  Tangem
 //
 //  Created by Sergey Balashov on 18.06.2024.
@@ -10,7 +10,7 @@ import Foundation
 import Combine
 import BlockchainSdk
 
-class CommonSendFeeProcessor {
+class CommonSendFeeInteractor {
     private let provider: SendFeeProvider
     private var customFeeService: CustomFeeService?
 
@@ -61,7 +61,7 @@ class CommonSendFeeProcessor {
 
 // MARK: - CustomFeeServiceInput
 
-extension CommonSendFeeProcessor: CustomFeeServiceInput {
+extension CommonSendFeeInteractor: CustomFeeServiceInput {
     var cryptoAmountPublisher: AnyPublisher<Amount, Never> {
         _cryptoAmount.compactMap { $0 }.eraseToAnyPublisher()
     }
@@ -73,16 +73,16 @@ extension CommonSendFeeProcessor: CustomFeeServiceInput {
 
 // MARK: - CustomFeeServiceOutput
 
-extension CommonSendFeeProcessor: CustomFeeServiceOutput {
+extension CommonSendFeeInteractor: CustomFeeServiceOutput {
     func customFeeDidChanged(_ customFee: Fee?) {
         _customFee.send(customFee)
     }
 }
 
-// MARK: - SendFeeProcessor
+// MARK: - SendFeeInteractor
 
-extension CommonSendFeeProcessor: SendFeeProcessor {
-    func setup(input: SendFeeProcessorInput) {
+extension CommonSendFeeInteractor: SendFeeInteractor {
+    func setup(input: SendFeeInteractorInput) {
         input.cryptoAmountPublisher
             .withWeakCaptureOf(self)
             .sink { processor, amount in
@@ -101,7 +101,7 @@ extension CommonSendFeeProcessor: SendFeeProcessor {
     func updateFees() {
         guard let amount = _cryptoAmount.value,
               let destination = _destination.value else {
-            assertionFailure("SendFeeProcessor is not ready to update fees")
+            assertionFailure("SendFeeInteractor is not ready to update fees")
             return
         }
 
@@ -136,7 +136,7 @@ extension CommonSendFeeProcessor: SendFeeProcessor {
 
 // MARK: - Private
 
-private extension CommonSendFeeProcessor {
+private extension CommonSendFeeInteractor {
     func update(fees value: LoadingValue<[Fee]>) {
         switch value {
         case .loading:
