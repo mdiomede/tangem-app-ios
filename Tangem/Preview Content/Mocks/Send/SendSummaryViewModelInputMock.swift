@@ -11,7 +11,7 @@ import Combine
 import BlockchainSdk
 
 class SendSummaryViewModelInputMock: SendSummaryViewModelInput {
-    var amountPublisher: AnyPublisher<CryptoFiatAmount?, Never> { .just(output: .none) }
+    var amountPublisher: AnyPublisher<SendAmount?, Never> { .just(output: .none) }
     var transactionAmountPublisher: AnyPublisher<Amount?, Never> { .just(output: nil) }
     var destinationTextPublisher: AnyPublisher<String, Never> { .just(output: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326") }
     var additionalFieldPublisher: AnyPublisher<(SendAdditionalFields, String)?, Never> { .just(output: (.memo, "123123")) }

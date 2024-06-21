@@ -38,7 +38,6 @@ class SendFinishViewModel: ObservableObject {
     init?(
         initial: Initial,
         input: SendFinishViewModelInput,
-        sendAmountFormatter: CryptoFiatAmountFormatter,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         feeTypeAnalyticsParameter: Analytics.ParameterValue,
         walletInfo: SendWalletInfo,
@@ -58,8 +57,8 @@ class SendFinishViewModel: ObservableObject {
             additionalField: input.additionalField
         )
 
-        let formattedAmount = sendAmountFormatter.format(amount: initial.amount)
-        let formattedAmountAlternative = sendAmountFormatter.formatAlternative(amount: initial.amount)
+        let formattedAmount = initial.amount?.format(currencySymbol: initial.tokenItem.currencySymbol)
+        let formattedAmountAlternative = initial.amount?.formatAlternative(currencySymbol: initial.tokenItem.currencySymbol)
         amountSummaryViewData = sectionViewModelFactory.makeAmountViewData(from: formattedAmount, amountAlternative: formattedAmountAlternative)
         feeSummaryViewData = sectionViewModelFactory.makeFeeViewData(from: .loaded(feeValue), feeOption: input.selectedFeeOption)
 
@@ -87,6 +86,7 @@ class SendFinishViewModel: ObservableObject {
 
 extension SendFinishViewModel {
     struct Initial {
-        let amount: CryptoFiatAmount?
+        let tokenItem: TokenItem
+        let amount: SendAmount?
     }
 }

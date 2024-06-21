@@ -1,5 +1,5 @@
 //
-//  CryptoFiatAmountConverter.swift
+//  SendAmountConverter.swift
 //  Tangem
 //
 //  Created by Sergey Balashov on 03.06.2024.
@@ -8,13 +8,7 @@
 
 import Foundation
 
-struct CryptoFiatAmountConverter {
-    private let formatter: DecimalNumberFormatter
-
-    init(maximumFractionDigits: Int) {
-        formatter = DecimalNumberFormatter(maximumFractionDigits: maximumFractionDigits)
-    }
-
+struct SendAmountConverter {
     func convertToCrypto(_ fiatValue: Decimal?, tokenItem: TokenItem) -> Decimal? {
         guard let fiatValue,
               let currencyId = tokenItem.currencyId,
@@ -22,7 +16,7 @@ struct CryptoFiatAmountConverter {
             return nil
         }
 
-        formatter.update(maximumFractionDigits: tokenItem.decimalCount)
+        let formatter = DecimalNumberFormatter(maximumFractionDigits: tokenItem.decimalCount)
         return formatter.format(value: cryptoValue)
     }
 
@@ -33,7 +27,7 @@ struct CryptoFiatAmountConverter {
             return nil
         }
 
-        formatter.update(maximumFractionDigits: 2)
+        let formatter = DecimalNumberFormatter(maximumFractionDigits: 2) // Fiat has 2 FractionDigits
         return formatter.format(value: fiatValue)
     }
 }

@@ -54,7 +54,7 @@ class SendModel {
 
     private let _destination: CurrentValueSubject<SendAddress?, Never>
     private let _destinationAdditionalField: CurrentValueSubject<DestinationAdditionalFieldType, Never>
-    private let _amount = CurrentValueSubject<CryptoFiatAmount?, Never>(nil)
+    private let _amount = CurrentValueSubject<SendAmount?, Never>(nil)
 
     private let fee = CurrentValueSubject<Fee?, Never>(nil)
 
@@ -125,7 +125,10 @@ class SendModel {
     }
 
     func updateFees() -> AnyPublisher<FeeUpdateResult, Error> {
-        updateFees(amount: amount?.crypto.flatMap { makeAmount(decimal: $0) }, destination: _destination.value?.value)
+        updateFees(
+            amount: amount?.crypto.flatMap { makeAmount(decimal: $0) },
+            destination: _destination.value?.value
+        )
     }
 
     func setCustomFee(_ customFee: Fee?) {
@@ -394,9 +397,9 @@ class SendModel {
 // MARK: - SendAmountInput, SendAmountOutput
 
 extension SendModel: SendAmountInput, SendAmountOutput {
-    var amount: CryptoFiatAmount? { _amount.value }
+    var amount: SendAmount? { _amount.value }
 
-    func amountDidChanged(amount: CryptoFiatAmount?) {
+    func amountDidChanged(amount: SendAmount?) {
         _amount.send(amount)
     }
 }
@@ -457,7 +460,7 @@ extension SendModel: SendFeeViewModelInput {
 // MARK: - SendSummaryViewModelInput
 
 extension SendModel: SendSummaryViewModelInput {
-    var amountPublisher: AnyPublisher<CryptoFiatAmount?, Never> {
+    var amountPublisher: AnyPublisher<SendAmount?, Never> {
         _amount.eraseToAnyPublisher()
     }
 

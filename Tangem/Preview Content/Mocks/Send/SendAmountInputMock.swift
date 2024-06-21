@@ -11,9 +11,9 @@ import Combine
 import BlockchainSdk
 
 class SendAmountInputMock: SendAmountInput {
-    var amount: CryptoFiatAmount? { .none }
+    var amount: SendAmount? { .none }
 }
 
 class SendAmountOutputMock: SendAmountOutput {
-    func amountDidChanged(amount: CryptoFiatAmount?) {}
+    func amountDidChanged(amount: SendAmount?) {}
 }

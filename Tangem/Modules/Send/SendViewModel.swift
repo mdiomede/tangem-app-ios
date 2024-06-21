@@ -890,7 +890,7 @@ private extension ValidationError {
     }
 }
 
-private extension SendAmountViewModel.AmountType {
+private extension SendAmountCalculationType {
     var analyticParameter: Analytics.ParameterValue {
         switch self {
         case .crypto: .token
