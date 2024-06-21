@@ -22,8 +22,6 @@ protocol SendSummaryViewModelInput: AnyObject {
     var selectedFeePublisher: AnyPublisher<SendFee?, Never> { get }
 
     var isSending: AnyPublisher<Bool, Never> { get }
-
-    func amountPublisher() -> AnyPublisher<CryptoFiatAmount?, Never>
 }
 
 class SendSummaryViewModel: ObservableObject {
