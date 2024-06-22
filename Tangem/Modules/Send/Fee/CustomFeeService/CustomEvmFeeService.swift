@@ -31,6 +31,10 @@ class CustomEvmFeeService {
     private var customMaxLimitBeforeEditing: BigUInt?
     private var customGasPriceBeforeEditing: BigUInt?
 
+    private var zeroFee: Fee {
+        return Fee(Amount(with: feeTokenItem.blockchain, type: feeTokenItem.amountType, value: 0))
+    }
+
     private var bag: Set<AnyCancellable> = []
 
     init(feeTokenItem: TokenItem) {
@@ -51,8 +55,8 @@ class CustomEvmFeeService {
             .store(in: &bag)
     }
 
-    private func customFeeDidChanged(fee: Fee?) {
-        let fortmatted = fortmatToFiat(value: fee?.amount.value)
+    private func customFeeDidChanged(fee: Fee) {
+        let fortmatted = fortmatToFiat(value: fee.amount.value)
         customFeeInFiat.send(fortmatted)
 
         output?.customFeeDidChanged(fee)
@@ -118,7 +122,7 @@ class CustomEvmFeeService {
         return Fee(amount, parameters: parameters)
     }
 
-    private func calculateFee(for feeValue: Decimal?) -> Fee? {
+    private func calculateFee(for feeValue: Decimal?) -> Fee {
         let feeDecimalValue = feeTokenItem.decimalValue
 
         guard
@@ -127,7 +131,7 @@ class CustomEvmFeeService {
             let currentPriorityFee = priorityFee.value,
             let enteredFeeInSmallestDenomination = (feeValue * feeDecimalValue).rounded(roundingMode: .down).bigUIntValue
         else {
-            return nil
+            return zeroFee
         }
 
         let parameters: EthereumFeeParameters
