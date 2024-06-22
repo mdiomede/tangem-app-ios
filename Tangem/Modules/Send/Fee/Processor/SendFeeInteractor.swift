@@ -10,18 +10,17 @@ import Foundation
 import Combine
 import BlockchainSdk
 
-protocol SendFeeInteractorInput: AnyObject {
-    var cryptoAmountPublisher: AnyPublisher<Amount, Never> { get }
-    var destinationPublisher: AnyPublisher<String, Never> { get }
-}
-
 protocol SendFeeInteractor {
+//    var selectedFee: SendFee? { get }
+
+    func update(selectedFee: SendFee?)
     func updateFees()
 
     func feesPublisher() -> AnyPublisher<[SendFee], Never>
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never>
 
-    func customFeePublisher() -> AnyPublisher<SendFee, Never>
+//    func customFeePublisher() -> AnyPublisher<SendFee, Never>
     func customFeeInputFieldModels() -> [SendCustomFeeInputFieldModel]
 
-    func setup(input: SendFeeInteractorInput)
+    func setup(input: SendFeeInput, output: SendFeeOutput)
 }

@@ -70,7 +70,7 @@ class SendSummaryViewModel: ObservableObject {
     private let tokenItem: TokenItem
     private let walletInfo: SendWalletInfo
     private let notificationManager: SendNotificationManager
-    private let sendFeeProcessor: SendFeeInteractor
+    private let sendFeeInteractor: SendFeeInteractor
     private var isVisible = false
 
     let addressTextViewHeightModel: AddressTextViewHeightModel
@@ -79,7 +79,7 @@ class SendSummaryViewModel: ObservableObject {
         initial: Initial,
         input: SendSummaryViewModelInput,
         notificationManager: SendNotificationManager,
-        sendFeeProcessor: SendFeeInteractor,
+        sendFeeInteractor: SendFeeInteractor,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         walletInfo: SendWalletInfo,
         sectionViewModelFactory: SendSummarySectionViewModelFactory
@@ -89,7 +89,7 @@ class SendSummaryViewModel: ObservableObject {
         self.input = input
         self.walletInfo = walletInfo
         self.notificationManager = notificationManager
-        self.sendFeeProcessor = sendFeeProcessor
+        self.sendFeeInteractor = sendFeeInteractor
         self.addressTextViewHeightModel = addressTextViewHeightModel
         self.sectionViewModelFactory = sectionViewModelFactory
 
@@ -181,7 +181,7 @@ class SendSummaryViewModel: ObservableObject {
             .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
             .store(in: &bag)
 
-        Publishers.CombineLatest(sendFeeProcessor.feesPublisher(), input.selectedFeePublisher)
+        Publishers.CombineLatest(sendFeeInteractor.feesPublisher(), input.selectedFeePublisher)
             .sink { [weak self] feeValues, selectedFee in
                 guard let self else { return }
 
