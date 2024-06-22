@@ -73,7 +73,11 @@ class CommonSendFeeInteractor {
             .compactMap { interactor, fees in
                 fees.value.flatMap { interactor.initialFeeForUpdate(fees: $0) }
             }
+<<<<<<<< HEAD:Tangem/Modules/Send/Fee/Interactor/SendFeeInteractor.swift
+        // Only once
+========
             // Only once
+>>>>>>>> 2c87e06d5 (IOS-7018 Work via SendFeeInteractor):Tangem/Modules/Send/Fee/Interactor/CommonSendFeeInteractor.swift
             .first()
             .withWeakCaptureOf(self)
             .sink { interactor, fee in
@@ -89,10 +93,13 @@ class CommonSendFeeInteractor {
 // MARK: - SendFeeInteractor
 
 extension CommonSendFeeInteractor: SendFeeInteractor {
+<<<<<<<< HEAD:Tangem/Modules/Send/Fee/Interactor/SendFeeInteractor.swift
     var selectedFee: SendFee? {
         input?.selectedFee
     }
 
+========
+>>>>>>>> 2c87e06d5 (IOS-7018 Work via SendFeeInteractor):Tangem/Modules/Send/Fee/Interactor/CommonSendFeeInteractor.swift
     func setup(input: any SendFeeInput, output: any SendFeeOutput) {
         self.input = input
         self.output = output
@@ -133,8 +140,31 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
             .store(in: &bag)
     }
 
+<<<<<<<< HEAD:Tangem/Modules/Send/Fee/Interactor/SendFeeInteractor.swift
     func update(selectedFee: SendFee) {
         output?.feeDidChanged(fee: selectedFee)
+========
+    func update(selectedFee: SendFee?) {
+        output?.feeDidChanged(fee: selectedFee)
+    }
+
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never> {
+        input?.selectedFeePublisher ?? .just(output: nil)
+    }
+
+    func feesPublisher() -> AnyPublisher<[SendFee], Never> {
+        Publishers.CombineLatest(_fees, _customFee)
+            .withWeakCaptureOf(self)
+            .map { interactor, args in
+                let (feesValue, customFee) = args
+                return interactor.mapToSendFees(feesValue: feesValue, customFee: customFee)
+            }
+            .eraseToAnyPublisher()
+>>>>>>>> 2c87e06d5 (IOS-7018 Work via SendFeeInteractor):Tangem/Modules/Send/Fee/Interactor/CommonSendFeeInteractor.swift
+    }
+
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never> {
+        input?.selectedFeePublisher ?? .just(output: nil)
     }
 
     func feesPublisher() -> AnyPublisher<[SendFee], Never> {
@@ -167,9 +197,14 @@ extension CommonSendFeeInteractor: CustomFeeServiceInput {
 // MARK: - CustomFeeServiceOutput
 
 extension CommonSendFeeInteractor: CustomFeeServiceOutput {
+<<<<<<<< HEAD:Tangem/Modules/Send/Fee/Interactor/SendFeeInteractor.swift
     func customFeeDidChanged(_ customFee: Fee) {
         _customFee.send(customFee)
         update(selectedFee: .init(option: .custom, value: .loaded(customFee)))
+========
+    func customFeeDidChanged(_ customFee: Fee?) {
+        _customFee.send(customFee)
+>>>>>>>> 2c87e06d5 (IOS-7018 Work via SendFeeInteractor):Tangem/Modules/Send/Fee/Interactor/CommonSendFeeInteractor.swift
         _fees.send(_fees.value)
     }
 }
@@ -224,7 +259,11 @@ private extension CommonSendFeeInteractor {
         return market
     }
 
+<<<<<<<< HEAD:Tangem/Modules/Send/Fee/Interactor/SendFeeInteractor.swift
     private func initialSelectedFeeUpdateIfNeeded(fee: SendFee) {
+========
+    private func initialSelectedFeeUpdateIfNeeded(fee: SendFee?) {
+>>>>>>>> 2c87e06d5 (IOS-7018 Work via SendFeeInteractor):Tangem/Modules/Send/Fee/Interactor/CommonSendFeeInteractor.swift
         guard input?.selectedFee == nil else {
             return
         }
@@ -232,3 +271,4 @@ private extension CommonSendFeeInteractor {
         output?.feeDidChanged(fee: fee)
     }
 }
+
