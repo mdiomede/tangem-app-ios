@@ -76,7 +76,7 @@ class SendModel {
 
     private let walletModel: WalletModel
     private let transactionSigner: TransactionSigner
-    private let sendFeeProcessor: SendFeeInteractor
+    private let sendFeeInteractor: SendFeeInteractor
     private let feeIncludedCalculator: FeeIncludedCalculator
     private let sendType: SendType
 
@@ -92,13 +92,13 @@ class SendModel {
     init(
         walletModel: WalletModel,
         transactionSigner: TransactionSigner,
-        sendFeeProcessor: SendFeeInteractor,
+        sendFeeInteractor: SendFeeInteractor,
         feeIncludedCalculator: FeeIncludedCalculator,
         sendType: SendType
     ) {
         self.walletModel = walletModel
         self.transactionSigner = transactionSigner
-        self.sendFeeProcessor = sendFeeProcessor
+        self.sendFeeInteractor = sendFeeInteractor
         self.feeIncludedCalculator = feeIncludedCalculator
         self.sendType = sendType
 
@@ -122,7 +122,7 @@ class SendModel {
     }
 
     func updateFees() {
-        sendFeeProcessor.updateFees()
+        sendFeeInteractor.updateFees()
     }
 
     func send() {
@@ -138,7 +138,7 @@ class SendModel {
         let oldFee = _selectedFee.value
 
         // Catch the subscribtions
-        sendFeeProcessor.feesPublisher()
+        sendFeeInteractor.feesPublisher()
             .sink { [weak self] completion in
                 guard case .failure = completion else {
                     return
@@ -296,25 +296,17 @@ extension SendModel: SendDestinationInput, SendDestinationOutput {
     }
 }
 
-// MARK: - SendFeeInput, SendFeeOutput
+// MARK: - SendFeeInput
 
-extension SendModel: SendFeeInput, SendFeeOutput {
+extension SendModel: SendFeeInput {
     var selectedFee: SendFee? {
         _selectedFee.value
     }
 
     var selectedFeePublisher: AnyPublisher<SendFee?, Never> {
-        _selectedFee.dropFirst().eraseToAnyPublisher()
+        _selectedFee.eraseToAnyPublisher()
     }
 
-    func feeDidChanged(fee: SendFee?) {
-        _selectedFee.send(fee)
-    }
-}
-
-// MARK: - SendFeeInteractorInput
-
-extension SendModel: SendFeeInteractorInput {
     var cryptoAmountPublisher: AnyPublisher<BlockchainSdk.Amount, Never> {
         _amount
             .withWeakCaptureOf(self)
@@ -326,6 +318,14 @@ extension SendModel: SendFeeInteractorInput {
 
     var destinationPublisher: AnyPublisher<String, Never> {
         _destination.compactMap { $0?.value }.eraseToAnyPublisher()
+    }
+}
+
+// MARK: - SendFeeOutput
+
+extension SendModel: SendFeeOutput {
+    func feeDidChanged(fee: SendFee?) {
+        _selectedFee.send(fee)
     }
 }
 
@@ -417,7 +417,7 @@ extension SendModel: SendFinishViewModelInput {
 
 extension SendModel: SendNotificationManagerInput {
     var feeValues: AnyPublisher<[SendFee], Never> {
-        sendFeeProcessor.feesPublisher()
+        sendFeeInteractor.feesPublisher()
     }
 
     var isFeeIncludedPublisher: AnyPublisher<Bool, Never> {

@@ -11,12 +11,15 @@ import Combine
 import BlockchainSdk
 
 class CommonSendFeeInteractor {
+    private weak var input: SendFeeInput?
+    private weak var output: SendFeeOutput?
+
     private let provider: SendFeeProvider
     private var customFeeService: CustomFeeService?
+    private let _cryptoAmount: CurrentValueSubject<Amount?, Never>
+    private let _destination: CurrentValueSubject<String?, Never>
 
-    private let _cryptoAmount: CurrentValueSubject<Amount?, Never> = .init(.none)
-    private let _destination: CurrentValueSubject<String?, Never> = .init(.none)
-    private let _fees: CurrentValueSubject<[SendFee], Never> = .init([])
+    private let _fees: CurrentValueSubject<LoadingValue<[Fee]>, Never> = .init(.loading)
     private let _customFee: CurrentValueSubject<Fee?, Never> = .init(.none)
 
     private let defaultFeeOptions: [FeeOption]
@@ -37,52 +40,45 @@ class CommonSendFeeInteractor {
     init(
         provider: SendFeeProvider,
         defaultFeeOptions: [FeeOption],
-        customFeeServiceFactory: CustomFeeServiceFactory
+        customFeeService: CustomFeeService?,
+        predefinedAmount: Amount? = nil,
+        predefinedDestination: String? = nil
     ) {
         self.provider = provider
         self.defaultFeeOptions = defaultFeeOptions
+        self.customFeeService = customFeeService
+        _cryptoAmount = .init(predefinedAmount)
+        _destination = .init(predefinedDestination)
 
-        customFeeService = customFeeServiceFactory.makeService(input: self, output: self)
         bind()
     }
 
     func bind() {
         _fees
-            .compactMap { $0.first(where: { $0.option == .market })?.value.value }
             .withWeakCaptureOf(self)
+            .compactMap { interactor, fees in
+                fees.value.flatMap { interactor.initialFeeForUpdate(fees: $0) }
+            }
             // Only once
             .first()
-            .sink { processor, fee in
-                processor.customFeeService?.initialSetupCustomFee(fee)
+            .withWeakCaptureOf(self)
+            .sink { interactor, fee in
+                interactor.initialSelectedFeeUpdateIfNeeded(fee: fee)
+                fee.value.value.map {
+                    interactor.customFeeService?.initialSetupCustomFee($0)
+                }
             }
             .store(in: &bag)
-    }
-}
-
-// MARK: - CustomFeeServiceInput
-
-extension CommonSendFeeInteractor: CustomFeeServiceInput {
-    var cryptoAmountPublisher: AnyPublisher<Amount, Never> {
-        _cryptoAmount.compactMap { $0 }.eraseToAnyPublisher()
-    }
-
-    var destinationPublisher: AnyPublisher<String, Never> {
-        _destination.compactMap { $0 }.eraseToAnyPublisher()
-    }
-}
-
-// MARK: - CustomFeeServiceOutput
-
-extension CommonSendFeeInteractor: CustomFeeServiceOutput {
-    func customFeeDidChanged(_ customFee: Fee?) {
-        _customFee.send(customFee)
     }
 }
 
 // MARK: - SendFeeInteractor
 
 extension CommonSendFeeInteractor: SendFeeInteractor {
-    func setup(input: SendFeeInteractorInput) {
+    func setup(input: any SendFeeInput, output: any SendFeeOutput) {
+        self.input = input
+        self.output = output
+
         input.cryptoAmountPublisher
             .withWeakCaptureOf(self)
             .sink { processor, amount in
@@ -112,15 +108,29 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
                     return
                 }
 
-                self?.update(fees: .failedToLoad(error: error))
+                self?._fees.send(.failedToLoad(error: error))
             }, receiveValue: { [weak self] fees in
-                self?.update(fees: .loaded(fees))
+                self?._fees.send(.loaded(fees))
             })
             .store(in: &bag)
     }
 
+    func update(selectedFee: SendFee?) {
+        output?.feeDidChanged(fee: selectedFee)
+    }
+
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never> {
+        input?.selectedFeePublisher ?? .just(output: nil)
+    }
+
     func feesPublisher() -> AnyPublisher<[SendFee], Never> {
-        _fees.dropFirst().eraseToAnyPublisher()
+        Publishers.CombineLatest(_fees, _customFee)
+            .withWeakCaptureOf(self)
+            .map { interactor, args in
+                let (feesValue, customFee) = args
+                return interactor.mapToSendFees(feesValue: feesValue, customFee: customFee)
+            }
+            .eraseToAnyPublisher()
     }
 
     func customFeePublisher() -> AnyPublisher<SendFee, Never> {
@@ -134,28 +144,46 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
     }
 }
 
+// MARK: - CustomFeeServiceInput
+
+extension CommonSendFeeInteractor: CustomFeeServiceInput {
+    var cryptoAmountPublisher: AnyPublisher<Amount, Never> {
+        _cryptoAmount.compactMap { $0 }.eraseToAnyPublisher()
+    }
+
+    var destinationPublisher: AnyPublisher<String, Never> {
+        _destination.compactMap { $0 }.eraseToAnyPublisher()
+    }
+}
+
+// MARK: - CustomFeeServiceOutput
+
+extension CommonSendFeeInteractor: CustomFeeServiceOutput {
+    func customFeeDidChanged(_ customFee: Fee?) {
+        _customFee.send(customFee)
+        _fees.send(_fees.value)
+    }
+}
+
 // MARK: - Private
 
 private extension CommonSendFeeInteractor {
-    func update(fees value: LoadingValue<[Fee]>) {
-        switch value {
+    func mapToSendFees(feesValue: LoadingValue<[Fee]>, customFee: Fee?) -> [SendFee] {
+        switch feesValue {
         case .loading:
-            _fees.send(feeOptions.map { SendFee(option: $0, value: .loading) })
+            return feeOptions.map { SendFee(option: $0, value: .loading) }
         case .loaded(let fees):
-            _fees.send(mapToFees(fees: fees))
+            return mapToFees(fees: fees, customFee: customFee)
         case .failedToLoad(let error):
-            _fees.send(feeOptions.map { SendFee(option: $0, value: .failedToLoad(error: error)) })
+            return feeOptions.map { SendFee(option: $0, value: .failedToLoad(error: error)) }
         }
     }
 
-    func mapToFees(fees: [Fee]) -> [SendFee] {
+    func mapToFees(fees: [Fee], customFee: Fee?) -> [SendFee] {
         var defaultOptions = mapToDefaultFees(fees: fees)
 
         if supportCustomFee {
-            var customFee = _customFee.value
-            if customFee == nil {
-                customFee = defaultOptions.first(where: { $0.option == .market })?.value.value
-            }
+            let customFee = customFee ?? defaultOptions.first(where: { $0.option == .market })?.value.value
 
             if let customFee {
                 defaultOptions.append(SendFee(option: .custom, value: .loaded(customFee)))
@@ -179,5 +207,19 @@ private extension CommonSendFeeInteractor {
             assertionFailure("Wrong count of fees")
             return []
         }
+    }
+
+    private func initialFeeForUpdate(fees: [Fee]) -> SendFee? {
+        let values = mapToDefaultFees(fees: fees)
+        let market = values.first(where: { $0.option == .market })
+        return market
+    }
+
+    private func initialSelectedFeeUpdateIfNeeded(fee: SendFee?) {
+        guard input?.selectedFee == nil else {
+            return
+        }
+
+        output?.feeDidChanged(fee: fee)
     }
 }
