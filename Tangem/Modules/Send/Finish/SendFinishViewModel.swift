@@ -12,7 +12,6 @@ import Combine
 import BlockchainSdk
 
 protocol SendFinishViewModelInput: AnyObject {
-    var userInputAmountValue: Decimal? { get }
     var destinationText: String? { get }
     var additionalField: (SendAdditionalFields, String)? { get }
     var feeValue: SendFee? { get }
