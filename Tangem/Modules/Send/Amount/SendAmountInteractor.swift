@@ -103,7 +103,9 @@ extension CommonSendAmountInteractor: SendAmountInteractor {
         }
 
         self.type = type
-        return input?.amount?.toggle(type: type)
+        let sendAmount = input?.amount?.toggle(type: type)
+        validateAndUpdate(amount: sendAmount)
+        return sendAmount
     }
 
     func updateToMaxAmount() -> SendAmount? {
