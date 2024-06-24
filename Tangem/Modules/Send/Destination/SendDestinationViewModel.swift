@@ -11,7 +11,7 @@ import Combine
 import BlockchainSdk
 
 protocol SendDestinationInput: AnyObject {
-    func destinationTextPublisher() -> AnyPublisher<String, Never>
+    func destinationPublisher() -> AnyPublisher<SendAddress, Never>
     func additionalFieldPublisher() -> AnyPublisher<DestinationAdditionalFieldType, Never>
 }
 

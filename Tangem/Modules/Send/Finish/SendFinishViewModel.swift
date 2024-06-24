@@ -11,15 +11,6 @@ import SwiftUI
 import Combine
 import BlockchainSdk
 
-protocol SendFinishViewModelInput: AnyObject {
-    var destinationText: String? { get }
-    var additionalField: DestinationAdditionalFieldType { get }
-    var feeValue: SendFee? { get }
-
-    var transactionTime: Date? { get }
-    var transactionURL: URL? { get }
-}
-
 class SendFinishViewModel: ObservableObject {
     @Published var showHeader = false
     @ObservedObject var addressTextViewHeightModel: AddressTextViewHeightModel
@@ -31,52 +22,35 @@ class SendFinishViewModel: ObservableObject {
     let feeSummaryViewData: SendFeeSummaryViewModel?
 
     private let feeTypeAnalyticsParameter: Analytics.ParameterValue
-    private let walletInfo: SendWalletInfo
+    private let tokenItem: TokenItem
 
     init?(
         initial: Initial,
-        input: SendFinishViewModelInput,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         feeTypeAnalyticsParameter: Analytics.ParameterValue,
-        walletInfo: SendWalletInfo,
         sectionViewModelFactory: SendSummarySectionViewModelFactory
     ) {
-        // TODO: Move all logic into factory
-        guard
-            let destinationText = input.destinationText,
-            let transactionTime = input.transactionTime,
-            let feeValue = input.feeValue
-        else {
-            return nil
-        }
-
+        tokenItem = initial.tokenItem
         destinationViewTypes = sectionViewModelFactory.makeDestinationViewTypes(
-            address: destinationText,
-            additionalField: input.additionalField
+            address: initial.destination,
+            additionalField: initial.additionalField
         )
 
-        if let formattedAmount = initial.amount?.format(currencySymbol: initial.tokenItem.currencySymbol),
-           let formattedAmountAlternative = initial.amount?.formatAlternative(currencySymbol: initial.tokenItem.currencySymbol) {
-            amountSummaryViewData = sectionViewModelFactory.makeAmountViewData(amount: formattedAmount, amountAlternative: formattedAmountAlternative)
-        } else {
-            amountSummaryViewData = nil
-        }
+        amountSummaryViewData = sectionViewModelFactory.makeAmountViewData(
+            amount: initial.amount.format(currencySymbol: initial.tokenItem.currencySymbol),
+            amountAlternative: initial.amount.formatAlternative(currencySymbol: initial.tokenItem.currencySymbol)
+        )
 
-        feeSummaryViewData = sectionViewModelFactory.makeFeeViewData(from: feeValue)
-
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .short
-        self.transactionTime = formatter.string(from: transactionTime)
+        feeSummaryViewData = sectionViewModelFactory.makeFeeViewData(from: initial.feeValue)
+        transactionTime = initial.transactionTimeFormatted
 
         self.addressTextViewHeightModel = addressTextViewHeightModel
         self.feeTypeAnalyticsParameter = feeTypeAnalyticsParameter
-        self.walletInfo = walletInfo
     }
 
     func onAppear() {
         Analytics.log(event: .sendTransactionSentScreenOpened, params: [
-            .token: walletInfo.cryptoCurrencyCode,
+            .token: tokenItem.currencySymbol,
             .feeType: feeTypeAnalyticsParameter.rawValue,
         ])
 
@@ -89,6 +63,10 @@ class SendFinishViewModel: ObservableObject {
 extension SendFinishViewModel {
     struct Initial {
         let tokenItem: TokenItem
-        let amount: SendAmount?
+        let destination: String
+        let additionalField: DestinationAdditionalFieldType
+        let amount: SendAmount
+        let feeValue: SendFee
+        let transactionTimeFormatted: String
     }
 }

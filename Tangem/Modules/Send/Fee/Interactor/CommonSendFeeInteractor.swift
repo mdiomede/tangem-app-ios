@@ -31,7 +31,7 @@ class CommonSendFeeInteractor {
     private let provider: SendFeeProvider
     private var customFeeService: CustomFeeService?
     private let _cryptoAmount: CurrentValueSubject<Amount?, Never>
-    private let _destination: CurrentValueSubject<String?, Never>
+    private let _destinationAddress: CurrentValueSubject<String?, Never>
 
     private let _fees: CurrentValueSubject<LoadingValue<[Fee]>, Never> = .init(.loading)
     private let _customFee: CurrentValueSubject<Fee?, Never> = .init(.none)
@@ -62,7 +62,7 @@ class CommonSendFeeInteractor {
         self.defaultFeeOptions = defaultFeeOptions
         self.customFeeService = customFeeService
         _cryptoAmount = .init(predefinedAmount)
-        _destination = .init(predefinedDestination)
+        _destinationAddress = .init(predefinedDestination)
 
         bind()
     }
@@ -104,24 +104,24 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
         self.input = input
         self.output = output
 
-        input.cryptoAmountPublisher
+        input.cryptoAmountPublisher()
             .withWeakCaptureOf(self)
             .sink { processor, amount in
                 processor._cryptoAmount.send(amount)
             }
             .store(in: &bag)
 
-        input.destinationPublisher
+        input.destinationAddressPublisher()
             .withWeakCaptureOf(self)
             .sink { processor, destination in
-                processor._destination.send(destination)
+                processor._destinationAddress.send(destination)
             }
             .store(in: &bag)
     }
 
     func updateFees() {
         guard let amount = _cryptoAmount.value,
-              let destination = _destination.value else {
+              let destination = _destinationAddress.value else {
             assertionFailure("SendFeeInteractor is not ready to update fees")
             return
         }
@@ -164,7 +164,7 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
     }
 
     func selectedFeePublisher() -> AnyPublisher<SendFee?, Never> {
-        input?.selectedFeePublisher ?? .just(output: nil)
+        input?.selectedFeePublisher() ?? .just(output: nil)
     }
 
     func feesPublisher() -> AnyPublisher<[SendFee], Never> {
@@ -190,7 +190,7 @@ extension CommonSendFeeInteractor: CustomFeeServiceInput {
     }
 
     var destinationPublisher: AnyPublisher<String, Never> {
-        _destination.compactMap { $0 }.eraseToAnyPublisher()
+        _destinationAddress.compactMap { $0 }.eraseToAnyPublisher()
     }
 }
 

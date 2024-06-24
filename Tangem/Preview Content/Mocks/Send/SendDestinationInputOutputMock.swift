@@ -11,8 +11,8 @@ import Combine
 import BlockchainSdk
 
 class SendDestinationInputOutputMock: SendDestinationInput, SendDestinationOutput {
-    func destinationTextPublisher() -> AnyPublisher<String, Never> {
-        .just(output: "0x123123")
+    func destinationPublisher() -> AnyPublisher<SendAddress, Never> {
+        .just(output: .init(value: "0x123123", source: .recentAddress))
     }
 
     func additionalFieldPublisher() -> AnyPublisher<DestinationAdditionalFieldType, Never> {
