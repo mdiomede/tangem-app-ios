@@ -264,25 +264,47 @@ class SendModel {
     }
 }
 
-// MARK: - SendAmountInput, SendAmountOutput
+// MARK: - SendDestinationInput
 
-extension SendModel: SendAmountInput, SendAmountOutput {
-    var amount: SendAmount? { _amount.value }
+extension SendModel: SendDestinationInput {
+    func destinationTextPublisher() -> AnyPublisher<String, Never> {
+        _destination
+            .compactMap { $0?.value }
+            .eraseToAnyPublisher()
+    }
 
-    func amountDidChanged(amount: SendAmount?) {
-        _amount.send(amount)
+    func additionalFieldPublisher() -> AnyPublisher<DestinationAdditionalFieldType, Never> {
+        _destinationAdditionalField.eraseToAnyPublisher()
     }
 }
 
-// MARK: - SendDestinationInput, SendDestinationOutput
+// MARK: - SendDestinationOutput
 
-extension SendModel: SendDestinationInput, SendDestinationOutput {
+extension SendModel: SendDestinationOutput {
     func destinationDidChanged(_ address: SendAddress?) {
         _destination.send(address)
     }
 
     func destinationAdditionalParametersDidChanged(_ type: DestinationAdditionalFieldType) {
         _destinationAdditionalField.send(type)
+    }
+}
+
+// MARK: - SendAmountInput
+
+extension SendModel: SendAmountInput {
+    var amount: SendAmount? { _amount.value }
+
+    func amountPublisher() -> AnyPublisher<SendAmount?, Never> {
+        _amount.dropFirst().eraseToAnyPublisher()
+    }
+}
+
+// MARK: - SendAmountOutput
+
+extension SendModel: SendAmountOutput {
+    func amountDidChanged(amount: SendAmount?) {
+        _amount.send(amount)
     }
 }
 
@@ -319,48 +341,9 @@ extension SendModel: SendFeeOutput {
     }
 }
 
-// MARK: - SendSummaryViewModelInput
+// MARK: - SendSummaryInteractor
 
-extension SendModel: SendSummaryViewModelInput {
-    var amountPublisher: AnyPublisher<SendAmount?, Never> {
-        _amount.eraseToAnyPublisher()
-    }
-
-    var destinationTextPublisher: AnyPublisher<String, Never> {
-        _destination
-            .receive(on: DispatchQueue.main) // Move this to UI layer
-            .compactMap { $0?.value }
-            .eraseToAnyPublisher()
-    }
-
-    var additionalFieldPublisher: AnyPublisher<(SendAdditionalFields, String)?, Never> {
-        _destinationAdditionalField
-            .withWeakCaptureOf(self)
-            .map { viewModel, field in
-                switch field {
-                case .filled(let type, let value, _):
-                    return (type, value)
-                default:
-                    return nil
-                }
-            }
-            .eraseToAnyPublisher()
-    }
-
-    var transactionAmountPublisher: AnyPublisher<Amount?, Never> {
-        transaction
-            .map(\.?.amount)
-            .eraseToAnyPublisher()
-    }
-
-    var canEditAmount: Bool {
-        sendType.predefinedAmount == nil
-    }
-
-    var canEditDestination: Bool {
-        sendType.predefinedDestination == nil
-    }
-
+extension SendModel: SendSummaryInteractor {
     var isSending: AnyPublisher<Bool, Never> {
         _isSending.eraseToAnyPublisher()
     }
@@ -381,13 +364,8 @@ extension SendModel: SendFinishViewModelInput {
         _destination.value?.value
     }
 
-    var additionalField: (SendAdditionalFields, String)? {
-        switch _destinationAdditionalField.value {
-        case .notSupported, .empty:
-            return nil
-        case .filled(let type, let value, _):
-            return (type, value)
-        }
+    var additionalField: DestinationAdditionalFieldType {
+        _destinationAdditionalField.value
     }
 
     var feeText: String {

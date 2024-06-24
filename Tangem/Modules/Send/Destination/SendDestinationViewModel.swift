@@ -10,7 +10,10 @@ import Foundation
 import Combine
 import BlockchainSdk
 
-protocol SendDestinationInput: AnyObject {}
+protocol SendDestinationInput: AnyObject {
+    func destinationTextPublisher() -> AnyPublisher<String, Never>
+    func additionalFieldPublisher() -> AnyPublisher<DestinationAdditionalFieldType, Never>
+}
 
 protocol SendDestinationOutput: AnyObject {
     func destinationDidChanged(_ address: SendAddress?)
