@@ -33,8 +33,12 @@ class SendModel {
         _sendError.eraseToAnyPublisher()
     }
 
-    var destination: AnyPublisher<SendAddress?, Never> {
-        _destination.eraseToAnyPublisher()
+    var destination: SendAddress? {
+        _destination.value
+    }
+
+    var destinationAdditionalField: DestinationAdditionalFieldType {
+        _destinationAdditionalField.value
     }
 
     var isFeeIncluded: Bool {
@@ -46,6 +50,14 @@ class SendModel {
             .map { $0 != nil }
             .removeDuplicates()
             .eraseToAnyPublisher()
+    }
+
+    var transactionTime: Date? {
+        _transactionTime.value
+    }
+
+    var transactionURL: URL? {
+        _transactionURL.value
     }
 
     // MARK: - Delegate
@@ -195,7 +207,7 @@ class SendModel {
 
     private func bind() {
         #warning("TODO: create TX after a delay")
-        Publishers.CombineLatest3(cryptoAmountPublisher, _destination, _selectedFee)
+        Publishers.CombineLatest3(cryptoAmountPublisher(), _destination, _selectedFee)
             .removeDuplicates {
                 $0 == $1
             }
@@ -267,9 +279,9 @@ class SendModel {
 // MARK: - SendDestinationInput
 
 extension SendModel: SendDestinationInput {
-    func destinationTextPublisher() -> AnyPublisher<String, Never> {
+    func destinationPublisher() -> AnyPublisher<SendAddress, Never> {
         _destination
-            .compactMap { $0?.value }
+            .compactMap { $0 }
             .eraseToAnyPublisher()
     }
 
@@ -315,11 +327,11 @@ extension SendModel: SendFeeInput {
         _selectedFee.value
     }
 
-    var selectedFeePublisher: AnyPublisher<SendFee?, Never> {
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never> {
         _selectedFee.eraseToAnyPublisher()
     }
 
-    var cryptoAmountPublisher: AnyPublisher<BlockchainSdk.Amount, Never> {
+    func cryptoAmountPublisher() -> AnyPublisher<BlockchainSdk.Amount, Never> {
         _amount
             .withWeakCaptureOf(self)
             .compactMap { model, amount in
@@ -328,7 +340,7 @@ extension SendModel: SendFeeInput {
             .eraseToAnyPublisher()
     }
 
-    var destinationPublisher: AnyPublisher<String, Never> {
+    func destinationAddressPublisher() -> AnyPublisher<String, Never> {
         _destination.compactMap { $0?.value }.eraseToAnyPublisher()
     }
 }
@@ -349,41 +361,14 @@ extension SendModel: SendSummaryInteractor {
     }
 }
 
-// MARK: - SendFinishViewModelInput
-
-extension SendModel: SendFinishViewModelInput {
-    var feeValue: SendFee? {
-        _selectedFee.value
-    }
-
-    var userInputAmountValue: Decimal? {
-        _amount.value?.crypto
-    }
-
-    var destinationText: String? {
-        _destination.value?.value
-    }
-
-    var additionalField: DestinationAdditionalFieldType {
-        _destinationAdditionalField.value
-    }
-
-    var feeText: String {
-        _selectedFee.value?.value.value?.amount.string() ?? ""
-    }
-
-    var transactionTime: Date? {
-        _transactionTime.value
-    }
-
-    var transactionURL: URL? {
-        _transactionURL.value
-    }
-}
-
 // MARK: - SendNotificationManagerInput
 
 extension SendModel: SendNotificationManagerInput {
+    // TODO: Refactoring in https://tangem.atlassian.net/browse/IOS-7196
+    var selectedSendFeePublisher: AnyPublisher<SendFee?, Never> {
+        selectedFeePublisher()
+    }
+
     var feeValues: AnyPublisher<[SendFee], Never> {
         sendFeeInteractor.feesPublisher()
     }

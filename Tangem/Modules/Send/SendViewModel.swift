@@ -69,12 +69,10 @@ final class SendViewModel: ObservableObject {
     let sendSummaryViewModel: SendSummaryViewModel
 
     lazy var sendFinishViewModel: SendFinishViewModel? = factory.makeSendFinishViewModel(
-        amount: sendModel.amount,
         sendModel: sendModel,
         notificationManager: notificationManager,
         addressTextViewHeightModel: addressTextViewHeightModel,
-        feeTypeAnalyticsParameter: selectedFeeTypeAnalyticsParameter(),
-        walletInfo: walletInfo
+        feeTypeAnalyticsParameter: selectedFeeTypeAnalyticsParameter()
     )
 
     // MARK: - Dependencies
@@ -350,11 +348,11 @@ final class SendViewModel: ObservableObject {
             .store(in: &bag)
 
         sendModel
-            .destination
+            .destinationPublisher()
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
             .sink { viewModel, destination in
-                switch destination?.source {
+                switch destination.source {
                 case .myWallet, .recentAddress:
                     viewModel.next()
                 default:
@@ -422,7 +420,7 @@ final class SendViewModel: ObservableObject {
                     logTransactionAnalytics()
                 }
 
-                if let address = sendModel.destinationText, let token = walletModel.tokenItem.token {
+                if let address = sendModel.destination?.value, let token = walletModel.tokenItem.token {
                     UserWalletFinder().addToken(token, in: walletModel.blockchainNetwork.blockchain, for: address)
                 }
             }
@@ -431,7 +429,7 @@ final class SendViewModel: ObservableObject {
         Publishers
             .CombineLatest(
                 sendModel.amountPublisher().compactMap { $0 },
-                sendModel.selectedFeePublisher.compactMap { $0?.value.value?.amount.value }
+                sendModel.selectedFeePublisher().compactMap { $0?.value.value?.amount.value }
             )
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
@@ -667,7 +665,7 @@ final class SendViewModel: ObservableObject {
             return .transactionFeeFixed
         }
 
-        switch sendModel.feeValue?.option {
+        switch sendModel.selectedFee?.option {
         case .none:
             assertionFailure("selectedFeeTypeAnalyticsParameter not found")
             return .null
@@ -685,7 +683,7 @@ final class SendViewModel: ObservableObject {
     private func additionalFieldAnalyticsParameter() -> Analytics.ParameterValue {
         // If the blockchain doesn't support additional field -- return null
         // Otherwise return full / empty
-        switch sendModel.additionalField {
+        switch sendModel.destinationAdditionalField {
         case .notSupported: .null
         case .empty: .empty
         case .filled: .full
@@ -784,7 +782,7 @@ extension SendViewModel: NotificationTapDelegate {
         }
 
         var newAmount = source - amount
-        if sendModel.isFeeIncluded, let feeValue = sendModel.feeValue?.value.value?.amount.value {
+        if sendModel.isFeeIncluded, let feeValue = sendModel.selectedFee?.value.value?.amount.value {
             newAmount = newAmount - feeValue
         }
 

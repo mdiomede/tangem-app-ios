@@ -140,12 +140,12 @@ class SendSummaryViewModel: ObservableObject {
 
 extension SendSummaryViewModel: SendSummaryViewModelSetupable {
     func setup(sendDestinationInput input: SendDestinationInput) {
-        Publishers.CombineLatest(input.destinationTextPublisher(), input.additionalFieldPublisher())
+        Publishers.CombineLatest(input.destinationPublisher(), input.additionalFieldPublisher())
             .withWeakCaptureOf(self)
             .map { viewModel, args in
                 let (destination, additionalField) = args
                 return viewModel.sectionViewModelFactory.makeDestinationViewTypes(
-                    address: destination,
+                    address: destination.value,
                     additionalField: additionalField
                 )
             }

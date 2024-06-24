@@ -12,9 +12,10 @@ import struct BlockchainSdk.Amount
 
 protocol SendFeeInput: AnyObject {
     var selectedFee: SendFee? { get }
-    var selectedFeePublisher: AnyPublisher<SendFee?, Never> { get }
-    var cryptoAmountPublisher: AnyPublisher<Amount, Never> { get }
-    var destinationPublisher: AnyPublisher<String, Never> { get }
+
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never>
+    func cryptoAmountPublisher() -> AnyPublisher<Amount, Never>
+    func destinationAddressPublisher() -> AnyPublisher<String, Never>
 }
 
 protocol SendFeeOutput: AnyObject {
