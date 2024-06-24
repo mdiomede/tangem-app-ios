@@ -16,9 +16,8 @@ struct SendFeeView: View {
         GroupedScrollView(spacing: 20) {
             GroupedSection(viewModel.feeRowViewModels) { feeRowViewModel in
                 Group {
-                    let isLast = viewModel.feeRowViewModels.last?.option == feeRowViewModel.option
                     if feeRowViewModel.isSelected.value {
-                        feeRowView(feeRowViewModel, isLast: isLast)
+                        feeRowView(feeRowViewModel)
                             .overlay(alignment: .topLeading) {
                                 Text(Localization.commonNetworkFeeTitle)
                                     .font(Fonts.Regular.footnote)
@@ -26,7 +25,7 @@ struct SendFeeView: View {
                                     .matchedGeometryEffect(id: SendViewNamespaceId.feeTitle.rawValue, in: namespace)
                             }
                     } else {
-                        feeRowView(feeRowViewModel, isLast: isLast)
+                        feeRowView(feeRowViewModel)
                             .visible(viewModel.deselectedFeeViewsVisible)
                     }
                 }
@@ -37,8 +36,14 @@ struct SendFeeView: View {
                 }
             }
             .backgroundColor(Colors.Background.action)
-            .geometryEffect(.init(id: SendViewNamespaceId.feeContainer.rawValue, namespace: namespace))
-            .separatorStyle(.none)
+            .geometryEffect { type in
+                switch type {
+                case .background:
+                    return .init(id: SendViewNamespaceId.feeContainer.rawValue, namespace: namespace)
+                case .separator(let row):
+                    return .init(id: SendViewNamespaceId.feeSeparator(feeOption: row.option).rawValue, namespace: namespace)
+                }
+            }
 
             if !viewModel.animatingAuxiliaryViewsOnAppear {
                 ForEach(viewModel.feeLevelsNotificationInputs) { input in
@@ -66,18 +71,11 @@ struct SendFeeView: View {
         .onDisappear(perform: viewModel.onAuxiliaryViewDisappear)
     }
 
-    private func feeRowView(_ feeRowViewModel: FeeRowViewModel, isLast: Bool) -> some View {
+    private func feeRowView(_ feeRowViewModel: FeeRowViewModel) -> some View {
         FeeRowView(viewModel: feeRowViewModel)
             .setNamespace(namespace)
             .setOptionNamespaceId(SendViewNamespaceId.feeOption(feeOption: feeRowViewModel.option).rawValue)
             .setAmountNamespaceId(SendViewNamespaceId.feeAmount(feeOption: feeRowViewModel.option).rawValue)
-            .overlay(alignment: .bottom) {
-                if !isLast {
-                    Separator(height: .minimal, color: Colors.Stroke.primary)
-                        .padding(.trailing, -GroupedSectionConstants.defaultHorizontalPadding)
-                        .matchedGeometryEffect(id: SendViewNamespaceId.feeSeparator(feeOption: feeRowViewModel.option).rawValue, in: namespace)
-                }
-            }
     }
 
     private var feeSelectorFooter: some View {

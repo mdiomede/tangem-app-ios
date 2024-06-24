@@ -30,10 +30,14 @@ struct SendDestinationView: View {
                 }
             }
             .backgroundColor(Colors.Background.action)
-            .geometryEffect(.init(
-                id: SendViewNamespaceId.addressBackground.rawValue,
-                namespace: namespace
-            ))
+            .geometryEffect { type in
+                switch type {
+                case .background:
+                    return .init(id: SendViewNamespaceId.addressBackground.rawValue, namespace: namespace)
+                case .separator:
+                    return nil
+                }
+            }
 
             GroupedSection(viewModel.additionalFieldViewModel) {
                 SendDestinationTextView(viewModel: $0)
