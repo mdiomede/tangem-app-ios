@@ -199,12 +199,15 @@ final class SendViewModel: ObservableObject {
         )
 
         sendSummaryViewModel = factory.makeSendSummaryViewModel(
-            sendModel: sendModel,
+            interactor: sendModel,
             notificationManager: notificationManager,
-            sendFeeInteractor: sendFeeInteractor,
             addressTextViewHeightModel: addressTextViewHeightModel,
-            walletInfo: walletInfo
+            sendType: sendType
         )
+
+        sendSummaryViewModel.setup(sendDestinationInput: sendModel)
+        sendSummaryViewModel.setup(sendAmountInput: sendModel)
+        sendSummaryViewModel.setup(sendFeeInteractor: sendFeeInteractor)
 
         sendSummaryViewModel.router = self
         sendModel.delegate = self
@@ -427,7 +430,10 @@ final class SendViewModel: ObservableObject {
             .store(in: &bag)
 
         Publishers
-            .CombineLatest(sendModel.transactionAmountPublisher, sendModel.selectedFeePublisher)
+            .CombineLatest(
+                sendModel.amountPublisher().compactMap { $0 },
+                sendModel.selectedFeePublisher.compactMap { $0?.value.value?.amount.value }
+            )
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
             .sink { viewModel, args in
@@ -435,9 +441,8 @@ final class SendViewModel: ObservableObject {
 
                 let helper = SendTransactionSummaryDestinationHelper()
                 viewModel.transactionDescription = helper.makeTransactionDescription(
-                    amount: amount?.value,
-                    fee: fee?.value.value?.amount.value,
-                    amountCurrencyId: viewModel.walletInfo.currencyId,
+                    amount: amount,
+                    fee: fee,
                     feeCurrencyId: viewModel.walletInfo.feeCurrencyId
                 )
             }
@@ -681,11 +686,11 @@ final class SendViewModel: ObservableObject {
     private func additionalFieldAnalyticsParameter() -> Analytics.ParameterValue {
         // If the blockchain doesn't support additional field -- return null
         // Otherwise return full / empty
-        guard let additionalField = sendModel.additionalField else {
-            return .null
+        switch sendModel.additionalField {
+        case .notSupported: .null
+        case .empty: .empty
+        case .filled: .full
         }
-
-        return additionalField.1.isEmpty ? .empty : .full
     }
 
     // TODO: Andrey Fedorov - Re-use fee currency & redirect logic from Token Details & Send (IOS-5710)

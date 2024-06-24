@@ -31,16 +31,14 @@ struct SendSummarySectionViewModelFactory {
         self.tokenIconInfo = tokenIconInfo
     }
 
-    func makeDestinationViewTypes(address: String, additionalField: (SendAdditionalFields, String)?) -> [SendDestinationSummaryViewType] {
+    func makeDestinationViewTypes(address: String, additionalField: DestinationAdditionalFieldType) -> [SendDestinationSummaryViewType] {
         var destinationViewTypes: [SendDestinationSummaryViewType] = []
 
-        let addressCorners: UIRectCorner
-        if let (additionalFieldType, additionalFieldValue) = additionalField,
-           !additionalFieldValue.isEmpty {
+        var addressCorners: UIRectCorner = .allCorners
+
+        if case .filled(let type, let value, _) = additionalField, !value.isEmpty {
             addressCorners = [.topLeft, .topRight]
-            destinationViewTypes.append(.additionalField(type: additionalFieldType, value: additionalFieldValue))
-        } else {
-            addressCorners = .allCorners
+            destinationViewTypes.append(.additionalField(type: type, value: value))
         }
 
         destinationViewTypes.insert(.address(address: address, corners: addressCorners), at: 0)
@@ -48,10 +46,8 @@ struct SendSummarySectionViewModelFactory {
         return destinationViewTypes
     }
 
-    func makeAmountViewData(from amount: String?, amountAlternative: String?) -> SendAmountSummaryViewData? {
-        guard let amount, let amountAlternative else { return nil }
-
-        return SendAmountSummaryViewData(
+    func makeAmountViewData(amount: String, amountAlternative: String) -> SendAmountSummaryViewData {
+        SendAmountSummaryViewData(
             title: Localization.sendAmountLabel,
             amount: amount,
             amountAlternative: amountAlternative,
