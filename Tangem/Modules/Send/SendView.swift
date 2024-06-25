@@ -120,8 +120,6 @@ struct SendView: View {
                 .onDisappear(perform: viewModel.onCurrentPageDisappear)
         case .summary:
             SendSummaryView(viewModel: viewModel.sendSummaryViewModel, namespace: namespace)
-                .onAppear(perform: viewModel.onSummaryAppear)
-                .onDisappear(perform: viewModel.onSummaryDisappear)
                 .onAppear(perform: viewModel.onCurrentPageAppear)
                 .onDisappear(perform: viewModel.onCurrentPageDisappear)
         case .finish(let sendFinishViewModel):

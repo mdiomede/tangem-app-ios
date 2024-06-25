@@ -33,11 +33,11 @@ final class SendViewModel: ObservableObject {
     @Published var transactionDescriptionIsVisisble: Bool = false
 
     var title: String? {
-        step.name(for: sendStepParameters)
+        step.name(currencyName: initial.tokenItem.currencySymbol)
     }
 
     var subtitle: String? {
-        step.description(for: sendStepParameters)
+        step.description(walletName: initial.walletName)
     }
 
     var closeButtonColor: Color {
@@ -85,9 +85,10 @@ final class SendViewModel: ObservableObject {
     private let walletInfo: SendWalletInfo
     private let notificationManager: SendNotificationManager
     private let addressTextViewHeightModel: AddressTextViewHeightModel
-    private let sendStepParameters: SendStep.Parameters
+//    private let sendStepParameters: SendStep.Parameters
     private let keyboardVisibilityService: KeyboardVisibilityService
     private let factory: SendModulesFactory
+    private let stepsManager: SendStepsManager
     private let processor: SendDestinationProcessor
 
     private weak var coordinator: SendRoutable?
@@ -149,6 +150,7 @@ final class SendViewModel: ObservableObject {
         sendAmountValidator: SendAmountValidator,
         factory: SendModulesFactory,
         processor: SendDestinationProcessor,
+        stepsManager: SendStepsManager,
         coordinator: SendRoutable
     ) {
         self.initial = initial
@@ -162,17 +164,18 @@ final class SendViewModel: ObservableObject {
         self.notificationManager = notificationManager
         self.keyboardVisibilityService = keyboardVisibilityService
         self.processor = processor
+        self.stepsManager = stepsManager
         self.factory = factory
 
         steps = sendType.steps
         step = sendType.firstStep
 //        didReachSummaryScreen = sendType.firstStep == .summary
-        transactionDescriptionIsVisisble = sendType.firstStep == .summary
-        mainButtonType = Self.mainButtonType(for: sendType.firstStep, didReachSummaryScreen: didReachSummaryScreen)
+//        transactionDescriptionIsVisisble = sendType.firstStep == .summary
+//        mainButtonType = Self.mainButtonType(for: sendType.firstStep, didReachSummaryScreen: didReachSummaryScreen)
 //        stepAnimation = sendType.firstStep == .summary ? .moveAndFade : .slideForward
-        sendStepParameters = SendStep.Parameters(currencyName: walletModel.tokenItem.name, walletName: walletInfo.walletName)
+//        sendStepParameters = SendStep.Parameters(currencyName: walletModel.tokenItem.name, walletName: walletInfo.walletName)
 
-        sendSummaryViewModel.router = self
+        sendSummaryViewModel.router = stepsManager
         sendModel.delegate = self
         notificationManager.setupManager(with: self)
 
@@ -207,51 +210,50 @@ final class SendViewModel: ObservableObject {
         }
     }
 
-    func next() {
-        // If we try to open another page mid-animation then the appropriate onAppear of the new page will not get called
-        if currentPageAnimating ?? false {
-            return
-        }
-
-        switch mainButtonType {
-        case .next:
-            guard let nextStep = nextStep(after: step) else {
-                assertionFailure("Invalid step logic -- next")
-                return
-            }
-
-            logNextStepAnalytics()
-
-            let openingSummary = (nextStep == .summary)
-            let stepAnimation: SendView.StepAnimation = openingSummary ? .moveAndFade : .slideForward
-
-            let checkCustomFee = shouldCheckCustomFee(currentStep: step)
-            let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
-            openStep(nextStep, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: updateFee)
-        case .continue:
-            let nextStep = SendStep.summary
-            let checkCustomFee = shouldCheckCustomFee(currentStep: step)
-            let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
-            openStep(nextStep, stepAnimation: .moveAndFade, checkCustomFee: checkCustomFee, updateFee: updateFee)
-        case .send:
-            sendModel.send()
-        case .close:
-            coordinator?.dismiss()
-        }
-    }
-
-    func back() {
-        guard let previousStep = previousStep(before: step) else {
-            assertionFailure("Invalid step logic -- back")
-            return
-        }
-
-        openStep(previousStep, stepAnimation: .slideBackward, updateFee: false)
-    }
+//    func next() {
+//        // If we try to open another page mid-animation then the appropriate onAppear of the new page will not get called
+//        if currentPageAnimating ?? false {
+//            return
+//        }
+//
+//        switch mainButtonType {
+//        case .next:
+//            guard let nextStep = nextStep(after: step) else {
+//                assertionFailure("Invalid step logic -- next")
+//                return
+//            }
+//
+//            logNextStepAnalytics()
+//
+//            let openingSummary = (nextStep == .summary)
+//            let stepAnimation: SendView.StepAnimation = openingSummary ? .moveAndFade : .slideForward
+//
+//            let checkCustomFee = shouldCheckCustomFee(currentStep: step)
+//            let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
+//            openStep(nextStep, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: updateFee)
+//        case .continue:
+//            let nextStep = SendStep.summary
+//            let checkCustomFee = shouldCheckCustomFee(currentStep: step)
+//            let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
+//            openStep(nextStep, stepAnimation: .moveAndFade, checkCustomFee: checkCustomFee, updateFee: updateFee)
+//        case .send:
+//            sendModel.send()
+//        case .close:
+//            coordinator?.dismiss()
+//        }
+//    }
+//
+//    func back() {
+//        guard let previousStep = previousStep(before: step) else {
+//            assertionFailure("Invalid step logic -- back")
+//            return
+//        }
+//
+//        openStep(previousStep, stepAnimation: .slideBackward, updateFee: false)
+//    }
 
     func share() {
         guard let transactionURL = sendModel.transactionURL else {
-            assertionFailure("WHY")
             return
         }
 
@@ -261,7 +263,6 @@ final class SendViewModel: ObservableObject {
 
     func explore() {
         guard let transactionURL = sendModel.transactionURL else {
-            assertionFailure("WHY")
             return
         }
 
@@ -270,11 +271,7 @@ final class SendViewModel: ObservableObject {
     }
 
     func scanQRCode() {
-        let binding = Binding<String>(
-            get: {
-                ""
-            },
-            set: { [weak self] in
+        let binding = Binding<String>(get: { "" }, set: { [weak self] in
                 self?.parseQRCode($0)
             }
         )
@@ -283,9 +280,9 @@ final class SendViewModel: ObservableObject {
         coordinator?.openQRScanner(with: binding, networkName: networkName)
     }
 
-    func onSummaryAppear() {}
-
-    func onSummaryDisappear() {}
+//    func onSummaryAppear() {}
+//
+//    func onSummaryDisappear() {}
 
     private func bind() {
         sendModel.isSending
@@ -317,7 +314,7 @@ final class SendViewModel: ObservableObject {
             .sink { viewModel, destination in
                 switch destination.source {
                 case .myWallet, .recentAddress:
-                    viewModel.next()
+                    viewModel.stepsManager.userDidTapActionButton(mainButtonType: .next)
                 default:
                     break
                 }
@@ -470,50 +467,50 @@ final class SendViewModel: ObservableObject {
         coordinator?.openMail(with: emailDataCollector, recipient: recipient)
     }
 
-    private func showSummaryStepAlertIfNeeded(_ step: SendStep, stepAnimation: SendView.StepAnimation, checkCustomFee: Bool) -> Bool {
-        if checkCustomFee {
-            let events = notificationManager.notificationInputs.compactMap { $0.settings.event as? SendNotificationEvent }
-            for event in events {
-                switch event {
-                case .customFeeTooLow:
-                    Analytics.log(event: .sendNoticeTransactionDelaysArePossible, params: [
-                        .token: walletModel.tokenItem.currencySymbol,
-                    ])
+//    private func showSummaryStepAlertIfNeeded(_ step: SendStep, stepAnimation: SendView.StepAnimation, checkCustomFee: Bool) -> Bool {
+//        if checkCustomFee {
+//            let events = notificationManager.notificationInputs.compactMap { $0.settings.event as? SendNotificationEvent }
+//            for event in events {
+//                switch event {
+//                case .customFeeTooLow:
+//                    Analytics.log(event: .sendNoticeTransactionDelaysArePossible, params: [
+//                        .token: walletModel.tokenItem.currencySymbol,
+//                    ])
+//
+//                    alert = SendAlertBuilder.makeCustomFeeTooLowAlert { [weak self] in
+//                        self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: false, updateFee: false)
+//                    }
+//
+//                    return true
+//                case .customFeeTooHigh(let orderOfMagnitude):
+//                    alert = SendAlertBuilder.makeCustomFeeTooHighAlert(orderOfMagnitude) { [weak self] in
+//                        self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: false, updateFee: false)
+//                    }
+//
+//                    return true
+//                default:
+//                    break
+//                }
+//            }
+//        }
+//
+//        return false
+//    }
 
-                    alert = SendAlertBuilder.makeCustomFeeTooLowAlert { [weak self] in
-                        self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: false, updateFee: false)
-                    }
-
-                    return true
-                case .customFeeTooHigh(let orderOfMagnitude):
-                    alert = SendAlertBuilder.makeCustomFeeTooHighAlert(orderOfMagnitude) { [weak self] in
-                        self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: false, updateFee: false)
-                    }
-
-                    return true
-                default:
-                    break
-                }
-            }
-        }
-
-        return false
-    }
-
-    private func mainButtonType(for step: SendStep) -> SendMainButtonType {
-        switch step {
-        case .amount, .destination, .fee:
-            if didReachSummaryScreen {
-                return .continue
-            } else {
-                return .next
-            }
-        case .summary:
-            return .send
-        case .finish:
-            return .close
-        }
-    }
+//    private func mainButtonType(for step: SendStep) -> SendMainButtonType {
+//        switch step {
+//        case .amount, .destination, .fee:
+//            if didReachSummaryScreen {
+//                return .continue
+//            } else {
+//                return .next
+//            }
+//        case .summary:
+//            return .send
+//        case .finish:
+//            return .close
+//        }
+//    }
 
     private func updateTransactionHistoryIfNeeded() {
         walletModel.updateTransactionHistoryIfNeeded()
@@ -525,74 +522,74 @@ final class SendViewModel: ObservableObject {
         sendModel.updateFees()
     }
 
-    private func shouldCheckCustomFee(currentStep: SendStep) -> Bool {
-        switch currentStep {
-        case .fee:
-            return true
-        default:
-            return false
-        }
-    }
+//    private func shouldCheckCustomFee(currentStep: SendStep) -> Bool {
+//        switch currentStep {
+//        case .fee:
+//            return true
+//        default:
+//            return false
+//        }
+//    }
 
-    private func shouldUpdateFee(currentStep: SendStep, nextStep: SendStep) -> Bool {
-        if nextStep == .summary, currentStep.updateFeeOnLeave {
-            return true
-        } else if nextStep.updateFeeOnOpen {
-            return true
-        } else {
-            return false
-        }
-    }
+//    private func shouldUpdateFee(currentStep: SendStep, nextStep: SendStep) -> Bool {
+//        if nextStep == .summary, currentStep.updateFeeOnLeave {
+//            return true
+//        } else if nextStep.updateFeeOnOpen {
+//            return true
+//        } else {
+//            return false
+//        }
+//    }
 
-    private func openStep(_ step: SendStep, stepAnimation: SendView.StepAnimation, checkCustomFee: Bool = true, updateFee: Bool) {
-        let openStepAfterDelay = { [weak self] in
-            // Slight delay is needed, otherwise the animation of the keyboard will interfere with the page change
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: false)
-            }
-        }
+//    private func openStep(_ step: SendStep, stepAnimation: SendView.StepAnimation, checkCustomFee: Bool = true, updateFee: Bool) {
+//        let openStepAfterDelay = { [weak self] in
+//            // Slight delay is needed, otherwise the animation of the keyboard will interfere with the page change
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: false)
+//            }
+//        }
+//
+//        if updateFee {
+//            self.updateFee()
+//            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
+//            return
+//        }
+//
+//        if keyboardVisibilityService.keyboardVisible, !step.opensKeyboardByDefault {
+//            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
+//            return
+//        }
+//
+//        if case .summary = step {
+//            if showSummaryStepAlertIfNeeded(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee) {
+//                return
+//            }
+//
+//            didReachSummaryScreen = true
+//
+//            sendSummaryViewModel.setupAnimations(previousStep: self.step)
+//        }
+//
+//        // Gotta give some time to update animation variable
+//        self.stepAnimation = stepAnimation
+//
+//        mainButtonType = mainButtonType(for: step)
+//
+//        DispatchQueue.main.async {
+//            self.showBackButton = self.previousStep(before: step) != nil && !self.didReachSummaryScreen
+//            self.showTransactionButtons = self.sendModel.transactionURL != nil
+//            self.step = step
+//            self.transactionDescriptionIsVisisble = step == .summary
+//        }
+//    }
 
-        if updateFee {
-            self.updateFee()
-            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
-            return
-        }
-
-        if keyboardVisibilityService.keyboardVisible, !step.opensKeyboardByDefault {
-            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
-            return
-        }
-
-        if case .summary = step {
-            if showSummaryStepAlertIfNeeded(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee) {
-                return
-            }
-
-            didReachSummaryScreen = true
-
-            sendSummaryViewModel.setupAnimations(previousStep: self.step)
-        }
-
-        // Gotta give some time to update animation variable
-        self.stepAnimation = stepAnimation
-
-        mainButtonType = Self.mainButtonType(for: step, didReachSummaryScreen: didReachSummaryScreen)
-
-        DispatchQueue.main.async {
-            self.showBackButton = self.previousStep(before: step) != nil && !self.didReachSummaryScreen
-            self.showTransactionButtons = self.sendModel.transactionURL != nil
-            self.step = step
-            self.transactionDescriptionIsVisisble = step == .summary
-        }
-    }
-
-    private func openFinishPage() {
-        guard let sendFinishViewModel = sendFinishViewModel else {
-            return
-        }
-
-        openStep(.finish(model: sendFinishViewModel), stepAnimation: .moveAndFade, updateFee: false)
-    }
+//    private func openFinishPage() {
+//        guard let sendFinishViewModel = sendFinishViewModel else {
+//            return
+//        }
+//
+//        openStep(.finish(model: sendFinishViewModel), stepAnimation: .moveAndFade, updateFee: false)
+//    }
 
     private func parseQRCode(_ code: String) {
         #warning("TODO: Add the necessary UI warnings")
@@ -666,42 +663,34 @@ final class SendViewModel: ObservableObject {
     }
 }
 
-extension SendViewModel: SendSummaryRoutable {
-    func openStep(_ step: SendStep) {
-        guard self.step == .summary else {
-            assertionFailure("This code should only be called from summary")
-            return
-        }
-
-        if let auxiliaryViewAnimatable = auxiliaryViewAnimatable(step) {
-            auxiliaryViewAnimatable.setAnimatingAuxiliaryViewsOnAppear()
-        }
-
-        let updateFee = shouldUpdateFee(currentStep: self.step, nextStep: step)
-        openStep(step, stepAnimation: .moveAndFade, updateFee: updateFee)
-    }
-
-    private func auxiliaryViewAnimatable(_ step: SendStep) -> AuxiliaryViewAnimatable? {
-        switch step {
-        case .amount:
-            return sendAmountViewModel
-        case .destination:
-            return sendDestinationViewModel
-        case .fee:
-            return sendFeeViewModel
-        case .summary:
-            return nil
-        case .finish:
-            return nil
-        }
-    }
-}
 
 // MARK: - SendModelUIDelegate
 
 extension SendViewModel: SendModelUIDelegate {
     func showAlert(_ alert: AlertBinder) {
         self.alert = alert
+    }
+}
+
+// MARK: - SendStepsManagerOutput
+
+extension SendViewModel: SendStepsManagerOutput {
+    func update(step: SendStep) {
+        stepsManager.willOpen(step: step)
+        self.step = step
+        stepsManager.didOpen(step: step)
+    }
+    
+    func update(animation: SendView.StepAnimation) {
+        self.stepAnimation = animation
+    }
+    
+    func update(mainButtonType: SendMainButtonType) {
+        self.mainButtonType = mainButtonType
+    }
+
+    func update(backButtonVisible: Bool) {
+        self.showBackButton = backButtonVisible
     }
 }
 
@@ -758,14 +747,14 @@ extension SendViewModel: NotificationTapDelegate {
 // MARK: - SendStep
 
 private extension SendStep {
-    var updateFeeOnLeave: Bool {
-        switch self {
-        case .destination, .amount:
-            return true
-        case .fee, .summary, .finish:
-            return false
-        }
-    }
+//    var updateFeeOnLeave: Bool {
+//        switch self {
+//        case .destination, .amount:
+//            return true
+//        case .fee, .summary, .finish:
+//            return false
+//        }
+//    }
 
     var isFinish: Bool {
         if case .finish = self {
@@ -775,14 +764,14 @@ private extension SendStep {
         }
     }
 
-    var updateFeeOnOpen: Bool {
-        switch self {
-        case .fee:
-            return true
-        case .destination, .amount, .summary, .finish:
-            return false
-        }
-    }
+//    var updateFeeOnOpen: Bool {
+//        switch self {
+//        case .fee:
+//            return true
+//        case .destination, .amount, .summary, .finish:
+//            return false
+//        }
+//    }
 
     var analyticsSourceParameterValue: Analytics.ParameterValue {
         switch self {
@@ -802,27 +791,27 @@ private extension SendStep {
 
 // MARK: - ValidationError
 
-private extension ValidationError {
-    var step: SendStep? {
-        switch self {
-        case .invalidAmount, .balanceNotFound:
-            // Shouldn't happen as we validate and cover amount errors separately, synchronously
-            return nil
-        case .amountExceedsBalance,
-             .invalidFee,
-             .feeExceedsBalance,
-             .maximumUTXO,
-             .reserve,
-             .dustAmount,
-             .dustChange,
-             .minimumBalance,
-             .totalExceedsBalance,
-             .cardanoHasTokens,
-             .cardanoInsufficientBalanceToSendToken:
-            return .summary
-        }
-    }
-}
+//private extension ValidationError {
+//    var step: SendStep? {
+//        switch self {
+//        case .invalidAmount, .balanceNotFound:
+//            // Shouldn't happen as we validate and cover amount errors separately, synchronously
+//            return nil
+//        case .amountExceedsBalance,
+//             .invalidFee,
+//             .feeExceedsBalance,
+//             .maximumUTXO,
+//             .reserve,
+//             .dustAmount,
+//             .dustChange,
+//             .minimumBalance,
+//             .totalExceedsBalance,
+//             .cardanoHasTokens,
+//             .cardanoInsufficientBalanceToSendToken:
+//            return .summary
+//        }
+//    }
+//}
 
 private extension SendAmountCalculationType {
     var analyticParameter: Analytics.ParameterValue {
@@ -835,49 +824,113 @@ private extension SendAmountCalculationType {
 
 extension SendViewModel {
     struct Initial {
+        let tokenItem: TokenItem
+        let walletName: String
         let feeOptions: [FeeOption]
     }
 }
 
-class SendStepsManager: ObservableObject {
-    @Published var step: SendStep
-    @Published var steps: [SendStep]
+protocol SendStepsManagerInput: AnyObject {
+    var currentStep: SendStep { get }
+}
 
-    @Published var mainButtonType: SendMainButtonType
-    @Published var mainButtonLoading: Bool = false
-    @Published var mainButtonDisabled: Bool = false
+protocol SendStepsManagerOutput: AnyObject {
+    func update(step: SendStep)
+    func update(animation: SendView.StepAnimation)
 
-    init(step: SendStep, steps: [SendStep]) {
-        self.step = step
-        self.steps = steps
+    func update(mainButtonType: SendMainButtonType)
+    func update(backButtonVisible: Bool)
+}
+
+protocol SendStepsManager {
+    func willOpen(step: SendStep)
+    func didOpen(step: SendStep)
+
+    func willClose(step: SendStep)
+    func didClose(step: SendStep)
+
+    func userDidTapActionButton(mainButtonType: SendMainButtonType)
+    func userDidTapBackButton()
+}
+
+class CommonSendStepsManager {
+//    @Published var mainButtonType: SendMainButtonType
+//    @Published var mainButtonLoading: Bool = false
+//    @Published var mainButtonDisabled: Bool = false
+
+    private let destinationStep: SendStep
+    private let amountStep: SendStep
+    private let feeStep: SendStep
+    private let summaryStep: SendStep
+    private let finishStep: SendStep
+
+    private weak var input: SendStepsManagerInput?
+    private weak var output: SendStepsManagerOutput?
+
+    private var animationInProgress: Bool = false
+
+    init(
+        destinationStep: SendStep,
+        amountStep: SendStep,
+        feeStep: SendStep,
+        summaryStep: SendStep,
+        finishStep: SendStep,
+        input: SendStepsManagerInput? = nil,
+        output: SendStepsManagerOutput? = nil
+    ) {
+        self.destinationStep = destinationStep
+        self.amountStep = amountStep
+        self.feeStep = feeStep
+        self.summaryStep = summaryStep
+        self.finishStep = finishStep
+
+        self.input = input
+        self.output = output
     }
 
-    func next() {
-        // If we try to open another page mid-animation then the appropriate onAppear of the new page will not get called
-//        if currentPageAnimating ?? false {
-//            return
-//        }
 
-        switch mainButtonType {
+//    init(
+//        input: SendStepsManagerInput?,
+//        output: SendStepsManagerOutput?
+//    ) {
+//        self.steps = steps
+//        self.input = input
+//        self.output = output
+//    }
+
+    func back() {
+        guard let previousStep = getPreviousStep() else {
+            assertionFailure("Invalid step logic -- back")
+            return
+        }
+
+        openStep(previousStep, animation: .slideBackward)
+    }
+
+    func proceed(action: SendMainButtonType) {
+        // If we try to open another page mid-animation then the appropriate onAppear of the new page will not get called
+        guard !animationInProgress else {
+            return
+        }
+
+        switch action {
         case .next:
-            guard let nextStep = nextStep(after: step) else {
-                assertionFailure("Invalid step logic -- next")
+            guard let input, let next = getNextStep(), input.currentStep.canBeOpen(next: next) else {
                 return
             }
 
-            logNextStepAnalytics()
+            let animation: SendView.StepAnimation = {
+                switch next {
+                case .destination, .amount, .fee, .finish:
+                    return .slideForward
+                case .summary:
+                    return .moveAndFade
+                }
+            }()
 
-            let openingSummary = (nextStep == .summary)
-            let stepAnimation: SendView.StepAnimation = openingSummary ? .moveAndFade : .slideForward
-
-            let checkCustomFee = shouldCheckCustomFee(currentStep: step)
-            let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
-            openStep(nextStep, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: updateFee)
+            openStep(next, animation: animation)
         case .continue:
-            let nextStep = SendStep.summary
-            let checkCustomFee = shouldCheckCustomFee(currentStep: step)
-            let updateFee = shouldUpdateFee(currentStep: step, nextStep: nextStep)
-            openStep(nextStep, stepAnimation: .moveAndFade, checkCustomFee: checkCustomFee, updateFee: updateFee)
+            openStep(summaryStep, animation: .moveAndFade)
         case .send:
             sendModel.send()
         case .close:
@@ -885,76 +938,157 @@ class SendStepsManager: ObservableObject {
         }
     }
 
-    func back() {
-        guard let previousStep = previousStep(before: step) else {
-            assertionFailure("Invalid step logic -- back")
-            return
+    private func getPreviousStep() -> SendStep? {
+        switch input?.currentStep {
+        case .none:
+            return destinationStep
+        case .destination:
+            return amountStep
+        case .amount:
+            return destinationStep
+        case .fee, .summary, .finish:
+            assertionFailure("There is no previous step")
+            return nil
         }
-
-        openStep(previousStep, stepAnimation: .slideBackward, updateFee: false)
     }
 
-    private func openStep(_ step: SendStep, stepAnimation: SendView.StepAnimation, checkCustomFee: Bool = true, updateFee: Bool) {
-        let openStepAfterDelay = { [weak self] in
-            // Slight delay is needed, otherwise the animation of the keyboard will interfere with the page change
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: false)
-            }
+    private func getNextStep() -> SendStep? {
+        switch input?.currentStep {
+        case .none:
+            return destinationStep
+        case .destination:
+            return amountStep
+        case .amount:
+            return summaryStep
+        case .fee, .summary, .finish:
+            assertionFailure("There is no next step")
+            return nil
         }
+    }
 
-        if updateFee {
-            self.updateFee()
-            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
-            return
-        }
+    private func openStep(_ step: SendStep, animation: SendView.StepAnimation) {
+        output?.update(animation: animation)
+        input.map { step.willBeOpen(previous: $0.currentStep) }
+        output?.update(step: step)
+    }
 
-        if keyboardVisibilityService.keyboardVisible, !step.opensKeyboardByDefault {
-            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
-            return
-        }
+//    private func openStep(_ step: SendStep, stepAnimation: SendView.StepAnimation, checkCustomFee: Bool = true, updateFee: Bool) {
+//        let openStepAfterDelay = { [weak self] in
+//            // Slight delay is needed, otherwise the animation of the keyboard will interfere with the page change
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                self?.openStep(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee, updateFee: false)
+//            }
+//        }
 
-        if case .summary = step {
-            if showSummaryStepAlertIfNeeded(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee) {
-                return
-            }
+//        if updateFee {
+//            self.updateFee()
+//            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
+//            return
+//        }
+//
+//        if keyboardVisibilityService.keyboardVisible, !step.opensKeyboardByDefault {
+//            keyboardVisibilityService.hideKeyboard(completion: openStepAfterDelay)
+//            return
+//        }
 
-            didReachSummaryScreen = true
+//        if case .summary = step {
+//            if showSummaryStepAlertIfNeeded(step, stepAnimation: stepAnimation, checkCustomFee: checkCustomFee) {
+//                return
+//            }
 
-            sendSummaryViewModel.setupAnimations(previousStep: self.step)
-        }
+//            didReachSummaryScreen = true
+
+//            sendSummaryViewModel.setupAnimations(previousStep: self.step)
+//        }
 
         // Gotta give some time to update animation variable
-        self.stepAnimation = stepAnimation
+//        self.stepAnimation = stepAnimation
 
-        mainButtonType = self.mainButtonType(for: step)
+//        mainButtonType = self.mainButtonType(for: step)
+//
+//        DispatchQueue.main.async {
+//            self.showBackButton = self.previousStep(before: step) != nil && !self.didReachSummaryScreen
+//            self.showTransactionButtons = self.sendModel.transactionURL != nil
+//            self.step = step
+//            self.transactionDescriptionIsVisisble = step == .summary
+//        }
+//    }
+}
 
-        DispatchQueue.main.async {
-            self.showBackButton = self.previousStep(before: step) != nil && !self.didReachSummaryScreen
-            self.showTransactionButtons = self.sendModel.transactionURL != nil
-            self.step = step
-            self.transactionDescriptionIsVisisble = step == .summary
+// TODO: Update fee
+// TODO: Update main button
+// TODO: Show alert fee
+
+// MARK: - SendStepsManager
+
+extension CommonSendStepsManager: SendStepsManager {
+    func willOpen(step: SendStep) {
+        animationInProgress = true
+
+        switch step {
+        case .fee:
+            // TODO: Update fee
+            break
+        case .destination, .amount, .summary, .finish:
+            break
         }
     }
-
-    private func nextStep(after step: SendStep) -> SendStep? {
-        guard
-            let currentStepIndex = steps.firstIndex(of: step),
-            (currentStepIndex + 1) < steps.count
-        else {
-            return nil
+    
+    func didOpen(step: SendStep) {
+        animationInProgress = false
+    }
+    
+    func willClose(step: SendStep) {
+        switch step {
+        case .destination, .amount:
+            // TODO: Update fee
+            break
+        case .fee, .summary, .finish:
+            break
         }
-
-        return steps[currentStepIndex + 1]
+    }
+    
+    func didClose(step: SendStep) {
+    }
+    
+    func userDidTapActionButton(mainButtonType: SendMainButtonType) {
+        proceed(action: mainButtonType)
     }
 
-    private func previousStep(before step: SendStep) -> SendStep? {
-        guard
-            let currentStepIndex = steps.firstIndex(of: step),
-            (currentStepIndex - 1) >= 0
-        else {
-            return nil
-        }
-
-        return steps[currentStepIndex - 1]
+    func userDidTapBackButton() {
+        back()
     }
 }
+
+// MARK: - SendSummaryRoutable
+
+extension CommonSendStepsManager: SendSummaryRoutable {
+    func openStep(_ step: SendStep) {
+        guard case .summary = input?.currentStep else {
+            assertionFailure("This code should only be called from summary")
+            return
+        }
+
+        if let auxiliaryViewAnimatable = auxiliaryViewAnimatable(step) {
+            auxiliaryViewAnimatable.setAnimatingAuxiliaryViewsOnAppear()
+        }
+
+        openStep(step, animation: .moveAndFade)
+    }
+
+    private func auxiliaryViewAnimatable(_ step: SendStep) -> AuxiliaryViewAnimatable? {
+        switch step {
+        case .amount(let viewModel):
+            return viewModel
+        case .destination(let viewModel):
+            return viewModel
+        case .fee(let viewModel):
+            return viewModel
+        case .summary:
+            return nil
+        case .finish:
+            return nil
+        }
+    }
+}
+

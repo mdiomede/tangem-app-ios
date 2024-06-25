@@ -78,9 +78,9 @@ struct SendModulesFactory {
         sendSummaryViewModel.setup(sendFeeInteractor: sendFeeInteractor)
 
         let steps: [SendStep] = [
-            .destination(viewModel: sendDestinationViewModel, step: sendDestinationViewModel),
-            .amount(viewModel: sendAmountViewModel, step: sendAmountInteractor),
-            .fee(viewModel: sendFeeViewModel, step: sendFeeInteractor),
+            .destination(viewModel: sendDestinationViewModel),
+            .amount(viewModel: sendAmountViewModel),
+            .fee(viewModel: sendFeeViewModel),
             .summary(viewModel: sendSummaryViewModel)
         ]
 
