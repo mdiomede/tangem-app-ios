@@ -97,17 +97,17 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
         self.input = input
         self.output = output
 
-        input.cryptoAmountPublisher
+        input.cryptoAmountPublisher()
             .withWeakCaptureOf(self)
-            .sink { processor, amount in
-                processor._cryptoAmount.send(amount)
+            .sink { interactor, amount in
+                interactor._cryptoAmount.send(amount)
             }
             .store(in: &bag)
 
-        input.destinationPublisher
+        input.destinationAddressPublisher()
             .withWeakCaptureOf(self)
-            .sink { processor, destination in
-                processor._destination.send(destination)
+            .sink { interactor, destination in
+                interactor._destination.send(destination)
             }
             .store(in: &bag)
     }
@@ -135,6 +135,10 @@ extension CommonSendFeeInteractor: SendFeeInteractor {
 
     func update(selectedFee: SendFee) {
         output?.feeDidChanged(fee: selectedFee)
+    }
+
+    func selectedFeePublisher() -> AnyPublisher<SendFee?, Never> {
+        input?.selectedFeePublisher() ?? .just(output: nil)
     }
 
     func feesPublisher() -> AnyPublisher<[SendFee], Never> {

@@ -44,8 +44,6 @@ struct SendModulesFactory {
         let initial = SendViewModel.Initial(feeOptions: builder.makeFeeOptions())
         sendFeeInteractor.setup(input: sendModel, output: sendModel)
 
-        sendFeeProcessor.setup(input: sendModel)
-
         return SendViewModel(
             initial: initial,
             walletInfo: walletInfo,

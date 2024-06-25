@@ -16,10 +16,6 @@ protocol SendModelUIDelegate: AnyObject {
     func showAlert(_ alert: AlertBinder)
 }
 
-protocol SendModelUIDelegate: AnyObject {
-    func showAlert(_ alert: AlertBinder)
-}
-
 class SendModel {
     var destinationValid: AnyPublisher<Bool, Never> {
         _destination.map { $0 != nil }.eraseToAnyPublisher()
@@ -46,7 +42,7 @@ class SendModel {
     }
 
     var isFeeIncluded: Bool {
-        sendFeeManager._isFeeIncluded.value
+        _isFeeIncluded.value
     }
 
     var transactionFinished: AnyPublisher<Bool, Never> {
@@ -221,7 +217,7 @@ class SendModel {
                     let destination = validatedDestination?.value,
                     let fee = fee?.value.value
                 else {
-                    self?.sendFeeManager._isFeeIncluded.send(false)
+                    self?._isFeeIncluded.send(false)
                     return .failure(ValidationError.invalidAmount)
                 }
 
@@ -229,7 +225,7 @@ class SendModel {
                     #warning("TODO: Use await validation")
                     let includeFee = feeIncludedCalculator.shouldIncludeFee(fee, into: validatedAmount)
                     let transactionAmount = includeFee ? validatedAmount - fee.amount : validatedAmount
-                    sendFeeManager._isFeeIncluded.send(includeFee)
+                    _isFeeIncluded.send(includeFee)
 
                     try walletModel.transactionValidator.validateTotal(amount: transactionAmount, fee: fee.amount)
 
