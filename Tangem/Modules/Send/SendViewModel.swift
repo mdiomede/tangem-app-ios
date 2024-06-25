@@ -94,7 +94,6 @@ final class SendViewModel: ObservableObject {
     private let sendStepParameters: SendStep.Parameters
     private let keyboardVisibilityService: KeyboardVisibilityService
     private let factory: SendModulesFactory
-    private let processor: SendDestinationProcessor
 
     private weak var coordinator: SendRoutable?
 
@@ -154,7 +153,6 @@ final class SendViewModel: ObservableObject {
         fiatCryptoAdapter: CommonSendFiatCryptoAdapter,
         keyboardVisibilityService: KeyboardVisibilityService,
         factory: SendModulesFactory,
-        processor: SendDestinationProcessor,
         coordinator: SendRoutable
     ) {
         self.walletInfo = walletInfo
@@ -168,7 +166,6 @@ final class SendViewModel: ObservableObject {
         self.customFeeService = customFeeService
         self.fiatCryptoAdapter = fiatCryptoAdapter
         self.keyboardVisibilityService = keyboardVisibilityService
-        self.processor = processor
         self.factory = factory
 
         steps = sendType.steps
@@ -200,6 +197,7 @@ final class SendViewModel: ObservableObject {
             customFeeService: customFeeService,
             walletInfo: walletInfo
         )
+
         sendSummaryViewModel = factory.makeSendSummaryViewModel(
             sendModel: sendModel,
             notificationManager: notificationManager,
@@ -660,7 +658,7 @@ final class SendViewModel: ObservableObject {
             return
         }
 
-        sendDestinationViewModel.update(address: SendAddress(value: result.destination, source: .qrCode), additionalField: result.memo)
+        sendDestinationViewModel.setExternally(address: SendAddress(value: result.destination, source: .qrCode), additionalField: result.memo)
         sendModel.setAmount(result.amount)
     }
 
