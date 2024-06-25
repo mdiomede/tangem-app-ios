@@ -61,7 +61,7 @@ class CommonSendDestinationInteractor {
     private func update(destination result: Result<String?, Error>, source: Analytics.DestinationAddressSource) {
         switch result {
         case .success(let address):
-            _destinationValid.send(true)
+            _destinationValid.send(address?.nilIfEmpty != nil)
             _destinationError.send(.none)
             Analytics.logDestinationAddress(isAddressValid: true, source: source)
             output?.destinationDidChanged(address.map { .init(value: $0, source: source) })
