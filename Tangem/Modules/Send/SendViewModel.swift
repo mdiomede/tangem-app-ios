@@ -10,8 +10,23 @@ import Combine
 import SwiftUI
 import BlockchainSdk
 
-protocol SendStepType {
-    func isValidPublisher() -> AnyPublisher<Bool, Never>
+protocol SendStepProvider {
+    associatedtype ViewModel: ObservableObject
+    var viewModel: ViewModel { get }
+    var type: SendStepName { get }
+
+    var isValid: Bool { get }
+    var isValidPublisher: AnyPublisher<Bool, Never> { get }
+
+
+}
+
+enum SendStepName {
+    case destination
+    case amount
+    case fee
+    case summary
+    case finish
 }
 
 final class SendViewModel: ObservableObject {
