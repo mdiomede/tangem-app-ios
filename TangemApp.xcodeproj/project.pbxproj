@@ -6215,9 +6215,8 @@
 				DA559C2C2B0261F400F59584 /* SendAmountView.swift */,
 				DA559C2D2B0261F400F59584 /* SendAmountViewModel.swift */,
 				EFA9FCA42C2AE91A00B0888A /* SendAmountInputOutput.swift */,
-				EF339E742C24820B00B5CDC9 /* SendAmountInteractor.swift */,
+				EF031A7D2C0DD234001535C9 /* Interactor */,
 				EFAECCEF2C1B6F760051710F /* SendCurrencyPicker */,
-				EF031A7D2C0DD234001535C9 /* Utils */,
 			);
 			path = Amount;
 			sourceTree = "<group>";
@@ -7154,14 +7153,15 @@
 			path = Namespace;
 			sourceTree = "<group>";
 		};
-		EF031A7D2C0DD234001535C9 /* Utils */ = {
+		EF031A7D2C0DD234001535C9 /* Interactor */ = {
 			isa = PBXGroup;
 			children = (
+				EF339E742C24820B00B5CDC9 /* SendAmountInteractor.swift */,
 				EF031A7E2C0DD243001535C9 /* SendAmountConverter.swift */,
 				EFAECCF02C1B702D0051710F /* SendAmountValidator.swift */,
 				EFAECCF22C1B713D0051710F /* SendAmount.swift */,
 			);
-			path = Utils;
+			path = Interactor;
 			sourceTree = "<group>";
 		};
 		EF032C4D2955C59E006C1FF3 /* DefaultSelectableRowView */ = {
