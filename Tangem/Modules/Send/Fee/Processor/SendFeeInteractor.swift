@@ -10,7 +10,7 @@ import Foundation
 import Combine
 import BlockchainSdk
 
-protocol SendFeeInteractor {
+protocol SendFeeInteractor: SendStepType {
     var selectedFee: SendFee? { get }
 
     func update(selectedFee: SendFee)
