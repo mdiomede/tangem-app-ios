@@ -88,7 +88,6 @@ final class SendViewModel: ObservableObject {
     private let sendStepParameters: SendStep.Parameters
     private let keyboardVisibilityService: KeyboardVisibilityService
     private let factory: SendModulesFactory
-    private let processor: SendDestinationProcessor
 
     private weak var coordinator: SendRoutable?
 
@@ -147,7 +146,6 @@ final class SendViewModel: ObservableObject {
         sendFeeInteractor: SendFeeInteractor,
         keyboardVisibilityService: KeyboardVisibilityService,
         factory: SendModulesFactory,
-        processor: SendDestinationProcessor,
         coordinator: SendRoutable
     ) {
         self.initial = initial
@@ -160,7 +158,6 @@ final class SendViewModel: ObservableObject {
         self.sendModel = sendModel
         self.notificationManager = notificationManager
         self.keyboardVisibilityService = keyboardVisibilityService
-        self.processor = processor
         self.factory = factory
 
         steps = sendType.steps
@@ -605,10 +602,8 @@ final class SendViewModel: ObservableObject {
             return
         }
 
-        sendDestinationViewModel.update(address: SendAddress(value: result.destination, source: .qrCode), additionalField: result.memo)
-        if let amount = result.amount {
-            sendAmountViewModel.setExternalAmount(amount.value)
-        }
+        sendDestinationViewModel.setExternally(address: SendAddress(value: result.destination, source: .qrCode), additionalField: result.memo)
+        sendModel.setAmount(result.amount)
     }
 
     private func logNextStepAnalytics() {
