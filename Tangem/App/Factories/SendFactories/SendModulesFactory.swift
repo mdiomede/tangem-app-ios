@@ -98,7 +98,6 @@ struct SendModulesFactory {
             keyboardVisibilityService: KeyboardVisibilityService(),
             sendAmountValidator: makeSendAmountValidator(),
             factory: self,
-            processor: makeSendDestinationProcessor(),
             coordinator: coordinator
         )
     }
@@ -112,29 +111,24 @@ struct SendModulesFactory {
         let tokenItem = walletModel.tokenItem
         let suggestedWallets = builder.makeSuggestedWallets(userWalletModels: userWalletRepository.models)
         let additionalFieldType = SendAdditionalFields.fields(for: tokenItem.blockchain)
-        let initial = SendDestinationViewModel.InitialModel(
+        let settings = SendDestinationViewModel.Settings(
             networkName: tokenItem.networkName,
             additionalFieldType: additionalFieldType,
-            suggestedWallets: suggestedWallets,
-            transactionHistoryPublisher: walletModel.transactionHistoryPublisher,
-            predefinedDestination: sendType.predefinedDestination,
-            predefinedTag: sendType.predefinedTag
+            suggestedWallets: suggestedWallets
         )
 
-        let transactionHistoryMapper = TransactionHistoryMapper(
-            currencySymbol: tokenItem.currencySymbol,
-            walletAddresses: walletModel.addresses,
-            showSign: false
+        let interactor = makeSendDestinationInteractor(input: input, output: output)
+
+        let viewModel = SendDestinationViewModel(
+            settings: settings,
+            interactor: interactor,
+            addressTextViewHeightModel: addressTextViewHeightModel
         )
 
-        return SendDestinationViewModel(
-            initial: initial,
-            input: input,
-            output: output,
-            processor: makeSendDestinationProcessor(),
-            addressTextViewHeightModel: addressTextViewHeightModel,
-            transactionHistoryMapper: transactionHistoryMapper
-        )
+        let address = sendType.predefinedDestination.map { SendAddress(value: $0, source: .sellProvider) }
+        viewModel.setExternally(address: address, additionalField: sendType.predefinedTag)
+
+        return viewModel
     }
 
     func makeSendAmountViewModel(
@@ -270,12 +264,18 @@ struct SendModulesFactory {
         )
     }
 
-    private func makeSendDestinationProcessor() -> SendDestinationProcessor {
-        let tokenItem = walletModel.tokenItem
+    private func makeSendDestinationInteractor(
+        input: SendDestinationInput,
+        output: SendDestinationOutput
+    ) -> SendDestinationInteractor {
         let parametersBuilder = SendTransactionParametersBuilder(blockchain: tokenItem.blockchain)
 
-        return CommonSendDestinationProcessor(
+        return CommonSendDestinationInteractor(
+            input: input,
+            output: output,
             validator: makeSendDestinationValidator(),
+            transactionHistoryProvider: makeSendDestinationTransactionHistoryProvider(),
+            transactionHistoryMapper: makeTransactionHistoryMapper(),
             addressResolver: walletModel.addressResolver,
             additionalFieldType: .fields(for: tokenItem.blockchain),
             parametersBuilder: parametersBuilder
@@ -331,6 +331,18 @@ struct SendModulesFactory {
 
     private func makeInformationRelevanceService(sendFeeInteractor: SendFeeInteractor) -> InformationRelevanceService {
         CommonInformationRelevanceService(sendFeeInteractor: sendFeeInteractor)
+    }
+    
+    private func makeSendDestinationTransactionHistoryProvider() -> SendDestinationTransactionHistoryProvider {
+        CommonSendDestinationTransactionHistoryProvider(walletModel: walletModel)
+    }
+
+    private func makeTransactionHistoryMapper() -> TransactionHistoryMapper {
+        TransactionHistoryMapper(
+            currencySymbol: tokenItem.currencySymbol,
+            walletAddresses: walletModel.addresses,
+            showSign: false
+        )
     }
 }
 

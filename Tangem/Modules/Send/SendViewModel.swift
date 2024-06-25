@@ -618,7 +618,7 @@ final class SendViewModel: ObservableObject {
             return
         }
 
-        sendDestinationViewModel.update(address: SendAddress(value: result.destination, source: .qrCode), additionalField: result.memo)
+        sendDestinationViewModel.setExternally(address: SendAddress(value: result.destination, source: .qrCode), additionalField: result.memo)
         if let amount = result.amount {
             sendAmountViewModel.setExternalAmount(amount.value)
         }

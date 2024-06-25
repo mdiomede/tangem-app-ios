@@ -39,7 +39,7 @@ class SendDestinationTextViewModel: ObservableObject, Identifiable {
         isValidating: AnyPublisher<Bool, Never>,
         isDisabled: AnyPublisher<Bool, Never>,
         addressTextViewHeightModel: AddressTextViewHeightModel,
-        errorText: AnyPublisher<Error?, Never>,
+        errorText: AnyPublisher<String?, Never>,
         didEnterDestination: @escaping (String) -> Void,
         didPasteDestination: @escaping (String) -> Void
     ) {
@@ -55,7 +55,7 @@ class SendDestinationTextViewModel: ObservableObject, Identifiable {
         bind(style: style, input: input, isValidating: isValidating, isDisabled: isDisabled, errorText: errorText)
     }
 
-    private func bind(style: Style, input: AnyPublisher<String, Never>, isValidating: AnyPublisher<Bool, Never>, isDisabled: AnyPublisher<Bool, Never>, errorText: AnyPublisher<Error?, Never>) {
+    private func bind(style: Style, input: AnyPublisher<String, Never>, isValidating: AnyPublisher<Bool, Never>, isDisabled: AnyPublisher<Bool, Never>, errorText: AnyPublisher<String?, Never>) {
         input
             .sink { [weak self] text in
                 guard self?.text != text else { return }
@@ -85,9 +85,6 @@ class SendDestinationTextViewModel: ObservableObject, Identifiable {
             .store(in: &bag)
 
         errorText
-            .map {
-                $0?.localizedDescription
-            }
             .assign(to: \.errorText, on: self, ownership: .weak)
             .store(in: &bag)
 
