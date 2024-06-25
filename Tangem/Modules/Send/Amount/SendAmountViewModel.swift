@@ -10,14 +10,6 @@ import Foundation
 import SwiftUI
 import Combine
 
-protocol SendAmountInput: AnyObject {
-    var amount: SendAmount? { get }
-}
-
-protocol SendAmountOutput: AnyObject {
-    func amountDidChanged(amount: SendAmount?)
-}
-
 class SendAmountViewModel: ObservableObject, Identifiable {
     // MARK: - ViewState
 
