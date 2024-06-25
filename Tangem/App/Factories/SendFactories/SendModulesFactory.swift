@@ -24,7 +24,7 @@ struct SendModulesFactory {
         builder = .init(userWalletName: userWalletModel.name, walletModel: walletModel)
     }
 
-    // MARK: - Modules
+    // MARK: - ViewModels
 
     func makeSendViewModel(type: SendType, coordinator: SendRoutable) -> SendViewModel {
         let tokenItem = walletModel.tokenItem
@@ -43,6 +43,7 @@ struct SendModulesFactory {
             notificationManager: makeSendNotificationManager(sendModel: sendModel),
             customFeeService: makeCustomFeeService(sendModel: sendModel),
             keyboardVisibilityService: KeyboardVisibilityService(),
+            sendAmountValidator: makeSendAmountValidator(),
             factory: self,
             processor: makeSendDestinationProcessor(),
             coordinator: coordinator
@@ -89,7 +90,7 @@ struct SendModulesFactory {
         validator: SendAmountValidator,
         sendType: SendType
     ) -> SendAmountViewModel {
-        let initital = SendAmountViewModel.Initital(
+        let initital = SendAmountViewModel.Settings(
             userWalletName: userWalletModel.name,
             tokenItem: walletModel.tokenItem,
             tokenIconInfo: builder.makeTokenIconInfo(),
@@ -219,11 +220,11 @@ struct SendModulesFactory {
         return validator
     }
 
-    func makeSendAmountValidator() -> SendAmountValidator {
+    private func makeSendAmountValidator() -> SendAmountValidator {
         CommonSendAmountValidator(tokenItem: walletModel.tokenItem, validator: walletModel.transactionValidator)
     }
 
-    func makeSendAmountInteractor(
+    private func makeSendAmountInteractor(
         input: SendAmountInput,
         output: SendAmountOutput,
         validator: SendAmountValidator

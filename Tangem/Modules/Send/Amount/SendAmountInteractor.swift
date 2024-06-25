@@ -58,15 +58,15 @@ class CommonSendAmountInteractor {
     private func makeSendAmount(value: Decimal) -> SendAmount? {
         switch type {
         case .crypto:
-            let fiat = fiat(cryptoValue: value)
+            let fiat = convertToFiat(cryptoValue: value)
             return .init(type: .typical(crypto: value, fiat: fiat))
         case .fiat:
-            let crypto = crypto(fiatValue: value)
+            let crypto = convertToCrypto(fiatValue: value)
             return .init(type: .alternative(fiat: value, crypto: crypto))
         }
     }
 
-    private func crypto(fiatValue: Decimal?) -> Decimal? {
+    private func convertToCrypto(fiatValue: Decimal?) -> Decimal? {
         // If already have the converted the `crypto` amount associated with current `fiat` amount
         if input?.amount?.fiat == fiatValue {
             return input?.amount?.crypto
@@ -75,7 +75,7 @@ class CommonSendAmountInteractor {
         return SendAmountConverter().convertToCrypto(fiatValue, tokenItem: tokenItem)
     }
 
-    private func fiat(cryptoValue: Decimal?) -> Decimal? {
+    private func convertToFiat(cryptoValue: Decimal?) -> Decimal? {
         // If already have the converted the `fiat` amount associated with current `crypto` amount
         if input?.amount?.crypto == cryptoValue {
             return input?.amount?.fiat
@@ -111,12 +111,12 @@ extension CommonSendAmountInteractor: SendAmountInteractor {
     func updateToMaxAmount() -> SendAmount? {
         switch type {
         case .crypto:
-            let fiat = fiat(cryptoValue: balanceValue)
+            let fiat = convertToFiat(cryptoValue: balanceValue)
             let amount = SendAmount(type: .typical(crypto: balanceValue, fiat: fiat))
             validateAndUpdate(amount: amount)
             return amount
         case .fiat:
-            let fiat = fiat(cryptoValue: balanceValue)
+            let fiat = convertToFiat(cryptoValue: balanceValue)
             let amount = SendAmount(type: .alternative(fiat: fiat, crypto: balanceValue))
             validateAndUpdate(amount: amount)
             return amount

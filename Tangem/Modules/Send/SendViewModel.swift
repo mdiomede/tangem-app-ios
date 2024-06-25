@@ -151,6 +151,7 @@ final class SendViewModel: ObservableObject {
         notificationManager: SendNotificationManager,
         customFeeService: CustomFeeService?,
         keyboardVisibilityService: KeyboardVisibilityService,
+        sendAmountValidator: SendAmountValidator,
         factory: SendModulesFactory,
         processor: SendDestinationProcessor,
         coordinator: SendRoutable
@@ -181,7 +182,7 @@ final class SendViewModel: ObservableObject {
         sendAmountViewModel = factory.makeSendAmountViewModel(
             input: sendModel,
             output: sendModel,
-            validator: factory.makeSendAmountValidator(),
+            validator: sendAmountValidator,
             sendType: sendType
         )
 

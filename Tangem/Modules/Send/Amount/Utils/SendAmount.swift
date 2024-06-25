@@ -27,7 +27,7 @@ struct SendAmount {
     func format(
         currencySymbol: String,
         balanceFormatter: BalanceFormatter = .init(),
-        formattingOptions: BalanceFormattingOptions = .sendAmount
+        formattingOptions: BalanceFormattingOptions = .sendAmountFormattingOptions
     ) -> String? {
         switch type {
         case .typical(let crypto, _):
@@ -40,7 +40,7 @@ struct SendAmount {
     func formatAlternative(
         currencySymbol: String,
         balanceFormatter: BalanceFormatter = .init(),
-        formattingOptions: BalanceFormattingOptions = .sendAmount
+        formattingOptions: BalanceFormattingOptions = .sendAmountFormattingOptions
     ) -> String? {
         switch type {
         case .typical(_, let fiat):
@@ -52,7 +52,7 @@ struct SendAmount {
 }
 
 private extension BalanceFormattingOptions {
-    static let sendAmount = BalanceFormattingOptions(
+    static let sendAmountFormattingOptions = BalanceFormattingOptions(
         minFractionDigits: 0,
         maxFractionDigits: BalanceFormattingOptions.defaultCryptoFormattingOptions.maxFractionDigits,
         formatEpsilonAsLowestRepresentableValue: BalanceFormattingOptions.defaultCryptoFormattingOptions.formatEpsilonAsLowestRepresentableValue,

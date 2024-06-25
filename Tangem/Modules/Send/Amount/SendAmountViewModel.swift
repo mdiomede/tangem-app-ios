@@ -23,10 +23,10 @@ class SendAmountViewModel: ObservableObject, Identifiable {
 
     @Published var animatingAuxiliaryViewsOnAppear: Bool = false
 
-    @Published var userWalletName: String
-    @Published var balance: String
-    @Published var tokenIconInfo: TokenIconInfo
-    @Published var currencyPickerData: SendCurrencyPickerData
+    let userWalletName: String
+    let balance: String
+    let tokenIconInfo: TokenIconInfo
+    let currencyPickerData: SendCurrencyPickerData
 
     @Published var decimalNumberTextFieldViewModel: DecimalNumberTextField.ViewModel
     @Published var alternativeAmount: String?
@@ -55,7 +55,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     private var bag: Set<AnyCancellable> = []
 
     init(
-        initial: SendAmountViewModel.Initital,
+        initial: SendAmountViewModel.Settings,
         interactor: SendAmountInteractor
     ) {
         userWalletName = initial.userWalletName
@@ -160,7 +160,7 @@ private extension SendAmountViewModel {
 extension SendAmountViewModel: AuxiliaryViewAnimatable {}
 
 extension SendAmountViewModel {
-    struct Initital {
+    struct Settings {
         let userWalletName: String
         let tokenItem: TokenItem
         let tokenIconInfo: TokenIconInfo
