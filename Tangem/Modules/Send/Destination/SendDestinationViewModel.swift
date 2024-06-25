@@ -239,7 +239,17 @@ class SendDestinationViewModel: ObservableObject {
     }
 }
 
+// MARK: - AuxiliaryViewAnimatable
+
 extension SendDestinationViewModel: AuxiliaryViewAnimatable {}
+
+// MARK: - SendStepType
+
+extension SendDestinationViewModel: SendStepType {
+    func isValidPublisher() -> AnyPublisher<Bool, Never> {
+        _isValidatingDestination.eraseToAnyPublisher()
+    }
+}
 
 extension SendDestinationViewModel {
     struct InitialModel {

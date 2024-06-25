@@ -44,6 +44,46 @@ struct SendModulesFactory {
         let initial = SendViewModel.Initial(feeOptions: builder.makeFeeOptions())
         sendFeeInteractor.setup(input: sendModel, output: sendModel)
 
+        let notificationManager = makeSendNotificationManager(sendModel: sendModel)
+
+        let addressTextViewHeightModel: AddressTextViewHeightModel = .init()
+        let sendDestinationViewModel = makeSendDestinationViewModel(
+            input: sendModel,
+            output: sendModel,
+            sendType: type,
+            addressTextViewHeightModel: addressTextViewHeightModel
+        )
+
+        let sendAmountInteractor = makeSendAmountInteractor(input: sendModel, output: sendModel, validator: makeSendAmountValidator())
+        let sendAmountViewModel = makeSendAmountViewModel(
+            interactor: sendAmountInteractor,
+            predefinedAmount: type.predefinedAmount?.value
+        )
+
+        let sendFeeViewModel = makeSendFeeViewModel(
+            sendFeeInteractor: sendFeeInteractor,
+            notificationManager: notificationManager,
+            router: coordinator
+        )
+
+        let sendSummaryViewModel = makeSendSummaryViewModel(
+            interactor: sendModel,
+            notificationManager: notificationManager,
+            addressTextViewHeightModel: addressTextViewHeightModel,
+            sendType: type
+        )
+
+        sendSummaryViewModel.setup(sendDestinationInput: sendModel)
+        sendSummaryViewModel.setup(sendAmountInput: sendModel)
+        sendSummaryViewModel.setup(sendFeeInteractor: sendFeeInteractor)
+
+        let steps: [SendStep] = [
+            .destination(viewModel: sendDestinationViewModel, step: sendDestinationViewModel),
+            .amount(viewModel: sendAmountViewModel, step: sendAmountInteractor),
+            .fee(viewModel: sendFeeViewModel, step: sendFeeInteractor),
+            .summary(viewModel: sendSummaryViewModel)
+        ]
+
         return SendViewModel(
             initial: initial,
             walletInfo: walletInfo,
@@ -98,10 +138,8 @@ struct SendModulesFactory {
     }
 
     func makeSendAmountViewModel(
-        input: SendAmountInput,
-        output: SendAmountOutput,
-        validator: SendAmountValidator,
-        sendType: SendType
+        interactor: SendAmountInteractor,
+        predefinedAmount: Decimal?
     ) -> SendAmountViewModel {
         let initital = SendAmountViewModel.Settings(
             userWalletName: userWalletModel.name,
@@ -110,10 +148,8 @@ struct SendModulesFactory {
             balanceValue: walletModel.balanceValue ?? 0,
             balanceFormatted: walletModel.balance,
             currencyPickerData: builder.makeCurrencyPickerData(),
-            predefinedAmount: sendType.predefinedAmount?.value
+            predefinedAmount: predefinedAmount
         )
-
-        let interactor = makeSendAmountInteractor(input: input, output: output, validator: validator)
 
         return SendAmountViewModel(initial: initital, interactor: interactor)
     }

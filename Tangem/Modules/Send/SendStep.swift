@@ -9,11 +9,11 @@
 import Foundation
 
 enum SendStep {
-    case amount
-    case destination
-    case fee
-    case summary
-    case finish(model: SendFinishViewModel)
+    case destination(viewModel: SendDestinationViewModel, step: SendStepType)
+    case amount(viewModel: SendAmountViewModel, step: SendStepType)
+    case fee(viewModel: SendFeeViewModel, step: SendStepType)
+    case summary(viewModel: SendSummaryViewModel)
+    case finish(viewModel: SendFinishViewModel)
 }
 
 extension SendStep {
