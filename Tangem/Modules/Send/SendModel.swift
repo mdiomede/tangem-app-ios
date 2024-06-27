@@ -13,6 +13,7 @@ import BigInt
 import BlockchainSdk
 
 protocol SendModelUIDelegate: AnyObject {
+    func transactionDidSent()
     func showAlert(_ alert: AlertBinder)
 }
 
@@ -86,12 +87,16 @@ class SendModel {
 
     // MARK: - Private stuff
 
+    private let userWalletModel: UserWalletModel
     private let walletModel: WalletModel
     private let transactionSigner: TransactionSigner
+    private let sendAmountInteractor: SendAmountInteractor
     private let sendFeeInteractor: SendFeeInteractor
     private let feeIncludedCalculator: FeeIncludedCalculator
     private let informationRelevanceService: InformationRelevanceService
+    private let emailDataProvider: EmailDataProvider
     private let sendType: SendType
+    private weak var coordinator: SendRoutable?
 
     private var bag: Set<AnyCancellable> = []
 
@@ -102,19 +107,27 @@ class SendModel {
     // MARK: - Public interface
 
     init(
+        userWalletModel: UserWalletModel,
         walletModel: WalletModel,
         transactionSigner: TransactionSigner,
+        sendAmountInteractor: SendAmountInteractor,
         sendFeeInteractor: SendFeeInteractor,
         feeIncludedCalculator: FeeIncludedCalculator,
         informationRelevanceService: InformationRelevanceService,
-        sendType: SendType
+        emailDataProvider: EmailDataProvider,
+        sendType: SendType,
+        coordinator: SendRoutable?
     ) {
+        self.userWalletModel = userWalletModel
         self.walletModel = walletModel
         self.transactionSigner = transactionSigner
         self.sendFeeInteractor = sendFeeInteractor
         self.feeIncludedCalculator = feeIncludedCalculator
+        self.sendAmountInteractor = sendAmountInteractor
         self.informationRelevanceService = informationRelevanceService
         self.sendType = sendType
+        self.emailDataProvider = emailDataProvider
+        self.coordinator = coordinator
 
         let destination = sendType.predefinedDestination.map { SendAddress(value: $0, source: .sellProvider) }
         _destination = .init(destination)
@@ -274,6 +287,102 @@ class SendModel {
     private func makeAmount(decimal: Decimal) -> Amount? {
         Amount(with: walletModel.tokenItem.blockchain, type: walletModel.tokenItem.amountType, value: decimal)
     }
+
+    private func openMail(with error: SendTxError) {
+        guard let transaction = currentTransaction() else { return }
+
+        Analytics.log(.requestSupport, params: [.source: .transactionSourceSend])
+
+        let emailDataCollector = SendScreenDataCollector(
+            userWalletEmailData: emailDataProvider.emailData,
+            walletModel: walletModel,
+            fee: transaction.fee.amount,
+            destination: transaction.destinationAddress,
+            amount: transaction.amount,
+            isFeeIncluded: isFeeIncluded,
+            lastError: error
+        )
+        let recipient = emailDataProvider.emailConfig?.recipient ?? EmailConfig.default.recipient
+        coordinator?.openMail(with: emailDataCollector, recipient: recipient)
+    }
+}
+
+// MARK: - SendTransactionSender
+
+extension SendModel: SendTransactionSender {
+    func send() {
+        transactionSender.send()
+            .receiveCompletion { [weak self] completion in
+                switch completion {
+                case .failure(let error):
+                    self?.proceed(sendError: error)
+                case .finished:
+                    self?.transactionDidSent()
+                }
+            }
+            .store(in: &bag)
+    }
+
+    func proceed(sendError error: Error) {
+        Analytics.log(event: .sendErrorTransactionRejected, params: [
+            .token: walletModel.tokenItem.currencySymbol,
+        ])
+
+        if case .noAccount(_, let amount) = (error as? WalletError) {
+            let amountFormatted = Amount(
+                with: walletModel.blockchainNetwork.blockchain,
+                type: walletModel.amountType,
+                value: amount
+            ).string()
+
+            #warning("Use TransactionValidator async validate to get this warning before send tx")
+            let title = Localization.sendNotificationInvalidReserveAmountTitle(amountFormatted)
+            let message = Localization.sendNotificationInvalidReserveAmountText
+
+            delegate?.showAlert(AlertBinder(title: title, message: message))
+        } else {
+            let errorCode: String
+            let reason = String(error.localizedDescription.dropTrailingPeriod)
+            if let errorCodeProviding = error as? ErrorCodeProviding {
+                errorCode = "\(errorCodeProviding.errorCode)"
+            } else {
+                errorCode = "-"
+            }
+
+            let sendError = SendError(
+                title: Localization.sendAlertTransactionFailedTitle,
+                message: Localization.sendAlertTransactionFailedText(reason, errorCode),
+                error: (error as? SendTxError) ?? SendTxError(error: error),
+                openMailAction: openMail
+            )
+
+            delegate?.showAlert(sendError.alertBinder)
+        }
+    }
+
+    func transactionDidSent() {
+        delegate?.transactionDidSent()
+
+        if walletModel.isDemo {
+            let button = Alert.Button.default(Text(Localization.commonOk)) { [weak self] in
+                self?.coordinator?.dismiss()
+            }
+
+            let alert = AlertBuilder.makeAlert(
+                title: "",
+                message: Localization.alertDemoFeatureDisabled,
+                primaryButton: button
+            )
+
+            delegate?.showAlert(alert)
+        } else {
+            logTransactionAnalytics()
+        }
+
+        if let address = destination?.value, let token = walletModel.tokenItem.token {
+            UserWalletFinder().addToken(token, in: walletModel.blockchainNetwork.blockchain, for: address)
+        }
+    }
 }
 
 // MARK: - SendDestinationInput
@@ -387,5 +496,138 @@ extension SendModel: SendNotificationManagerInput {
 
     var withdrawalNotification: AnyPublisher<WithdrawalNotification?, Never> {
         _withdrawalNotification.eraseToAnyPublisher()
+    }
+}
+
+// MARK: - NotificationTapDelegate
+
+extension SendModel: NotificationTapDelegate {
+    func didTapNotification(with id: NotificationViewId) {}
+
+    func didTapNotificationButton(with id: NotificationViewId, action: NotificationButtonActionType) {
+        switch action {
+        case .refreshFee:
+            updateFees()
+        case .openFeeCurrency:
+            openNetworkCurrency()
+        case .leaveAmount(let amount, _):
+            reduceAmountBy(amount, from: walletModel.balanceValue)
+        case .reduceAmountBy(let amount, _):
+            reduceAmountBy(amount, from: self.amount?.crypto)
+        case .reduceAmountTo(let amount, _):
+            reduceAmountTo(amount)
+        case .generateAddresses,
+             .backupCard,
+             .buyCrypto,
+             .refresh,
+             .goToProvider,
+             .addHederaTokenAssociation,
+             .bookNow,
+             .stake,
+             .openFeedbackMail,
+             .openAppStoreReview:
+            assertionFailure("Notification tap not handled")
+        }
+    }
+
+    private func openNetworkCurrency() {
+        guard
+            let networkCurrencyWalletModel = userWalletModel.walletModelsManager.walletModels.first(where: {
+                $0.tokenItem == walletModel.feeTokenItem && $0.blockchainNetwork == walletModel.blockchainNetwork
+            })
+        else {
+            assertionFailure("Network currency WalletModel not found")
+            return
+        }
+
+        coordinator?.openFeeCurrency(for: networkCurrencyWalletModel, userWalletModel: userWalletModel)
+    }
+
+    private func reduceAmountBy(_ amount: Decimal, from source: Decimal?) {
+        guard let source else {
+            assertionFailure("WHY")
+            return
+        }
+
+        var newAmount = source - amount
+        if isFeeIncluded, let feeValue = selectedFee?.value.value?.amount.value {
+            newAmount = newAmount - feeValue
+        }
+
+        _ = sendAmountInteractor.update(amount: newAmount)
+//        self._amount.send(SendAmount(type: .typical(crypto: <#T##Decimal?#>, fiat: <#T##Decimal?#>)))
+//        sendAmountViewModel.setExternalAmount(newAmount)
+    }
+
+    private func reduceAmountTo(_ amount: Decimal) {
+        _ = sendAmountInteractor.update(amount: amount)
+//        sendAmountViewModel.setExternalAmount(amount)
+    }
+}
+
+// MARK: - Analytics
+
+private extension SendModel {
+    func logTransactionAnalytics() {
+        let sourceValue: Analytics.ParameterValue
+        switch sendType {
+        case .send:
+            sourceValue = .transactionSourceSend
+        case .sell:
+            sourceValue = .transactionSourceSell
+        }
+
+        Analytics.log(event: .transactionSent, params: [
+            .source: sourceValue.rawValue,
+            .token: walletModel.tokenItem.currencySymbol,
+            .blockchain: walletModel.blockchainNetwork.blockchain.displayName,
+            .feeType: selectedFeeTypeAnalyticsParameter().rawValue,
+            .memo: additionalFieldAnalyticsParameter().rawValue,
+        ])
+
+        if let amount {
+            Analytics.log(.sendSelectedCurrency, params: [
+                .commonType: amount.type.analyticParameter,
+            ])
+        }
+    }
+
+    func additionalFieldAnalyticsParameter() -> Analytics.ParameterValue {
+        // If the blockchain doesn't support additional field -- return null
+        // Otherwise return full / empty
+        switch destinationAdditionalField {
+        case .notSupported: .null
+        case .empty: .empty
+        case .filled: .full
+        }
+    }
+
+    func selectedFeeTypeAnalyticsParameter() -> Analytics.ParameterValue {
+        if /* isFixedFee */ false {
+            return .transactionFeeFixed
+        }
+
+        switch selectedFee?.option {
+        case .none:
+            assertionFailure("selectedFeeTypeAnalyticsParameter not found")
+            return .null
+        case .slow:
+            return .transactionFeeMin
+        case .market:
+            return .transactionFeeNormal
+        case .fast:
+            return .transactionFeeMax
+        case .custom:
+            return .transactionFeeCustom
+        }
+    }
+}
+
+extension SendAmount.SendAmountType {
+    var analyticParameter: Analytics.ParameterValue {
+        switch self {
+        case .typical: .token
+        case .alternative: .selectedCurrencyApp
+        }
     }
 }

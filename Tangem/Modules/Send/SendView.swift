@@ -29,7 +29,7 @@ struct SendView: View {
             }
         }
         .background(backgroundColor.ignoresSafeArea())
-        .animation(Constants.defaultAnimation, value: viewModel.step)
+        .animation(Constants.defaultAnimation, value: viewModel.step.type)
         .interactiveDismissDisabled(viewModel.shouldShowDismissAlert)
         .scrollDismissesKeyboardCompat(.immediately)
         .alert(item: $viewModel.alert) { $0.alert }
@@ -102,31 +102,9 @@ struct SendView: View {
 
     @ViewBuilder
     private var currentPage: some View {
-        switch viewModel.step {
-        case .amount:
-            SendAmountView(
-                viewModel: viewModel.sendAmountViewModel,
-                namespace: .init(id: namespace, names: SendGeometryEffectNames())
-            )
+        AnyView(viewModel.step.makeView(namespace: namespace))
             .onAppear(perform: viewModel.onCurrentPageAppear)
             .onDisappear(perform: viewModel.onCurrentPageDisappear)
-        case .destination:
-            SendDestinationView(viewModel: viewModel.sendDestinationViewModel, namespace: namespace)
-                .onAppear(perform: viewModel.onCurrentPageAppear)
-                .onDisappear(perform: viewModel.onCurrentPageDisappear)
-        case .fee:
-            SendFeeView(viewModel: viewModel.sendFeeViewModel, namespace: namespace)
-                .onAppear(perform: viewModel.onCurrentPageAppear)
-                .onDisappear(perform: viewModel.onCurrentPageDisappear)
-        case .summary:
-            SendSummaryView(viewModel: viewModel.sendSummaryViewModel, namespace: namespace)
-                .onAppear(perform: viewModel.onCurrentPageAppear)
-                .onDisappear(perform: viewModel.onCurrentPageDisappear)
-        case .finish(let sendFinishViewModel):
-            SendFinishView(viewModel: sendFinishViewModel, namespace: namespace)
-                .onAppear(perform: viewModel.onCurrentPageAppear)
-                .onDisappear(perform: viewModel.onCurrentPageDisappear)
-        }
     }
 
     @ViewBuilder
@@ -146,7 +124,7 @@ struct SendView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
                 .visible(viewModel.transactionDescriptionIsVisisble)
-                .animation(Constants.defaultAnimation, value: viewModel.step)
+                .animation(Constants.defaultAnimation, value: viewModel.step.type)
         }
     }
 
@@ -177,7 +155,7 @@ struct SendView: View {
                         backgroundColor: backButtonStyle.background(isDisabled: false),
                         cornerRadius: backButtonStyle.cornerRadius(for: backButtonSize),
                         height: backButtonSize.height,
-                        action: viewModel.back
+                        action: viewModel.userDidTapBackButton
                     )
                     .transition(.move(edge: .leading).combined(with: .opacity))
                     .animation(SendView.Constants.backButtonAnimation, value: viewModel.showBackButton)
@@ -190,7 +168,7 @@ struct SendView: View {
                     size: .default,
                     isLoading: viewModel.mainButtonLoading,
                     isDisabled: viewModel.mainButtonDisabled,
-                    action: viewModel.next
+                    action: viewModel.userDidTapActionButton
                 )
             }
             .padding(.bottom, 14)
@@ -239,7 +217,7 @@ extension SendView {
         static let sectionContentAnimation: Animation = .easeOut(duration: animationDuration)
         static let hintViewTransition: AnyTransition = .asymmetric(insertion: .offset(y: 20), removal: .identity).combined(with: .opacity)
 
-        static func auxiliaryViewTransition(for step: SendStep) -> AnyTransition {
+        static func auxiliaryViewTransition(for step: SendStepName) -> AnyTransition {
             let offset: CGFloat
             switch step {
             case .destination, .amount:

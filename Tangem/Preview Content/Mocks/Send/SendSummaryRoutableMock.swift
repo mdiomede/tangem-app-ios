@@ -9,6 +9,6 @@
 import Foundation
 
 class SendSummaryRoutableMock: SendSummaryRoutable {
-    func openStep(_ step: SendStep) {}
+    func openStep(_ step: SendStepName) {}
     func send() {}
 }

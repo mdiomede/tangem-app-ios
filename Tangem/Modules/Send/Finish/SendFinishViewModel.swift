@@ -21,13 +21,11 @@ class SendFinishViewModel: ObservableObject {
     let amountSummaryViewData: SendAmountSummaryViewData?
     let feeSummaryViewData: SendFeeSummaryViewModel?
 
-    private let feeTypeAnalyticsParameter: Analytics.ParameterValue
     private let tokenItem: TokenItem
 
     init?(
         initial: Initial,
         addressTextViewHeightModel: AddressTextViewHeightModel,
-        feeTypeAnalyticsParameter: Analytics.ParameterValue,
         sectionViewModelFactory: SendSummarySectionViewModelFactory
     ) {
         tokenItem = initial.tokenItem
@@ -45,14 +43,10 @@ class SendFinishViewModel: ObservableObject {
         transactionTime = initial.transactionTimeFormatted
 
         self.addressTextViewHeightModel = addressTextViewHeightModel
-        self.feeTypeAnalyticsParameter = feeTypeAnalyticsParameter
     }
 
     func onAppear() {
-        Analytics.log(event: .sendTransactionSentScreenOpened, params: [
-            .token: tokenItem.currencySymbol,
-            .feeType: feeTypeAnalyticsParameter.rawValue,
-        ])
+
 
         withAnimation(SendView.Constants.defaultAnimation) {
             showHeader = true

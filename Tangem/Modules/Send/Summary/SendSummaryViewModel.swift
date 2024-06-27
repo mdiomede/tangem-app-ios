@@ -110,7 +110,7 @@ class SendSummaryViewModel: ObservableObject {
         isVisible = false
     }
 
-    func didTapSummary(for step: SendStep) {
+    func didTapSummary(for step: SendStepName) {
         if isSending {
             return
         }
