@@ -13,33 +13,30 @@ struct SendSummaryView: View {
     let namespace: Namespace.ID
 
     var body: some View {
-        GroupedScrollView(spacing: 14) {
-            if !viewModel.animatingDestinationOnAppear {
-                destinationSection
+        VStack(alignment: .center, spacing: 14) {
+            GroupedScrollView(spacing: 14) {
+                if !viewModel.animatingDestinationOnAppear {
+                    destinationSection
+                }
+
+                if !viewModel.animatingAmountOnAppear {
+                    amountSection
+                }
+
+                if !viewModel.animatingFeeOnAppear {
+                    feeSection
+                }
+
+                if viewModel.showHint {
+                    hintView
+                }
+
+                ForEach(viewModel.notificationInputs) { input in
+                    NotificationView(input: input)
+                }
             }
 
-            if !viewModel.animatingAmountOnAppear {
-                amountSection
-            }
-
-            if !viewModel.animatingFeeOnAppear {
-                feeSection
-            }
-
-            if viewModel.showHint {
-                HintView(
-                    text: Localization.sendSummaryTapHint,
-                    font: Fonts.Regular.footnote,
-                    textColor: Colors.Text.secondary,
-                    backgroundColor: Colors.Button.secondary
-                )
-                .padding(.top, 8)
-                .transition(SendView.Constants.hintViewTransition)
-            }
-
-            ForEach(viewModel.notificationInputs) { input in
-                NotificationView(input: input)
-            }
+            descriptionView
         }
         .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
         .alert(item: $viewModel.alert) { $0.alert }
@@ -150,6 +147,33 @@ struct SendSummaryView: View {
 
     private func sectionBackground(canEdit: Bool) -> Color {
         canEdit ? Colors.Background.action : Colors.Button.disabled
+    }
+
+    // MARK: - HintView
+
+    var hintView: some View {
+        HintView(
+            text: Localization.sendSummaryTapHint,
+            font: Fonts.Regular.footnote,
+            textColor: Colors.Text.secondary,
+            backgroundColor: Colors.Button.secondary
+        )
+        .padding(.top, 8)
+        .transition(SendView.Constants.hintViewTransition)
+    }
+
+    // MARK: - Description
+
+    @ViewBuilder
+    private var descriptionView: some View {
+        if let transactionDescription = viewModel.transactionDescription {
+            Text(.init(transactionDescription))
+                .style(Fonts.Regular.caption1, color: Colors.Text.primary1)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                .visible(viewModel.transactionDescriptionIsVisisble)
+                .animation(SendView.Constants.defaultAnimation, value: viewModel.transactionDescriptionIsVisisble)
+        }
     }
 }
 

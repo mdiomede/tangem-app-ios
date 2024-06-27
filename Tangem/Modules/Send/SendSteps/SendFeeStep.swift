@@ -1,5 +1,5 @@
 //
-//  FeeSendStep.swift
+//  SendFeeStep.swift
 //  Tangem
 //
 //  Created by Sergey Balashov on 26.06.2024.
@@ -10,54 +10,34 @@ import Foundation
 import Combine
 import SwiftUI
 
-struct FeeSendStep {
+struct SendFeeStep {
     private let _viewModel: SendFeeViewModel
     private let interactor: SendFeeInteractor
     private let notificationManager: SendNotificationManager
     private let tokenItem: TokenItem
-    private let isFixedFee: Bool
+    private let feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder
 
     init(
         viewModel: SendFeeViewModel,
         interactor: SendFeeInteractor,
         notificationManager: SendNotificationManager,
         tokenItem: TokenItem,
-        isFixedFee: Bool
+        feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder
     ) {
         _viewModel = viewModel
         self.interactor = interactor
         self.notificationManager = notificationManager
         self.tokenItem = tokenItem
-        self.isFixedFee = isFixedFee
-    }
-
-    private func selectedFeeTypeAnalyticsParameter() -> Analytics.ParameterValue {
-        if isFixedFee {
-            return .transactionFeeFixed
-        }
-
-        switch interactor.selectedFee?.option {
-        case .none:
-            assertionFailure("selectedFeeTypeAnalyticsParameter not found")
-            return .null
-        case .slow:
-            return .transactionFeeMin
-        case .market:
-            return .transactionFeeNormal
-        case .fast:
-            return .transactionFeeMax
-        case .custom:
-            return .transactionFeeCustom
-        }
+        self.feeAnalyticsParameterBuilder = feeAnalyticsParameterBuilder
     }
 }
 
 // MARK: - SendStep
 
-extension FeeSendStep: SendStep {
+extension SendFeeStep: SendStep {
     var title: String? { Localization.commonFeeSelectorTitle }
 
-    var type: SendStepName { .fee }
+    var type: SendStepType { .fee }
 
     var viewModel: SendFeeViewModel { _viewModel }
 
@@ -94,10 +74,39 @@ extension FeeSendStep: SendStep {
     }
 
     func willClose(next step: any SendStep) {
-        Analytics.log(event: .sendFeeSelected, params: [.feeType: selectedFeeTypeAnalyticsParameter().rawValue])
+        let feeType = feeAnalyticsParameterBuilder.analyticsParameter(selectedFee: interactor.selectedFee?.option)
+        Analytics.log(event: .sendFeeSelected, params: [.feeType: feeType.rawValue])
     }
 
     func willAppear(previous step: any SendStep) {
         interactor.updateFees()
+    }
+}
+
+struct FeeAnalyticsParameterBuilder {
+    private let isFixedFee: Bool
+
+    init(isFixedFee: Bool) {
+        self.isFixedFee = isFixedFee
+    }
+
+    func analyticsParameter(selectedFee: FeeOption?) -> Analytics.ParameterValue {
+        if isFixedFee {
+            return .transactionFeeFixed
+        }
+
+        switch selectedFee {
+        case .none:
+            assertionFailure("selectedFeeTypeAnalyticsParameter not found")
+            return .null
+        case .slow:
+            return .transactionFeeMin
+        case .market:
+            return .transactionFeeNormal
+        case .fast:
+            return .transactionFeeMax
+        case .custom:
+            return .transactionFeeCustom
+        }
     }
 }

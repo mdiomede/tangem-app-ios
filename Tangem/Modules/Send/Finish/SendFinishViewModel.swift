@@ -23,7 +23,7 @@ class SendFinishViewModel: ObservableObject {
 
     private let tokenItem: TokenItem
 
-    init?(
+    init(
         initial: Initial,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         sectionViewModelFactory: SendSummarySectionViewModelFactory
@@ -46,8 +46,6 @@ class SendFinishViewModel: ObservableObject {
     }
 
     func onAppear() {
-
-
         withAnimation(SendView.Constants.defaultAnimation) {
             showHeader = true
         }

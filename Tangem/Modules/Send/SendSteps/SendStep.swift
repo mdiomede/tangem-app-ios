@@ -13,17 +13,19 @@ import SwiftUI
 protocol SendStep {
     associatedtype ViewModel: ObservableObject
     associatedtype StepView: View
+    associatedtype NavigationTrailingView: View
 //    associatedtype StepCompactView: View
 
     var viewModel: ViewModel { get }
 
-    var type: SendStepName { get }
+    var type: SendStepType { get }
     var title: String? { get }
     var subtitle: String? { get }
 
     var isValidPublisher: AnyPublisher<Bool, Never> { get }
 
     func makeView(namespace: Namespace.ID) -> StepView
+    func makeNavigationTrailingView(namespace: Namespace.ID) -> NavigationTrailingView
 //    func makeCompactView(namespace: Namespace.ID) -> StepCompactView
 
     func canBeClosed(continueAction: @escaping () -> Void) -> Bool
@@ -34,13 +36,19 @@ protocol SendStep {
 extension SendStep {
     var subtitle: String? { nil }
 
-    func canBeClosed(continueAction: @escaping () -> Void) -> Bool { true }
+    func makeNavigationTrailingView(namespace: Namespace.ID) -> NavigationTrailingView? {
+        return nil
+    }
+
+    func canBeClosed(continueAction: @escaping () -> Void) -> Bool {
+        return true
+    }
 
     func willAppear(previous step: any SendStep) {}
     func willClose(next step: any SendStep) {}
 }
 
-enum SendStepName {
+enum SendStepType: String, Hashable {
     case destination
     case amount
     case fee

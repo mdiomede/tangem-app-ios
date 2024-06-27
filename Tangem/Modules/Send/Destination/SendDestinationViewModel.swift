@@ -9,6 +9,7 @@
 import Foundation
 import Combine
 import BlockchainSdk
+import SwiftUI
 
 class SendDestinationViewModel: ObservableObject {
     @Published var addressViewModel: SendDestinationTextViewModel?

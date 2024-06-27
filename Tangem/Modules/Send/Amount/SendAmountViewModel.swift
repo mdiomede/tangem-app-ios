@@ -91,7 +91,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         guard decimalNumberTextFieldViewModel.value != amount else {
             return
         }
-        
+
         AppLog.shared.debug("Amount text field will be updated externally")
 
         decimalNumberTextFieldViewModel.update(value: amount)

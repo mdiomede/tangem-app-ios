@@ -33,7 +33,7 @@ extension SendSummaryStep: SendStep {
     var title: String? { Localization.sendSummaryTitle(tokenItem.currencySymbol) }
     var subtitle: String? { walletName }
 
-    var type: SendStepName { .summary }
+    var type: SendStepType { .summary }
 
     var viewModel: SendSummaryViewModel { _viewModel }
 

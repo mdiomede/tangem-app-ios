@@ -31,7 +31,7 @@ struct SendAmountStep {
 extension SendAmountStep: SendStep {
     var title: String? { Localization.sendAmountLabel }
 
-    var type: SendStepName { .amount }
+    var type: SendStepType { .amount }
 
     var viewModel: SendAmountViewModel { _viewModel }
 

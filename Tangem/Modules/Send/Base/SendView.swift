@@ -35,7 +35,7 @@ struct SendView: View {
         .alert(item: $viewModel.alert) { $0.alert }
         .safeAreaInset(edge: .bottom) {
             bottomContainer
-                .animation(Constants.defaultAnimation, value: viewModel.showTransactionButtons)
+                .animation(Constants.defaultAnimation, value: viewModel.step.type.rawValue)
         }
     }
 
@@ -69,12 +69,8 @@ struct SendView: View {
                     .disabled(viewModel.closeButtonDisabled)
             }
             .overlay(alignment: .trailing) {
-                if viewModel.showQRCodeButton {
-                    Button(action: viewModel.scanQRCode) {
-                        Assets.qrCode.image
-                            .renderingMode(.template)
-                            .foregroundColor(Colors.Icon.primary1)
-                    }
+                if let trailingView = viewModel.step.makeNavigationTrailingView(namespace: namespace) {
+                    AnyView(trailingView)
                 }
             }
             .frame(height: 44)
@@ -109,41 +105,20 @@ struct SendView: View {
 
     @ViewBuilder
     private var bottomContainer: some View {
-        VStack(alignment: .center, spacing: 14) {
-            description
-
-            bottomButtons
-        }
-    }
-
-    @ViewBuilder
-    private var description: some View {
-        if let transactionDescription = viewModel.transactionDescription {
-            Text(.init(transactionDescription))
-                .style(Fonts.Regular.caption1, color: Colors.Text.primary1)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
-                .visible(viewModel.transactionDescriptionIsVisisble)
-                .animation(Constants.defaultAnimation, value: viewModel.step.type)
-        }
-    }
-
-    @ViewBuilder
-    private var bottomButtons: some View {
         VStack(spacing: 10) {
-            if viewModel.showTransactionButtons {
+            if let url = viewModel.transactionURL {
                 HStack(spacing: 8) {
                     MainButton(
                         title: Localization.commonExplore,
                         icon: .leading(Assets.globe),
                         style: .secondary,
-                        action: viewModel.explore
+                        action: { viewModel.explore(url: url) }
                     )
                     MainButton(
                         title: Localization.commonShare,
                         icon: .leading(Assets.share),
                         style: .secondary,
-                        action: viewModel.share
+                        action: { viewModel.share(url: url) }
                     )
                 }
                 .transition(.opacity)
@@ -217,7 +192,7 @@ extension SendView {
         static let sectionContentAnimation: Animation = .easeOut(duration: animationDuration)
         static let hintViewTransition: AnyTransition = .asymmetric(insertion: .offset(y: 20), removal: .identity).combined(with: .opacity)
 
-        static func auxiliaryViewTransition(for step: SendStepName) -> AnyTransition {
+        static func auxiliaryViewTransition(for step: SendStepType) -> AnyTransition {
             let offset: CGFloat
             switch step {
             case .destination, .amount:

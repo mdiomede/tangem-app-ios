@@ -13,22 +13,26 @@ import SwiftUI
 struct SendFinishStep {
     private let _viewModel: SendFinishViewModel
     private let tokenItem: TokenItem
-        private let feeTypeAnalyticsParameter: Analytics.ParameterValue
+    private let sendFeeInteractor: SendFeeInteractor
+    private let feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder
 
     init(
         viewModel: SendFinishViewModel,
         tokenItem: TokenItem,
-        feeTypeAnalyticsParameter: Analytics.ParameterValue
+        sendFeeInteractor: SendFeeInteractor,
+        feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder
     ) {
         _viewModel = viewModel
         self.tokenItem = tokenItem
-        self.feeTypeAnalyticsParameter = feeTypeAnalyticsParameter
+        self.sendFeeInteractor = sendFeeInteractor
+        self.feeAnalyticsParameterBuilder = feeAnalyticsParameterBuilder
     }
 
     private func log() {
+        let feeType = feeAnalyticsParameterBuilder.analyticsParameter(selectedFee: sendFeeInteractor.selectedFee?.option)
         Analytics.log(event: .sendTransactionSentScreenOpened, params: [
             .token: tokenItem.currencySymbol,
-            .feeType: feeTypeAnalyticsParameter.rawValue,
+            .feeType: feeType.rawValue,
         ])
     }
 }
@@ -36,7 +40,7 @@ struct SendFinishStep {
 extension SendFinishStep: SendStep {
     var title: String? { nil }
 
-    var type: SendStepName { .finish }
+    var type: SendStepType { .finish }
 
     var viewModel: SendFinishViewModel { _viewModel }
 

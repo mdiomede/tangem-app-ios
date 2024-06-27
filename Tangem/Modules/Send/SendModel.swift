@@ -79,7 +79,7 @@ class SendModel {
 
     // MARK: - Raw data
 
-    private let _isSending = CurrentValueSubject<Bool, Never>(false)
+//    private let _isSending = CurrentValueSubject<Bool, Never>(false)
     private let _transactionTime = CurrentValueSubject<Date?, Never>(nil)
     private let _transactionURL = CurrentValueSubject<URL?, Never>(nil)
 
@@ -90,11 +90,13 @@ class SendModel {
     private let userWalletModel: UserWalletModel
     private let walletModel: WalletModel
     private let transactionSigner: TransactionSigner
+    private let transactionCreator: TransactionCreator
     private let sendAmountInteractor: SendAmountInteractor
     private let sendFeeInteractor: SendFeeInteractor
     private let feeIncludedCalculator: FeeIncludedCalculator
     private let informationRelevanceService: InformationRelevanceService
     private let emailDataProvider: EmailDataProvider
+    private let feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder
     private let sendType: SendType
     private weak var coordinator: SendRoutable?
 
@@ -109,24 +111,28 @@ class SendModel {
     init(
         userWalletModel: UserWalletModel,
         walletModel: WalletModel,
+        transactionCreator: TransactionCreator,
         transactionSigner: TransactionSigner,
         sendAmountInteractor: SendAmountInteractor,
         sendFeeInteractor: SendFeeInteractor,
         feeIncludedCalculator: FeeIncludedCalculator,
         informationRelevanceService: InformationRelevanceService,
         emailDataProvider: EmailDataProvider,
+        feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder,
         sendType: SendType,
         coordinator: SendRoutable?
     ) {
         self.userWalletModel = userWalletModel
         self.walletModel = walletModel
         self.transactionSigner = transactionSigner
+        self.transactionCreator = transactionCreator
         self.sendFeeInteractor = sendFeeInteractor
         self.feeIncludedCalculator = feeIncludedCalculator
         self.sendAmountInteractor = sendAmountInteractor
         self.informationRelevanceService = informationRelevanceService
-        self.sendType = sendType
         self.emailDataProvider = emailDataProvider
+        self.feeAnalyticsParameterBuilder = feeAnalyticsParameterBuilder
+        self.sendType = sendType
         self.coordinator = coordinator
 
         let destination = sendType.predefinedDestination.map { SendAddress(value: $0, source: .sellProvider) }
@@ -219,51 +225,36 @@ class SendModel {
     }
 
     private func bind() {
-        #warning("TODO: create TX after a delay")
-        Publishers.CombineLatest3(cryptoAmountPublisher(), _destination, _selectedFee)
-            .removeDuplicates {
-                $0 == $1
-            }
-            .map { [weak self] validatedAmount, validatedDestination, fee -> Result<BlockchainSdk.Transaction, Error> in
-                guard
-                    let self,
-                    let destination = validatedDestination?.value,
-                    let fee = fee?.value.value
-                else {
-                    self?._isFeeIncluded.send(false)
-                    return .failure(ValidationError.invalidAmount)
-                }
+        Publishers
+            .CombineLatest3(
+                _amount.compactMap { $0?.crypto },
+                _destination.compactMap { $0?.value },
+                _selectedFee.compactMap { $0?.value.value }
+            )
+            .removeDuplicates { $0 == $1 }
+            .withWeakCaptureOf(self)
+            .asyncMap { manager, args throws -> BlockchainSdk.Transaction in
+                let (amountValue, destination, fee) = args
 
-                do {
-                    #warning("TODO: Use await validation")
-                    let includeFee = feeIncludedCalculator.shouldIncludeFee(fee, into: validatedAmount)
-                    let transactionAmount = includeFee ? validatedAmount - fee.amount : validatedAmount
-                    _isFeeIncluded.send(includeFee)
+                let amount = manager.makeAmount(with: amountValue)
+                let includeFee = manager.feeIncludedCalculator.shouldIncludeFee(fee, into: amount)
+                manager._isFeeIncluded.send(includeFee)
 
-                    try walletModel.transactionValidator.validateTotal(amount: transactionAmount, fee: fee.amount)
+                let transactionAmount = includeFee ? amount - fee.amount : amount
 
-                    let transaction = try walletModel.transactionCreator.createTransaction(
-                        amount: transactionAmount,
-                        fee: fee,
-                        destinationAddress: destination
-                    )
-                    return .success(transaction)
-                } catch {
-                    AppLog.shared.debug("Failed to create transaction")
-                    return .failure(error)
-                }
+                let transaction = try await manager.transactionCreator.createTransaction(
+                    amount: transactionAmount,
+                    fee: fee,
+                    destinationAddress: destination
+                )
+
+                return transaction
             }
-            .sink { [weak self] result in
-                switch result {
-                case .success(let transaction):
-                    self?.transaction.send(transaction)
-                    self?._transactionCreationError.send(nil)
-                case .failure(let error):
-                    self?.transaction.send(nil)
-                    self?._transactionCreationError.send(error)
-                }
-            }
-            .store(in: &bag)
+//            .sink { completion in
+//                <#code#>
+//            } receiveValue: { <#Self.Output#> in
+//                <#code#>
+//            }
 
         if let withdrawalValidator = walletModel.withdrawalNotificationProvider {
             transaction
@@ -577,11 +568,13 @@ private extension SendModel {
             sourceValue = .transactionSourceSell
         }
 
+        let feeType = feeAnalyticsParameterBuilder.analyticsParameter(selectedFee: selectedFee?.option)
+
         Analytics.log(event: .transactionSent, params: [
             .source: sourceValue.rawValue,
             .token: walletModel.tokenItem.currencySymbol,
             .blockchain: walletModel.blockchainNetwork.blockchain.displayName,
-            .feeType: selectedFeeTypeAnalyticsParameter().rawValue,
+            .feeType: feeType.rawValue,
             .memo: additionalFieldAnalyticsParameter().rawValue,
         ])
 
@@ -599,26 +592,6 @@ private extension SendModel {
         case .notSupported: .null
         case .empty: .empty
         case .filled: .full
-        }
-    }
-
-    func selectedFeeTypeAnalyticsParameter() -> Analytics.ParameterValue {
-        if /* isFixedFee */ false {
-            return .transactionFeeFixed
-        }
-
-        switch selectedFee?.option {
-        case .none:
-            assertionFailure("selectedFeeTypeAnalyticsParameter not found")
-            return .null
-        case .slow:
-            return .transactionFeeMin
-        case .market:
-            return .transactionFeeNormal
-        case .fast:
-            return .transactionFeeMax
-        case .custom:
-            return .transactionFeeCustom
         }
     }
 }
