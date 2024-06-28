@@ -386,9 +386,21 @@ extension SendModel: SendFeeOutput {
     }
 }
 
-// MARK: - SendBaseOutput
+// MARK: - SendSummaryInput, SendSummaryOutput
 
-extension SendModel: SendBaseOutput {
+extension SendModel: SendSummaryInput, SendSummaryOutput {
+    var transaction: AnyPublisher<BlockchainSdk.Transaction?, Never> {
+        _transaction.eraseToAnyPublisher()
+    }
+}
+
+// MARK: - SendBaseInput, SendBaseOutput
+
+extension SendModel: SendBaseInput, SendBaseOutput {
+    var isLoading: AnyPublisher<Bool, Never> {
+        sendTransactionSender.isSending
+    }
+
     func sendTransaction() -> AnyPublisher<SendTransactionSentResult, Never> {
         sendIfInformationIsActual()
     }

@@ -27,74 +27,17 @@ struct SendModulesFactory {
     // MARK: - ViewModels
 
     func makeSendViewModel(sendType: SendType, router: SendRoutable) -> SendViewModel {
-        /*
-                 let sendFeeInteractor = makeSendFeeInteractor(
-                     predefinedAmount: type.predefinedAmount,
-                     predefinedDestination: type.predefinedDestination
-                 )
-
-                 let informationRelevanceService = makeInformationRelevanceService(sendFeeInteractor: sendFeeInteractor)
-
-                 let sendModel = makeSendModel(
-                     sendFeeInteractor: sendFeeInteractor,
-                     informationRelevanceService: informationRelevanceService,
-                     type: type
-                 )
-                 let canUseFiatCalculation = quotesRepository.quote(for: walletModel.tokenItem) != nil
-                 let walletInfo = builder.makeSendWalletInfo(canUseFiatCalculation: canUseFiatCalculation)
-                 let initial = SendViewModel.Initial(feeOptions: builder.makeFeeOptions())
-                 sendFeeInteractor.setup(input: sendModel, output: sendModel)
-
-                 let notificationManager = makeSendNotificationManager(sendModel: sendModel)
-
-                 let addressTextViewHeightModel: AddressTextViewHeightModel = .init()
-                 let sendDestinationViewModel = makeSendDestinationViewModel(
-                     input: sendModel,
-                     output: sendModel,
-                     sendType: type,
-                     addressTextViewHeightModel: addressTextViewHeightModel
-                 )
-
-                 let sendAmountInteractor = makeSendAmountInteractor(input: sendModel, output: sendModel, validator:)
-                 let sendAmountViewModel = makeSendAmountViewModel(
-                     interactor: sendAmountInteractor,
-                     predefinedAmount: type.predefinedAmount?.value
-                 )
-
-                 let sendFeeViewModel = makeSendFeeViewModel(
-                     sendFeeInteractor: sendFeeInteractor,
-                     notificationManager: notificationManager,
-                     router: coordinator
-                 )
-
-                 let sendSummaryViewModel = makeSendSummaryViewModel(
-                     interactor: sendModel,
-                     notificationManager: notificationManager,
-                     addressTextViewHeightModel: addressTextViewHeightModel,
-                     sendType: type
-                 )
-
-                 sendSummaryViewModel.setup(sendDestinationInput: sendModel)
-                 sendSummaryViewModel.setup(sendAmountInput: sendModel)
-                 sendSummaryViewModel.setup(sendFeeInteractor: sendFeeInteractor)
-
-         //        let steps: [SendStep] = [
-         //            .destination(viewModel: sendDestinationViewModel),
-         //            .amount(viewModel: sendAmountViewModel),
-         //            .fee(viewModel: sendFeeViewModel),
-         //            .summary(viewModel: sendSummaryViewModel),
-         //        ]
-                      */
-
         let sendAmountInteractor = makeSendAmountInteractor()
         let sendFeeInteractor = makeSendFeeInteractor()
         let informationRelevanceService = makeInformationRelevanceService(sendFeeInteractor: sendFeeInteractor)
+        let sendTransactionSender = makeSendTransactionSender()
         let addressTextViewHeightModel: AddressTextViewHeightModel = .init()
 
         let sendModel = makeSendModel(
             sendAmountInteractor: sendAmountInteractor,
             sendFeeInteractor: sendFeeInteractor,
             informationRelevanceService: informationRelevanceService,
+            sendTransactionSender: sendTransactionSender,
             type: sendType,
             router: router
         )
@@ -116,7 +59,9 @@ struct SendModulesFactory {
         let amountStep = makeSendAmountStep(sendAmountInteractor: sendAmountInteractor, sendFeeInteractor: sendFeeInteractor)
         let feeStep = makeFeeSendStep(sendFeeInteractor: sendFeeInteractor, notificationManager: notificationManager, router: router)
         let summaryStep = makeSendSummaryStep(
-            interactor: sendModel,
+            input: sendModel,
+            output: sendModel,
+            sendTransactionSender: sendTransactionSender,
             notificationManager: notificationManager,
             addressTextViewHeightModel: addressTextViewHeightModel,
             sendType: sendType
@@ -141,18 +86,11 @@ struct SendModulesFactory {
             finishStep: finishStep
         )
 
-        let sendBaseInteractor = CommonSendBaseInteractor(
-            sendTransactionSender: sendModel,
-            sendDestinationInput: sendModel,
-            sendAmountInput: sendModel,
-            sendFeeInput: sendModel,
-            summaryDestinationHelper: makeSendTransactionSummaryDescriptionBuilder()
-        )
-
+        let sendBaseInteractor = CommonSendBaseInteractor(input: sendModel, output: sendModel, sendDestinationInput: sendModel)
         let viewModel = SendViewModel(
             interactor: sendBaseInteractor,
             stepsManager: stepsManager,
-            coordinator: router
+            router: router
         )
         sendModel.delegate = viewModel
         return viewModel
@@ -347,11 +285,20 @@ struct SendModulesFactory {
     // MARK: - SummaryStep
 
     func makeSendSummaryStep(
-        interactor: SendSummaryInteractor,
+        input: SendSummaryInput,
+        output: SendSummaryOutput,
+        sendTransactionSender: any SendTransactionSender,
         notificationManager: SendNotificationManager,
         addressTextViewHeightModel: AddressTextViewHeightModel,
         sendType: SendType
     ) -> SendSummaryStep {
+        let interactor = CommonSendSummaryInteractor(
+            input: input,
+            output: output,
+            sendTransactionSender: sendTransactionSender,
+            descriptionBuilder: makeSendTransactionSummaryDescriptionBuilder()
+        )
+
         let viewModel = makeSendSummaryViewModel(
             interactor: interactor,
             notificationManager: notificationManager,
@@ -428,7 +375,7 @@ struct SendModulesFactory {
         let initial = SendFinishViewModel.Initial(
             tokenItem: walletModel.tokenItem,
             destination: destinationText,
-            additionalField: sendModel.destinationAdditionalField,
+            additionalField: .notSupported, //  sendModel.destinationAdditionalField
             amount: amount,
             feeValue: feeValue,
             transactionTimeFormatted: transactionTimeFormatted
@@ -455,6 +402,7 @@ struct SendModulesFactory {
         sendAmountInteractor: SendAmountInteractor,
         sendFeeInteractor: SendFeeInteractor,
         informationRelevanceService: InformationRelevanceService,
+        sendTransactionSender: any SendTransactionSender,
         type: SendType,
         router: SendRoutable
     ) -> SendModel {
@@ -463,6 +411,7 @@ struct SendModulesFactory {
         return SendModel(
             userWalletModel: userWalletModel,
             walletModel: walletModel,
+            sendTransactionSender: sendTransactionSender,
             transactionCreator: walletModel.transactionCreator,
             transactionSigner: transactionSigner,
             sendAmountInteractor: sendAmountInteractor,
@@ -579,7 +528,14 @@ struct SendModulesFactory {
     }
 
     private func makeSendTransactionSummaryDescriptionBuilder() -> SendTransactionSummaryDescriptionBuilder {
-        SendTransactionSummaryDescriptionBuilder(feeCurrency: walletModel.feeTokenItem)
+        SendTransactionSummaryDescriptionBuilder(tokenItem: walletModel.tokenItem, feeTokenItem: walletModel.feeTokenItem)
+    }
+
+    func makeSendTransactionSender() -> SendTransactionSender {
+        CommonSendTransactionSender(
+            walletModel: walletModel,
+            transactionSigner: transactionSigner
+        )
     }
 }
 

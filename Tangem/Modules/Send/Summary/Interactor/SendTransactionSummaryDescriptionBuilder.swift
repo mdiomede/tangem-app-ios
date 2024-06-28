@@ -9,15 +9,18 @@
 import Foundation
 
 struct SendTransactionSummaryDescriptionBuilder {
-    private let feeCurrency: TokenItem
+    private let tokenItem: TokenItem
+    private let feeTokenItem: TokenItem
 
-    init(feeCurrency: TokenItem) {
-        self.feeCurrency = feeCurrency
+    init(tokenItem: TokenItem, feeTokenItem: TokenItem) {
+        self.tokenItem = tokenItem
+        self.feeTokenItem = feeTokenItem
     }
 
-    func makeDescription(amount: SendAmount, fee: Decimal) -> String? {
-        let feeInFiat = feeCurrency.id.flatMap { BalanceConverter().convertToFiat(fee, currencyId: $0) }
-        let totalInFiat = [amount.fiat, feeInFiat].compactMap { $0 }.reduce(0, +)
+    func makeDescription(amount: Decimal, fee: Decimal) -> String? {
+        let amountInFiat = tokenItem.id.flatMap { BalanceConverter().convertToFiat(amount, currencyId: $0) }
+        let feeInFiat = feeTokenItem.id.flatMap { BalanceConverter().convertToFiat(fee, currencyId: $0) }
+        let totalInFiat = [amountInFiat, feeInFiat].compactMap { $0 }.reduce(0, +)
 
         let formattingOptions = BalanceFormattingOptions(
             minFractionDigits: BalanceFormattingOptions.defaultFiatFormattingOptions.minFractionDigits,

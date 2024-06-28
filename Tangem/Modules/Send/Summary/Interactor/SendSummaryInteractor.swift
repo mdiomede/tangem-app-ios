@@ -8,31 +8,34 @@
 
 import Foundation
 import Combine
+import BlockchainSdk
 
-protocol SendSummaryInput: AnyObject {}
+protocol SendSummaryInput: AnyObject {
+    var transaction: AnyPublisher<BlockchainSdk.Transaction?, Never> { get }
+}
 
 protocol SendSummaryOutput: AnyObject {}
 
 protocol SendSummaryInteractor: AnyObject {
-//    var isSending: AnyPublisher<Bool, Never> { get }
     var transactionDescription: AnyPublisher<String?, Never> { get }
 }
 
 class CommonSendSummaryInteractor {
+    private weak var input: SendSummaryInput?
+    private weak var output: SendSummaryOutput?
+
     private let sendTransactionSender: SendTransactionSender
-    private let sendAmountInput: SendAmountInput
-    private let sendFeeInput: SendFeeInput
     private let descriptionBuilder: SendTransactionSummaryDescriptionBuilder
 
     init(
+        input: SendSummaryInput,
+        output: SendSummaryOutput,
         sendTransactionSender: SendTransactionSender,
-        sendAmountInput: SendAmountInput,
-        sendFeeInput: SendFeeInput,
         descriptionBuilder: SendTransactionSummaryDescriptionBuilder
     ) {
+        self.input = input
+        self.output = output
         self.sendTransactionSender = sendTransactionSender
-        self.sendAmountInput = sendAmountInput
-        self.sendFeeInput = sendFeeInput
         self.descriptionBuilder = descriptionBuilder
     }
 }
@@ -43,14 +46,17 @@ extension CommonSendSummaryInteractor: SendSummaryInteractor {
     }
 
     var transactionDescription: AnyPublisher<String?, Never> {
-        Publishers
-            .CombineLatest(
-                sendAmountInput.amountPublisher().compactMap { $0 },
-                sendFeeInput.selectedFeePublisher().compactMap { $0?.value.value?.amount.value }
-            )
+        guard let input else { return Empty().eraseToAnyPublisher() }
+
+        return input.transaction
             .withWeakCaptureOf(self)
-            .map {
-                $0.descriptionBuilder.makeDescription(amount: $1.0, fee: $1.1)
+            .map { interactor, transaction in
+                transaction.flatMap { transaction in
+                    interactor.descriptionBuilder.makeDescription(
+                        amount: transaction.amount.value,
+                        fee: transaction.fee.amount.value
+                    )
+                }
             }
             .eraseToAnyPublisher()
     }

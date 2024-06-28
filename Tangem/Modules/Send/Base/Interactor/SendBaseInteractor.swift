@@ -57,6 +57,6 @@ extension CommonSendBaseInteractor: SendBaseInteractor {
       */
 
     func send() -> AnyPublisher<SendTransactionSentResult, Never> {
-        output?.sendTransaction()
+        output?.sendTransaction() ?? .just(output: .init(url: nil))
     }
 }

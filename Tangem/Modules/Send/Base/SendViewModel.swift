@@ -136,7 +136,6 @@ private extension SendViewModel {
             .receive(on: DispatchQueue.main)
             .sink { viewModel, result in
                 viewModel.transactionURL = result.url
-                viewModel.alert = result.alert
             }
             .store(in: &bag)
     }

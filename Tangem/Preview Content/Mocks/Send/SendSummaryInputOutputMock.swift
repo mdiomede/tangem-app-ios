@@ -8,9 +8,13 @@
 
 import SwiftUI
 import Combine
+import BlockchainSdk
 
-class SendSummaryInputOutputMock: SendSummaryInput, SendSummaryOutput {}
+class SendSummaryInputOutputMock: SendSummaryInput, SendSummaryOutput {
+    var transaction: AnyPublisher<BlockchainSdk.Transaction?, Never> { .just(output: nil) }
+}
 
 class SendSummaryInteractorMock: SendSummaryInteractor {
+    var transactionDescription: AnyPublisher<String?, Never> { .just(output: nil) }
     var isSending: AnyPublisher<Bool, Never> { .just(output: false) }
 }
