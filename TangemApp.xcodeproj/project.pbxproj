@@ -1176,6 +1176,10 @@
 		EF0F99E128917003008B01DF /* SocialNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0F99E028917003008B01DF /* SocialNetwork.swift */; };
 		EF0F99E3289177C6008B01DF /* InfoDictionaryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0F99E2289177C6008B01DF /* InfoDictionaryUtils.swift */; };
 		EF0FF8712866021B00B7CEAF /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FF8702866021B00B7CEAF /* AppEnvironment.swift */; };
+		EF1716A92C2EB8D7004648A1 /* SendTransactionSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1716A82C2EB8D7004648A1 /* SendTransactionSender.swift */; };
+		EF1716AB2C2EC8F2004648A1 /* SendBaseInputOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1716AA2C2EC8F2004648A1 /* SendBaseInputOutput.swift */; };
+		EF1716AE2C2EC950004648A1 /* SendStepsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1716AD2C2EC950004648A1 /* SendStepsManager.swift */; };
+		EF1716B02C2EC97D004648A1 /* SendStepsManagerInputOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1716AF2C2EC97D004648A1 /* SendStepsManagerInputOutput.swift */; };
 		EF193C032A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF193C022A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift */; };
 		EF1D1ADE2C270DDE000CB941 /* SendFeeInputOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */; };
 		EF1D1AE02C272055000CB941 /* InformationRelevanceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1D1ADF2C272055000CB941 /* InformationRelevanceService.swift */; };
@@ -2931,6 +2935,10 @@
 		EF0F99E028917003008B01DF /* SocialNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialNetwork.swift; sourceTree = "<group>"; };
 		EF0F99E2289177C6008B01DF /* InfoDictionaryUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoDictionaryUtils.swift; sourceTree = "<group>"; };
 		EF0FF8702866021B00B7CEAF /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		EF1716A82C2EB8D7004648A1 /* SendTransactionSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendTransactionSender.swift; sourceTree = "<group>"; };
+		EF1716AA2C2EC8F2004648A1 /* SendBaseInputOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendBaseInputOutput.swift; sourceTree = "<group>"; };
+		EF1716AD2C2EC950004648A1 /* SendStepsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendStepsManager.swift; sourceTree = "<group>"; };
+		EF1716AF2C2EC97D004648A1 /* SendStepsManagerInputOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendStepsManagerInputOutput.swift; sourceTree = "<group>"; };
 		EF193C022A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomScrollableSheetStateObject.swift; sourceTree = "<group>"; };
 		EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeInputOutput.swift; sourceTree = "<group>"; };
 		EF1D1ADF2C272055000CB941 /* InformationRelevanceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InformationRelevanceService.swift; sourceTree = "<group>"; };
@@ -6478,6 +6486,7 @@
 				EFE8BFE52C2DC75700772FB3 /* Base */,
 				EF435A082C2B87A400B627EB /* SendSteps */,
 				EF339E522C22DAB200B5CDC9 /* Helpers */,
+				EF1716B12C2ECC90004648A1 /* Managers */,
 				EF339E4D2C21FC8C00B5CDC9 /* Models */,
 				EF031A632C0A32AB001535C9 /* Namespace */,
 				DA7B2C4E2B6B893500FB9622 /* SendNotifications */,
@@ -6492,7 +6501,6 @@
 				DAD2D8512B4D2144002EA7F1 /* SendSummarySectionViewModelFactory.swift */,
 				DA559C242B0261F400F59584 /* SendType.swift */,
 				DAE324152B986F9A00C5D335 /* SendAddress.swift */,
-				DA559C1D2B0261F300F59584 /* SendModel.swift */,
 				DA559C232B0261F300F59584 /* SendRoutable.swift */,
 				DA34BDF42B26F1AD00F606C2 /* SendWalletInfo.swift */,
 				5DCC20BC2500FC58007B467E /* LegacyQRScannerView.swift */,
@@ -7257,6 +7265,25 @@
 			path = ExpressFeeRow;
 			sourceTree = "<group>";
 		};
+		EF1716AC2C2EC948004648A1 /* SendStepsManager */ = {
+			isa = PBXGroup;
+			children = (
+				EF435A0D2C2C118500B627EB /* SendStep.swift */,
+				EF1716AD2C2EC950004648A1 /* SendStepsManager.swift */,
+				EF1716AF2C2EC97D004648A1 /* SendStepsManagerInputOutput.swift */,
+			);
+			path = SendStepsManager;
+			sourceTree = "<group>";
+		};
+		EF1716B12C2ECC90004648A1 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				DA559C1D2B0261F300F59584 /* SendModel.swift */,
+				EF1716A82C2EB8D7004648A1 /* SendTransactionSender.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
 		EF1D1AE32C296D79000CB941 /* SendAmountSummaryView */ = {
 			isa = PBXGroup;
 			children = (
@@ -7478,7 +7505,7 @@
 		EF435A082C2B87A400B627EB /* SendSteps */ = {
 			isa = PBXGroup;
 			children = (
-				EF435A0D2C2C118500B627EB /* SendStep.swift */,
+				EF1716AC2C2EC948004648A1 /* SendStepsManager */,
 				EF435A0B2C2C117200B627EB /* SendDestinationStep.swift */,
 				EF435A0F2C2C12C700B627EB /* SendAmountStep.swift */,
 				EF435A092C2B87B300B627EB /* SendFeeStep.swift */,
@@ -8667,9 +8694,9 @@
 		EFE8BFE52C2DC75700772FB3 /* Base */ = {
 			isa = PBXGroup;
 			children = (
-				EFE8BFE62C2DC77000772FB3 /* Interactor */,
 				DA559C262B0261F400F59584 /* SendView.swift */,
 				DA559C252B0261F400F59584 /* SendViewModel.swift */,
+				EFE8BFE62C2DC77000772FB3 /* Interactor */,
 			);
 			path = Base;
 			sourceTree = "<group>";
@@ -8677,6 +8704,7 @@
 		EFE8BFE62C2DC77000772FB3 /* Interactor */ = {
 			isa = PBXGroup;
 			children = (
+				EF1716AA2C2EC8F2004648A1 /* SendBaseInputOutput.swift */,
 				EFE8BFE72C2DC78400772FB3 /* SendBaseInteractor.swift */,
 			);
 			path = Interactor;
@@ -10039,6 +10067,7 @@
 				2DC5677E2B0E047700B0244F /* MainBottomSheetHeaderCoordinatorView.swift in Sources */,
 				5D6784CE25EB92F300149995 /* TestnetTokensRepository.swift in Sources */,
 				2DB3614D2C14FBF500BB1D38 /* SegmentedPickerView+EnviromentValues.swift in Sources */,
+				EF1716B02C2EC97D004648A1 /* SendStepsManagerInputOutput.swift in Sources */,
 				DA5CD09A2A25F4F2008FD876 /* PromotionCoordinator.swift in Sources */,
 				DA1DF0492BA3E496008310E4 /* SendAmountSummaryView.swift in Sources */,
 				DC3DCAEA2A49B5E900F72554 /* CommonUserTokensManager.swift in Sources */,
@@ -10179,6 +10208,7 @@
 				EFA580632893E6AA00110DB0 /* BiometricAuthorizationUtils.swift in Sources */,
 				DCDE747B2C1397DD00C19A23 /* PushNotificationsProvider.swift in Sources */,
 				DAA5E30228D21369003C0E80 /* UserWalletStorageAgreementView.swift in Sources */,
+				EF1716AB2C2EC8F2004648A1 /* SendBaseInputOutput.swift in Sources */,
 				EF7B9CF5286C7023004C33A9 /* CardSettingsCoordinator.swift in Sources */,
 				B0A4C4A02A270F5B0060E039 /* BalanceWithButtonsView.swift in Sources */,
 				DCBC94532993FEC80050BC35 /* Analytics+CardScanSource.swift in Sources */,
@@ -10424,6 +10454,7 @@
 				DC22535928A4FD9C0094F30C /* UserWalletConfigFactory.swift in Sources */,
 				B0606E122684A946004004ED /* BlinkingModifier.swift in Sources */,
 				DCBC945D299404510050BC35 /* CommonAnalyticsContext.swift in Sources */,
+				EF1716AE2C2EC950004648A1 /* SendStepsManager.swift in Sources */,
 				B00371BE2A8A5E5900D77A4B /* FakeUserTokensManager.swift in Sources */,
 				DC261CA9292CF56600875E64 /* AuthCoordinatorView.swift in Sources */,
 				DAA5E30328D21369003C0E80 /* BiometryLogoImage.swift in Sources */,
@@ -10607,6 +10638,7 @@
 				B02275D72701D9FB004C752B /* PreparePrimaryCardTask.swift in Sources */,
 				B06C94C92A3B555000D17E85 /* TokenActionType.swift in Sources */,
 				B029C1DC270229530017C848 /* OnboardingAccessCodeView.swift in Sources */,
+				EF1716A92C2EB8D7004648A1 /* SendTransactionSender.swift in Sources */,
 				DAE324162B986F9A00C5D335 /* SendAddress.swift in Sources */,
 				B0FC72EB29B7991A001930D4 /* OnboardingSeedPhraseIntroView.swift in Sources */,
 				B0F62C5525DE4F6B005C8BA0 /* DeviceInfoProvider.swift in Sources */,

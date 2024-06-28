@@ -80,16 +80,18 @@ extension SendDestinationStep: SendStep {
 
     var viewModel: SendDestinationViewModel { _viewModel }
 
-    func makeView(namespace: Namespace.ID) -> some View {
-        SendDestinationView(viewModel: viewModel, namespace: namespace)
+    func makeView(namespace: Namespace.ID) -> AnyView {
+        AnyView(SendDestinationView(viewModel: viewModel, namespace: namespace))
     }
 
-    func makeNavigationTrailingView(namespace: Namespace.ID) -> some View {
-        Button(action: scanQRCode) {
-            Assets.qrCode.image
-                .renderingMode(.template)
-                .foregroundColor(Colors.Icon.primary1)
-        }
+    func makeNavigationTrailingView(namespace: Namespace.ID) -> AnyView {
+        AnyView(
+            Button(action: scanQRCode) {
+                Assets.qrCode.image
+                    .renderingMode(.template)
+                    .foregroundColor(Colors.Icon.primary1)
+            }
+        )
     }
 
     var isValidPublisher: AnyPublisher<Bool, Never> {

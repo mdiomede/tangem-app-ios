@@ -45,8 +45,8 @@ extension SendFeeStep: SendStep {
         interactor.selectedFeePublisher().map { $0 != nil }.eraseToAnyPublisher()
     }
 
-    func makeView(namespace: Namespace.ID) -> some View {
-        SendFeeView(viewModel: viewModel, namespace: namespace)
+    func makeView(namespace: Namespace.ID) -> AnyView {
+        AnyView(SendFeeView(viewModel: viewModel, namespace: namespace))
     }
 
     func canBeClosed(continueAction: @escaping () -> Void) -> Bool {

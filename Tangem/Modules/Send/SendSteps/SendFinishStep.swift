@@ -28,7 +28,7 @@ struct SendFinishStep {
         self.feeAnalyticsParameterBuilder = feeAnalyticsParameterBuilder
     }
 
-    private func log() {
+    private func onAppear() {
         let feeType = feeAnalyticsParameterBuilder.analyticsParameter(selectedFee: sendFeeInteractor.selectedFee?.option)
         Analytics.log(event: .sendTransactionSentScreenOpened, params: [
             .token: tokenItem.currencySymbol,
@@ -44,11 +44,11 @@ extension SendFinishStep: SendStep {
 
     var viewModel: SendFinishViewModel { _viewModel }
 
-    func makeView(namespace: Namespace.ID) -> some View {
-        SendFinishView(viewModel: viewModel, namespace: namespace)
-            .onAppear {
-                log()
-            }
+    func makeView(namespace: Namespace.ID) -> AnyView {
+        AnyView(
+            SendFinishView(viewModel: viewModel, namespace: namespace)
+                .onAppear(perform: onAppear)
+        )
     }
 
     var isValidPublisher: AnyPublisher<Bool, Never> {

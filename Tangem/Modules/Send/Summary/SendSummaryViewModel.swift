@@ -21,7 +21,6 @@ class SendSummaryViewModel: ObservableObject {
     @Published var canEditDestination: Bool
     @Published var canEditFee: Bool = true
 
-    @Published var isSending = false
     @Published var alert: AlertBinder?
 
     @Published var destinationViewTypes: [SendDestinationSummaryViewType] = []
@@ -114,10 +113,6 @@ class SendSummaryViewModel: ObservableObject {
     }
 
     func didTapSummary(for step: SendStepType) {
-        if isSending {
-            return
-        }
-
         AppSettings.shared.userDidTapSendScreenSummary = true
         showHint = false
 
@@ -125,11 +120,6 @@ class SendSummaryViewModel: ObservableObject {
     }
 
     private func bind() {
-        interactor
-            .isSending
-            .assign(to: \.isSending, on: self, ownership: .weak)
-            .store(in: &bag)
-
         notificationManager
             .notificationPublisher(for: .summary)
             .sink { [weak self] notificationInputs in

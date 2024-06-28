@@ -14,7 +14,7 @@ protocol SendSummaryInput: AnyObject {}
 protocol SendSummaryOutput: AnyObject {}
 
 protocol SendSummaryInteractor: AnyObject {
-    var isSending: AnyPublisher<Bool, Never> { get }
+//    var isSending: AnyPublisher<Bool, Never> { get }
     var transactionDescription: AnyPublisher<String?, Never> { get }
 }
 

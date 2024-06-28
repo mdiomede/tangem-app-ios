@@ -7,59 +7,15 @@
 //
 
 import Foundation
-import SwiftUI
 import Combine
-import BigInt
 import BlockchainSdk
 
 protocol SendModelUIDelegate: AnyObject {
-    func transactionDidSent()
     func showAlert(_ alert: AlertBinder)
 }
 
 class SendModel {
-    var destinationValid: AnyPublisher<Bool, Never> {
-        _destination.map { $0 != nil }.eraseToAnyPublisher()
-    }
-
-    var amountValid: AnyPublisher<Bool, Never> {
-        _amount.map { $0 != nil }.eraseToAnyPublisher()
-    }
-
-    var feeValid: AnyPublisher<Bool, Never> {
-        _selectedFee.map { $0 != nil }.eraseToAnyPublisher()
-    }
-
-    var sendError: AnyPublisher<Error?, Never> {
-        _sendError.eraseToAnyPublisher()
-    }
-
-    var destination: SendAddress? {
-        _destination.value
-    }
-
-    var destinationAdditionalField: DestinationAdditionalFieldType {
-        _destinationAdditionalField.value
-    }
-
-    var isFeeIncluded: Bool {
-        _isFeeIncluded.value
-    }
-
-    var transactionFinished: AnyPublisher<Bool, Never> {
-        _transactionTime
-            .map { $0 != nil }
-            .removeDuplicates()
-            .eraseToAnyPublisher()
-    }
-
-    var transactionTime: Date? {
-        _transactionTime.value
-    }
-
-    var transactionURL: URL? {
-        _transactionURL.value
-    }
+    typealias BSDKTransaction = BlockchainSdk.Transaction
 
     // MARK: - Delegate
 
@@ -73,22 +29,15 @@ class SendModel {
     private let _selectedFee = CurrentValueSubject<SendFee?, Never>(nil)
     private let _isFeeIncluded = CurrentValueSubject<Bool, Never>(false)
 
-    private let _transactionCreationError = CurrentValueSubject<Error?, Never>(nil)
+    private let _transaction = CurrentValueSubject<BSDKTransaction?, Never>(nil)
+    private let _transactionError = CurrentValueSubject<Error?, Never>(nil)
     private let _withdrawalNotification = CurrentValueSubject<WithdrawalNotification?, Never>(nil)
-    private let transaction = CurrentValueSubject<BlockchainSdk.Transaction?, Never>(nil)
-
-    // MARK: - Raw data
-
-//    private let _isSending = CurrentValueSubject<Bool, Never>(false)
-    private let _transactionTime = CurrentValueSubject<Date?, Never>(nil)
-    private let _transactionURL = CurrentValueSubject<URL?, Never>(nil)
-
-    private let _sendError = PassthroughSubject<Error?, Never>()
 
     // MARK: - Private stuff
 
     private let userWalletModel: UserWalletModel
     private let walletModel: WalletModel
+    private let sendTransactionSender: SendTransactionSender
     private let transactionSigner: TransactionSigner
     private let transactionCreator: TransactionCreator
     private let sendAmountInteractor: SendAmountInteractor
@@ -111,6 +60,7 @@ class SendModel {
     init(
         userWalletModel: UserWalletModel,
         walletModel: WalletModel,
+        sendTransactionSender: SendTransactionSender,
         transactionCreator: TransactionCreator,
         transactionSigner: TransactionSigner,
         sendAmountInteractor: SendAmountInteractor,
@@ -124,6 +74,7 @@ class SendModel {
     ) {
         self.userWalletModel = userWalletModel
         self.walletModel = walletModel
+        self.sendTransactionSender = sendTransactionSender
         self.transactionSigner = transactionSigner
         self.transactionCreator = transactionCreator
         self.sendFeeInteractor = sendFeeInteractor
@@ -146,82 +97,8 @@ class SendModel {
 
         // Update the fees in case we have all prerequisites specified
         if sendType.predefinedAmount != nil, sendType.predefinedDestination != nil {
-            updateFees()
+            sendFeeInteractor.updateFees()
         }
-    }
-
-    func currentTransaction() -> BlockchainSdk.Transaction? {
-        transaction.value
-    }
-
-    func updateFees() {
-        sendFeeInteractor.updateFees()
-    }
-
-    func send() {
-        if informationRelevanceService.isActual {
-            sendTransaction()
-            return
-        }
-
-        informationRelevanceService
-            .updateInformation()
-            .sink { [weak self] completion in
-                guard case .failure = completion else {
-                    return
-                }
-
-                self?.delegate?.showAlert(
-                    SendAlertBuilder.makeFeeRetryAlert { self?.send() }
-                )
-
-            } receiveValue: { [weak self] result in
-                switch result {
-                case .feeWasIncreased:
-                    self?.delegate?.showAlert(
-                        AlertBuilder.makeOkGotItAlert(message: Localization.sendNotificationHighFeeTitle)
-                    )
-                case .ok:
-                    self?.sendTransaction()
-                }
-            }
-            .store(in: &bag)
-    }
-
-    func sendTransaction() {
-        guard var transaction = transaction.value else {
-            AppLog.shared.debug("Transaction object hasn't been created")
-            return
-        }
-
-        #warning("TODO: loading view")
-        #warning("TODO: demo")
-
-        if case .filled(_, _, let params) = _destinationAdditionalField.value {
-            transaction.params = params
-        }
-
-        _isSending.send(true)
-        walletModel.send(transaction, signer: transactionSigner)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                guard let self else { return }
-
-                _isSending.send(false)
-
-                if case .failure(let error) = completion,
-                   !error.toTangemSdkError().isUserCancelled {
-                    _sendError.send(error)
-                }
-            } receiveValue: { [weak self] result in
-                guard let self else { return }
-
-                if let transactionURL = explorerUrl(from: result.hash) {
-                    _transactionURL.send(transactionURL)
-                }
-                _transactionTime.send(Date())
-            }
-            .store(in: &bag)
     }
 
     private func bind() {
@@ -231,57 +108,60 @@ class SendModel {
                 _destination.compactMap { $0?.value },
                 _selectedFee.compactMap { $0?.value.value }
             )
-            .removeDuplicates { $0 == $1 }
+            .setFailureType(to: Error.self)
             .withWeakCaptureOf(self)
-            .asyncMap { manager, args throws -> BlockchainSdk.Transaction in
-                let (amountValue, destination, fee) = args
-
-                let amount = manager.makeAmount(with: amountValue)
-                let includeFee = manager.feeIncludedCalculator.shouldIncludeFee(fee, into: amount)
-                manager._isFeeIncluded.send(includeFee)
-
-                let transactionAmount = includeFee ? amount - fee.amount : amount
-
-                let transaction = try await manager.transactionCreator.createTransaction(
-                    amount: transactionAmount,
-                    fee: fee,
-                    destinationAddress: destination
-                )
-
-                return transaction
+            .tryAsyncMap { manager, args async throws -> BSDKTransaction in
+                try await manager.makeTransaction(amountValue: args.0, destination: args.1, fee: args.2)
             }
-//            .sink { completion in
-//                <#code#>
-//            } receiveValue: { <#Self.Output#> in
-//                <#code#>
-//            }
+            .mapToResult()
+            .sink { [weak self] result in
+                switch result {
+                case .failure(let error):
+                    self?._transactionError.send(error)
+                case .success(let transaction):
+                    self?._transaction.send(transaction)
+                }
+            }
+            .store(in: &bag)
 
-        if let withdrawalValidator = walletModel.withdrawalNotificationProvider {
-            transaction
-                .map { transaction in
-                    guard let transaction else { return nil }
-                    return withdrawalValidator.withdrawalNotification(amount: transaction.amount, fee: transaction.fee.amount)
-                }
-                .sink { [weak self] in
-                    self?._withdrawalNotification.send($0)
-                }
-                .store(in: &bag)
+        guard let withdrawalValidator = walletModel.withdrawalNotificationProvider else {
+            return
         }
+
+        _transaction
+            .compactMap { $0 }
+            .map { transaction in
+                return withdrawalValidator.withdrawalNotification(amount: transaction.amount, fee: transaction.fee.amount)
+            }
+            .sink { [weak self] in
+                self?._withdrawalNotification.send($0)
+            }
+            .store(in: &bag)
     }
 
-    private func explorerUrl(from hash: String) -> URL? {
-        let factory = ExternalLinkProviderFactory()
-        let provider = factory.makeProvider(for: walletModel.blockchainNetwork.blockchain)
-        return provider.url(transaction: hash)
+    private func makeTransaction(amountValue: Decimal, destination: String, fee: Fee) async throws -> BSDKTransaction {
+        var amount = makeAmount(decimal: amountValue)
+        let includeFee = feeIncludedCalculator.shouldIncludeFee(fee, into: amount)
+        _isFeeIncluded.send(includeFee)
+
+        if includeFee {
+            amount = makeAmount(decimal: amount.value - fee.amount.value)
+        }
+
+        let transaction = try await transactionCreator.createTransaction(
+            amount: amount,
+            fee: fee,
+            destinationAddress: destination
+        )
+
+        return transaction
     }
 
-    private func makeAmount(decimal: Decimal) -> Amount? {
+    private func makeAmount(decimal: Decimal) -> Amount {
         Amount(with: walletModel.tokenItem.blockchain, type: walletModel.tokenItem.amountType, value: decimal)
     }
 
-    private func openMail(with error: SendTxError) {
-        guard let transaction = currentTransaction() else { return }
-
+    private func openMail(transaction: Transaction, error: SendTxError) {
         Analytics.log(.requestSupport, params: [.source: .transactionSourceSend])
 
         let emailDataCollector = SendScreenDataCollector(
@@ -290,7 +170,7 @@ class SendModel {
             fee: transaction.fee.amount,
             destination: transaction.destinationAddress,
             amount: transaction.amount,
-            isFeeIncluded: isFeeIncluded,
+            isFeeIncluded: _isFeeIncluded.value,
             lastError: error
         )
         let recipient = emailDataProvider.emailConfig?.recipient ?? EmailConfig.default.recipient
@@ -298,40 +178,115 @@ class SendModel {
     }
 }
 
-// MARK: - SendTransactionSender
+// MARK: - Send
 
-extension SendModel: SendTransactionSender {
-    func send() {
-        transactionSender.send()
-            .receiveCompletion { [weak self] completion in
-                switch completion {
-                case .failure(let error):
-                    self?.proceed(sendError: error)
-                case .finished:
-                    self?.transactionDidSent()
+private extension SendModel {
+    private func sendIfInformationIsActual() -> AnyPublisher<SendTransactionSentResult, Never> {
+        if informationRelevanceService.isActual {
+            return send()
+        }
+
+        return informationRelevanceService
+            .updateInformation()
+            .mapToResult()
+            .withWeakCaptureOf(self)
+            .flatMap { manager, result -> AnyPublisher<SendTransactionSentResult, Never> in
+                switch result {
+                case .failure:
+                    return Deferred {
+                        Future { promise in
+                            manager.delegate?.showAlert(SendAlertBuilder.makeFeeRetryAlert {
+                                promise(.success(()))
+                            })
+                        }
+                    }
+                    .withWeakCaptureOf(self)
+                    .flatMap { manager, _ in
+                        manager.send()
+                    }
+                    .eraseToAnyPublisher()
+
+                case .success(.feeWasIncreased):
+                    manager.delegate?.showAlert(
+                        AlertBuilder.makeOkGotItAlert(message: Localization.sendNotificationHighFeeTitle)
+                    )
+
+                    return Empty().eraseToAnyPublisher()
+                case .success(.ok):
+                    return manager.send()
                 }
             }
-            .store(in: &bag)
+            .eraseToAnyPublisher()
     }
 
-    func proceed(sendError error: Error) {
+    private func send() -> AnyPublisher<SendTransactionSentResult, Never> {
+        guard let transaction = _transaction.value else {
+            return Empty().eraseToAnyPublisher()
+        }
+
+        return sendTransactionSender
+            .send(transaction: transaction)
+            .mapToResult()
+            .withWeakCaptureOf(self)
+            .compactMap { sender, result in
+                return sender.proceed(transaction: transaction, result: result)
+            }
+            .eraseToAnyPublisher()
+    }
+
+    private func proceed(transaction: BSDKTransaction, result: Result<SendTransactionSentResult, SendTxError>) -> SendTransactionSentResult? {
+        switch result {
+        case .success(let result):
+            proceed(transaction: transaction, result: result)
+            return result
+        case .failure(let error):
+            proceed(transaction: transaction, error: error)
+            return nil
+        }
+    }
+
+    private func proceed(transaction: BSDKTransaction, result: SendTransactionSentResult) {
+        if walletModel.isDemo {
+            let alert = AlertBuilder.makeAlert(
+                title: "",
+                message: Localization.alertDemoFeatureDisabled,
+                primaryButton: .default(.init(Localization.commonOk)) { [weak self] in
+                    self?.coordinator?.dismiss()
+                }
+            )
+
+            delegate?.showAlert(alert)
+        } else {
+            logTransactionAnalytics()
+        }
+
+        if let token = transaction.amount.type.token {
+            UserWalletFinder().addToken(
+                token,
+                in: walletModel.blockchainNetwork.blockchain,
+                for: transaction.destinationAddress
+            )
+        }
+    }
+
+    private func proceed(transaction: BSDKTransaction, error: SendTxError) {
         Analytics.log(event: .sendErrorTransactionRejected, params: [
             .token: walletModel.tokenItem.currencySymbol,
         ])
 
-        if case .noAccount(_, let amount) = (error as? WalletError) {
+        switch error.error {
+        case WalletError.noAccount(_, let amount):
             let amountFormatted = Amount(
                 with: walletModel.blockchainNetwork.blockchain,
                 type: walletModel.amountType,
                 value: amount
             ).string()
 
-            #warning("Use TransactionValidator async validate to get this warning before send tx")
+            // "Use TransactionValidator async validate to get this warning before send tx"
             let title = Localization.sendNotificationInvalidReserveAmountTitle(amountFormatted)
             let message = Localization.sendNotificationInvalidReserveAmountText
-
             delegate?.showAlert(AlertBinder(title: title, message: message))
-        } else {
+        default:
             let errorCode: String
             let reason = String(error.localizedDescription.dropTrailingPeriod)
             if let errorCodeProviding = error as? ErrorCodeProviding {
@@ -343,35 +298,13 @@ extension SendModel: SendTransactionSender {
             let sendError = SendError(
                 title: Localization.sendAlertTransactionFailedTitle,
                 message: Localization.sendAlertTransactionFailedText(reason, errorCode),
-                error: (error as? SendTxError) ?? SendTxError(error: error),
-                openMailAction: openMail
+                error: error,
+                openMailAction: { [weak self] error in
+                    self?.openMail(transaction: transaction, error: error)
+                }
             )
 
             delegate?.showAlert(sendError.alertBinder)
-        }
-    }
-
-    func transactionDidSent() {
-        delegate?.transactionDidSent()
-
-        if walletModel.isDemo {
-            let button = Alert.Button.default(Text(Localization.commonOk)) { [weak self] in
-                self?.coordinator?.dismiss()
-            }
-
-            let alert = AlertBuilder.makeAlert(
-                title: "",
-                message: Localization.alertDemoFeatureDisabled,
-                primaryButton: button
-            )
-
-            delegate?.showAlert(alert)
-        } else {
-            logTransactionAnalytics()
-        }
-
-        if let address = destination?.value, let token = walletModel.tokenItem.token {
-            UserWalletFinder().addToken(token, in: walletModel.blockchainNetwork.blockchain, for: address)
         }
     }
 }
@@ -453,11 +386,11 @@ extension SendModel: SendFeeOutput {
     }
 }
 
-// MARK: - SendSummaryInteractor
+// MARK: - SendBaseOutput
 
-extension SendModel: SendSummaryInteractor {
-    var isSending: AnyPublisher<Bool, Never> {
-        _isSending.eraseToAnyPublisher()
+extension SendModel: SendBaseOutput {
+    func sendTransaction() -> AnyPublisher<SendTransactionSentResult, Never> {
+        sendIfInformationIsActual()
     }
 }
 
@@ -482,7 +415,7 @@ extension SendModel: SendNotificationManagerInput {
     }
 
     var transactionCreationError: AnyPublisher<Error?, Never> {
-        _transactionCreationError.eraseToAnyPublisher()
+        _transactionError.eraseToAnyPublisher()
     }
 
     var withdrawalNotification: AnyPublisher<WithdrawalNotification?, Never> {
@@ -498,7 +431,7 @@ extension SendModel: NotificationTapDelegate {
     func didTapNotificationButton(with id: NotificationViewId, action: NotificationButtonActionType) {
         switch action {
         case .refreshFee:
-            updateFees()
+            sendFeeInteractor.updateFees()
         case .openFeeCurrency:
             openNetworkCurrency()
         case .leaveAmount(let amount, _):
@@ -541,7 +474,7 @@ extension SendModel: NotificationTapDelegate {
         }
 
         var newAmount = source - amount
-        if isFeeIncluded, let feeValue = selectedFee?.value.value?.amount.value {
+        if _isFeeIncluded.value, let feeValue = selectedFee?.value.value?.amount.value {
             newAmount = newAmount - feeValue
         }
 
@@ -588,7 +521,7 @@ private extension SendModel {
     func additionalFieldAnalyticsParameter() -> Analytics.ParameterValue {
         // If the blockchain doesn't support additional field -- return null
         // Otherwise return full / empty
-        switch destinationAdditionalField {
+        switch _destinationAdditionalField.value {
         case .notSupported: .null
         case .empty: .empty
         case .filled: .full

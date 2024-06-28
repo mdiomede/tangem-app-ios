@@ -23,6 +23,7 @@ struct SendView: View {
 
             ZStack(alignment: .bottom) {
                 currentPage
+                    .allowsHitTesting(!viewModel.isUserInteractionDisabled)
                     .transition(pageContentTransition)
 
                 bottomOverlay
@@ -35,7 +36,7 @@ struct SendView: View {
         .alert(item: $viewModel.alert) { $0.alert }
         .safeAreaInset(edge: .bottom) {
             bottomContainer
-                .animation(Constants.defaultAnimation, value: viewModel.step.type.rawValue)
+                .animation(Constants.defaultAnimation, value: viewModel.step.type)
         }
     }
 

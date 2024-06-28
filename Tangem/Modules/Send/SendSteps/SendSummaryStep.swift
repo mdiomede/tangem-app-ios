@@ -37,8 +37,8 @@ extension SendSummaryStep: SendStep {
 
     var viewModel: SendSummaryViewModel { _viewModel }
 
-    func makeView(namespace: Namespace.ID) -> some View {
-        SendSummaryView(viewModel: viewModel, namespace: namespace)
+    func makeView(namespace: Namespace.ID) -> AnyView {
+        AnyView(SendSummaryView(viewModel: viewModel, namespace: namespace))
     }
 
     var isValidPublisher: AnyPublisher<Bool, Never> {

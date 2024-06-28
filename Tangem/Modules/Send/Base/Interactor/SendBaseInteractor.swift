@@ -11,64 +11,52 @@ import Combine
 
 protocol SendBaseInteractor {
     var isLoading: AnyPublisher<Bool, Never> { get }
-    var performNext: AnyPublisher<Void, Never> { get }
-//    var mainButtonType: AnyPublisher<SendMainButtonType, Never> { get }
+//    var performNext: AnyPublisher<Void, Never> { get }
 
-    var closeButtonDisabled: AnyPublisher<Bool, Never> { get }
-    var mainButtonDisabled: AnyPublisher<Bool, Never> { get }
-
-    var transactionDidSent: AnyPublisher<URL?, Never> { get }
-
-    func send()
+    func send() -> AnyPublisher<SendTransactionSentResult, Never>
 }
 
 class CommonSendBaseInteractor {
-    private let sendTransactionSender: SendTransactionSender
+    private weak var input: SendBaseInput?
+    private weak var output: SendBaseOutput?
+
     private let sendDestinationInput: SendDestinationInput
 
     init(
-        sendTransactionSender: SendTransactionSender,
-        sendDestinationInput: SendDestinationInput,
-        sendAmountInput: SendAmountInput,
-        sendFeeInput: SendFeeInput,
-        summaryDestinationHelper: SendTransactionSummaryDescriptionBuilder
+        input: SendBaseInput,
+        output: SendBaseOutput,
+        sendDestinationInput: SendDestinationInput
     ) {
-        self.sendTransactionSender = sendTransactionSender
+        self.input = input
+        self.output = output
+
         self.sendDestinationInput = sendDestinationInput
     }
 }
 
 extension CommonSendBaseInteractor: SendBaseInteractor {
     var isLoading: AnyPublisher<Bool, Never> {
-        sendTransactionSender.isSending
+        input?.isLoading ?? .just(output: false)
     }
 
-    var performNext: AnyPublisher<Void, Never> {
-        sendDestinationInput
-            .destinationPublisher()
-            .filter { destination in
-                switch destination.source {
-                case .myWallet, .recentAddress:
-                    return true
-                default:
-                    return false
-                }
-            }
-            .mapToVoid()
-            .eraseToAnyPublisher()
-    }
+    /*
+     var performNext: AnyPublisher<Void, Never> {
+         sendDestinationInput
+             .destinationPublisher()
+             .filter { destination in
+                 switch destination.source {
+                 case .myWallet, .recentAddress:
+                     return true
+                 default:
+                     return false
+                 }
+             }
+             .mapToVoid()
+             .eraseToAnyPublisher()
+     }
+      */
 
-    var closeButtonDisabled: AnyPublisher<Bool, Never> {
-        sendTransactionSender.isSending.eraseToAnyPublisher()
-    }
-
-    var mainButtonDisabled: AnyPublisher<Bool, Never> {
-        sendTransactionSender.isSending.eraseToAnyPublisher()
-    }
-
-    var transactionDidSent: AnyPublisher<URL?, Never> {}
-
-    func send() {
-        sendTransactionSender.send()
+    func send() -> AnyPublisher<SendTransactionSentResult, Never> {
+        output?.sendTransaction()
     }
 }
