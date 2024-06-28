@@ -9,8 +9,7 @@
 import Foundation
 
 protocol PushNotificationsService {
-    // TODO: Andrey Fedorov - Check the actual actor here, see https://forums.swift.org/t/mainactor-with-protocols/68801 and
-    // https://forums.swift.org/t/use-a-protocol-of-mainactor-instead-of-concrete-mainactor-class-produces-an-error/72542
-    /*@MainActor*/
     var isAvailable: Bool { get async }
+
+    func requestAuthorizationAndRegister() async -> Bool
 }
