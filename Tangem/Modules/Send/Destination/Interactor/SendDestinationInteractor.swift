@@ -24,8 +24,17 @@ protocol SendDestinationInteractor {
 }
 
 class CommonSendDestinationInteractor {
-    private weak var input: SendDestinationInput?
-    private weak var output: SendDestinationOutput?
+    private weak var input: SendDestinationInput? {
+        didSet {
+            print("input ->> \(input)")
+        }
+    }
+
+    private weak var output: SendDestinationOutput? {
+        didSet {
+            print("output ->> \(output)")
+        }
+    }
 
     private let validator: SendDestinationValidator
     private let transactionHistoryProvider: SendDestinationTransactionHistoryProvider
@@ -53,15 +62,25 @@ class CommonSendDestinationInteractor {
         self.addressResolver = addressResolver
         self.additionalFieldType = additionalFieldType
         self.parametersBuilder = parametersBuilder
+
+        print("init ->>", objectDescription(self))
+    }
+
+    deinit {
+        print("deinit ->>", objectDescription(self))
     }
 
     private func update(destination result: Result<String?, Error>, source: Analytics.DestinationAddressSource) {
         switch result {
-        case .success(let address):
-            _destinationValid.send(address?.nilIfEmpty != nil)
+        case .success(.some(let address)):
+            _destinationValid.send(!address.isEmpty)
             _destinationError.send(.none)
             Analytics.logDestinationAddress(isAddressValid: true, source: source)
-            output?.destinationDidChanged(address.map { .init(value: $0, source: source) })
+            output?.destinationDidChanged(.init(value: address, source: source))
+        case .success(.none):
+            _destinationValid.send(true)
+            _destinationError.send(.none)
+            output?.destinationDidChanged(.none)
 
         case .failure(let error):
             _destinationValid.send(false)

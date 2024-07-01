@@ -101,6 +101,10 @@ class SendModel {
         }
     }
 
+    deinit {
+        print("->>", objectDescription(self))
+    }
+
     private func bind() {
         Publishers
             .CombineLatest3(

@@ -153,6 +153,7 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
                     additionalField: additionalField
                 )
             }
+            .receive(on: DispatchQueue.main)
             .assign(to: \.destinationViewTypes, on: self)
             .store(in: &bag)
     }
@@ -185,11 +186,13 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
 
                 return multipleFeeOptions && !hasError
             }
+            .receive(on: DispatchQueue.main)
             .assign(to: \.canEditFee, on: self, ownership: .weak)
             .store(in: &bag)
 
         Publishers.CombineLatest(interactor.feesPublisher(), interactor.selectedFeePublisher())
             .withWeakCaptureOf(self)
+            .receive(on: DispatchQueue.main)
             .sink { viewModel, args in
                 let (feeValues, selectedFee) = args
                 var selectedFeeSummaryViewModel: SendFeeSummaryViewModel?
@@ -219,9 +222,10 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
                 return formatter.string(from: date)
             }
             .receive(on: DispatchQueue.main)
-            .sink(receiveValue: { [weak self] time in
+            .withWeakCaptureOf(self)
+            .sink(receiveValue: { viewModel, time in
                 withAnimation(SendView.Constants.defaultAnimation) {
-                    self?.transactionSentTime = time
+                    viewModel.transactionSentTime = time
                 }
             })
             .store(in: &bag)

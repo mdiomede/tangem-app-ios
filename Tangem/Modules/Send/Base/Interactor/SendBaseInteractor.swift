@@ -17,8 +17,8 @@ protocol SendBaseInteractor {
 }
 
 class CommonSendBaseInteractor {
-    private weak var input: SendBaseInput?
-    private weak var output: SendBaseOutput?
+    private let input: SendBaseInput
+    private let output: SendBaseOutput
 
     private let sendDestinationInput: SendDestinationInput
 
@@ -36,7 +36,7 @@ class CommonSendBaseInteractor {
 
 extension CommonSendBaseInteractor: SendBaseInteractor {
     var isLoading: AnyPublisher<Bool, Never> {
-        input?.isLoading ?? .just(output: false)
+        input.isLoading
     }
 
     /*
@@ -57,6 +57,6 @@ extension CommonSendBaseInteractor: SendBaseInteractor {
       */
 
     func send() -> AnyPublisher<SendTransactionSentResult, Never> {
-        output?.sendTransaction() ?? .just(output: .init(url: nil))
+        output.sendTransaction()
     }
 }

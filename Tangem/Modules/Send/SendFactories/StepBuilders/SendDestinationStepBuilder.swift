@@ -25,6 +25,7 @@ struct SendDestinationStepBuilder {
         let interactor = makeSendDestinationInteractor()
 
         let viewModel = makeSendDestinationViewModel(
+            interactor: interactor,
             addressTextViewHeightModel: addressTextViewHeightModel
         )
 
@@ -44,7 +45,10 @@ struct SendDestinationStepBuilder {
 // MARK: - SendAmountStepBuilder
 
 private extension SendDestinationStepBuilder {
-    func makeSendDestinationViewModel(addressTextViewHeightModel: AddressTextViewHeightModel) -> SendDestinationViewModel {
+    func makeSendDestinationViewModel(
+        interactor: SendDestinationInteractor,
+        addressTextViewHeightModel: AddressTextViewHeightModel
+    ) -> SendDestinationViewModel {
         let tokenItem = walletModel.tokenItem
         let suggestedWallets = builder.makeSuggestedWallets(userWalletModels: userWalletRepository.models)
         let additionalFieldType = SendAdditionalFields.fields(for: tokenItem.blockchain)
@@ -53,8 +57,6 @@ private extension SendDestinationStepBuilder {
             additionalFieldType: additionalFieldType,
             suggestedWallets: suggestedWallets
         )
-
-        let interactor = makeSendDestinationInteractor()
 
         let viewModel = SendDestinationViewModel(
             settings: settings,
