@@ -8,7 +8,6 @@
 
 import Foundation
 
-// TODO: Andrey Fedorov - Rename
 enum PushNotificationsPermissionRequestFlow {
     /// User starts the app for the first time, accept TOS, etc.
     case welcomeOnboarding
