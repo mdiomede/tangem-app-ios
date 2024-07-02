@@ -1,5 +1,5 @@
 //
-//  OnboardingPushNotificationsDelegate.swift
+//  PushNotificationsPermissionRequestDelegate.swift
 //  Tangem
 //
 //  Created by Alexander Osokin on 07.06.2024.
@@ -8,6 +8,6 @@
 
 import Foundation
 
-protocol OnboardingPushNotificationsDelegate: AnyObject {
+protocol PushNotificationsPermissionRequestDelegate: AnyObject {
     func didFinishPushNotificationOnboarding()
 }
