@@ -96,21 +96,21 @@ class CustomEvmFeeService {
 
     private func didChangeCustomFeeGasPrice(_ value: BigUInt?) {
         gasPrice.send(value)
-        output?.setCustomFee(recalculateFee())
+        output?.customFeeDidChanged(recalculateFee())
     }
 
-    private func recalculateFee() -> Fee? {
+    private func recalculateFee() -> Fee {
         let parameters: EthereumFeeParameters
 
-        if blockchain.supportsEIP1559 {
+        if feeTokenItem.blockchain.supportsEIP1559 {
             guard let gasLimit = gasLimit.value, let maxFeePerGas = maxFeePerGas.value, let priorityFee = priorityFee.value else {
-                return nil
+                return zeroFee
             }
 
             parameters = EthereumEIP1559FeeParameters(gasLimit: gasLimit, maxFeePerGas: maxFeePerGas, priorityFee: priorityFee)
         } else {
             guard let gasLimit = gasLimit.value, let gasPrice = gasPrice.value else {
-                return nil
+                return zeroFee
             }
 
             parameters = EthereumLegacyFeeParameters(gasLimit: gasLimit, gasPrice: gasPrice)
@@ -129,18 +129,14 @@ class CustomEvmFeeService {
             let feeValue,
             let currentGasLimit = gasLimit.value,
             let currentPriorityFee = priorityFee.value,
-            let enteredFeeInSmallestDenomination = (feeValue * feeDecimalValue).rounded(roundingMode: .down).bigUIntValue
+            let enteredFeeInSmallestDenomination = BigUInt(decimal: (feeValue * feeDecimalValue).rounded(roundingMode: .down))
         else {
             return zeroFee
         }
 
         let parameters: EthereumFeeParameters
 
-        if blockchain.supportsEIP1559 {
-            guard let currentPriorityFee = priorityFee.value else {
-                return nil
-            }
-
+        if feeTokenItem.blockchain.supportsEIP1559 {
             let maxFeePerGas = (enteredFeeInSmallestDenomination / currentGasLimit)
             parameters = EthereumEIP1559FeeParameters(gasLimit: currentGasLimit, maxFeePerGas: maxFeePerGas, priorityFee: currentPriorityFee)
         } else {
@@ -155,14 +151,21 @@ class CustomEvmFeeService {
     }
 
     private func updateProperties(fee: Fee?) {
-        guard let ethereumFeeParameters = fee?.parameters as? EthereumEIP1559FeeParameters else {
+        guard let ethereumFeeParameters = fee?.parameters as? EthereumFeeParameters else {
             return
         }
 
         customFee.send(fee)
-        gasLimit.send(ethereumFeeParameters.gasLimit)
-        maxFeePerGas.send(ethereumFeeParameters.maxFeePerGas)
-        priorityFee.send(ethereumFeeParameters.priorityFee)
+
+        switch ethereumFeeParameters.parametersType {
+        case .eip1559(let eip1559Parameters):
+            gasLimit.send(eip1559Parameters.gasLimit)
+            maxFeePerGas.send(eip1559Parameters.maxFeePerGas)
+            priorityFee.send(eip1559Parameters.priorityFee)
+        case .legacy(let legacyParameters):
+            gasLimit.send(legacyParameters.gasLimit)
+            gasPrice.send(legacyParameters.gasPrice)
+        }
     }
 }
 
@@ -198,34 +201,6 @@ extension CustomEvmFeeService: CustomFeeService {
             self?.onCustomFeeChanged(focused)
         }
 
-        let maxFeeModel = SendCustomFeeInputFieldModel(
-            title: Localization.sendCustomEvmMaxFee,
-            amountPublisher: maxFeePerGas.shiftOrder(-Constants.gweiDigits),
-            fieldSuffix: Constants.gweiSuffix,
-            fractionDigits: Constants.gweiDigits,
-            amountAlternativePublisher: .just(output: nil),
-            footer: Localization.sendCustomEvmMaxFeeFooter
-        ) { [weak self] gweiValue in
-            let weiValue = gweiValue?.shiftOrder(magnitude: Constants.gweiDigits)
-            self?.didChangeCustomFeeMaxFee(weiValue?.bigUIntValue)
-        } onFocusChanged: { [weak self] focused in
-            self?.onMaxFeePerGasChanged(focused)
-        }
-
-        let priorityFeeModel = SendCustomFeeInputFieldModel(
-            title: Localization.sendCustomEvmPriorityFee,
-            amountPublisher: priorityFee.shiftOrder(-Constants.gweiDigits),
-            fieldSuffix: Constants.gweiSuffix,
-            fractionDigits: Constants.gweiDigits,
-            amountAlternativePublisher: .just(output: nil),
-            footer: Localization.sendCustomEvmPriorityFeeFooter
-        ) { [weak self] gweiValue in
-            let weiValue = gweiValue?.shiftOrder(magnitude: Constants.gweiDigits)
-            self?.didChangeCustomFeePriorityFee(weiValue?.bigUIntValue)
-        } onFocusChanged: { [weak self] focused in
-            self?.onProrityFeeChanged(focused)
-        }
-
         let gasLimitModel = SendCustomFeeInputFieldModel(
             title: Localization.sendGasLimit,
             amountPublisher: gasLimit.map { $0?.decimal }.eraseToAnyPublisher(),
@@ -234,12 +209,12 @@ extension CustomEvmFeeService: CustomFeeService {
             amountAlternativePublisher: .just(output: nil),
             footer: Localization.sendGasLimitFooter
         ) { [weak self] in
-            self?.didChangeCustomFeeGasLimit($0?.bigUIntValue)
+            self?.didChangeCustomFeeGasLimit($0.flatMap(BigUInt.init(decimal:)))
         } onFocusChanged: { [weak self] focused in
             self?.onGasLimitChanged(focused)
         }
 
-        if blockchain.supportsEIP1559 {
+        if feeTokenItem.blockchain.supportsEIP1559 {
             let maxFeeModel = SendCustomFeeInputFieldModel(
                 title: Localization.sendCustomEvmMaxFee,
                 amountPublisher: maxFeePerGas.shiftOrder(-Constants.gweiDigits),
@@ -249,7 +224,7 @@ extension CustomEvmFeeService: CustomFeeService {
                 footer: Localization.sendCustomEvmMaxFeeFooter
             ) { [weak self] gweiValue in
                 let weiValue = gweiValue?.shiftOrder(magnitude: Constants.gweiDigits)
-                self?.didChangeCustomFeeMaxFee(weiValue?.bigUIntValue)
+                self?.didChangeCustomFeeMaxFee(weiValue.flatMap(BigUInt.init(decimal:)))
             } onFocusChanged: { [weak self] focused in
                 self?.onMaxFeePerGasChanged(focused)
             }
@@ -263,12 +238,12 @@ extension CustomEvmFeeService: CustomFeeService {
                 footer: Localization.sendCustomEvmPriorityFeeFooter
             ) { [weak self] gweiValue in
                 let weiValue = gweiValue?.shiftOrder(magnitude: Constants.gweiDigits)
-                self?.didChangeCustomFeePriorityFee(weiValue?.bigUIntValue)
+                self?.didChangeCustomFeePriorityFee(weiValue.flatMap(BigUInt.init(decimal:)))
             } onFocusChanged: { [weak self] focused in
                 self?.onProrityFeeChanged(focused)
             }
 
-            return [maxFeeModel, priorityFeeModel, gasLimitModel]
+            return [customFeeModel, maxFeeModel, priorityFeeModel, gasLimitModel]
         } else {
             let gasPriceModel = SendCustomFeeInputFieldModel(
                 title: Localization.sendGasPrice,
@@ -279,12 +254,12 @@ extension CustomEvmFeeService: CustomFeeService {
                 footer: Localization.sendGasPriceFooter
             ) { [weak self] gweiValue in
                 let weiValue = gweiValue?.shiftOrder(magnitude: Constants.gweiDigits)
-                self?.didChangeCustomFeeGasPrice(weiValue?.bigUIntValue)
+                self?.didChangeCustomFeeGasPrice(weiValue.flatMap(BigUInt.init(decimal:)))
             } onFocusChanged: { [weak self] focused in
                 self?.onGasPriceChanged(focused)
             }
 
-            return [gasPriceModel, gasLimitModel]
+            return [customFeeModel, gasPriceModel, gasLimitModel]
         }
     }
 }
@@ -297,22 +272,8 @@ private extension CustomEvmFeeService {
             customFeeBeforeEditing = customFee.value
         } else {
             if customFee.value != customFeeBeforeEditing {
-                Analytics.log(.sendPriorityFeeInserted)
+                Analytics.log(.sendCustomFeeInserted)
             }
-
-    private func updateProperties(fee: Fee?) {
-        guard let ethereumFeeParameters = fee?.parameters as? EthereumFeeParameters else {
-            return
-        }
-
-        switch ethereumFeeParameters.parametersType {
-        case .eip1559(let eip1559Parameters):
-            gasLimit.send(eip1559Parameters.gasLimit)
-            maxFeePerGas.send(eip1559Parameters.maxFeePerGas)
-            priorityFee.send(eip1559Parameters.priorityFee)
-        case .legacy(let legacyParameters):
-            gasLimit.send(legacyParameters.gasLimit)
-            gasPrice.send(legacyParameters.gasPrice)
         }
     }
 
@@ -378,12 +339,6 @@ private extension CustomEvmFeeService {
 private extension CurrentValueSubject where Output == BigUInt?, Failure == Never {
     func shiftOrder(_ digits: Int) -> AnyPublisher<Decimal?, Never> {
         map { $0?.decimal?.shiftOrder(magnitude: digits) }.eraseToAnyPublisher()
-    }
-}
-
-private extension Decimal {
-    var bigUIntValue: BigUInt? {
-        BigUInt(decimal: self)
     }
 }
 
