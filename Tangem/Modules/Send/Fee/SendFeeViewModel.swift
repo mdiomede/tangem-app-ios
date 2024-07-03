@@ -19,16 +19,16 @@ class SendFeeViewModel: ObservableObject {
     @Published private(set) var deselectedFeeViewsVisible: Bool = false
     @Published var animatingAuxiliaryViewsOnAppear: Bool = false
 
+    @Published private(set) var feeLevelsNotificationInputs: [NotificationViewInput] = []
+    @Published private(set) var customFeeNotificationInputs: [NotificationViewInput] = []
+    @Published private(set) var feeCoverageNotificationInputs: [NotificationViewInput] = []
+    @Published private(set) var notificationInputs: [NotificationViewInput] = []
+
     var feeSelectorFooterText: String {
         Localization.commonFeeSelectorFooter("[\(Localization.commonReadMore)](\(feeExplanationUrl.absoluteString))")
     }
 
     var didProperlyDisappear = true
-
-    @Published private(set) var feeLevelsNotificationInputs: [NotificationViewInput] = []
-    @Published private(set) var customFeeNotificationInputs: [NotificationViewInput] = []
-    @Published private(set) var feeCoverageNotificationInputs: [NotificationViewInput] = []
-    @Published private(set) var notificationInputs: [NotificationViewInput] = []
 
     private let tokenItem: TokenItem
     private let interactor: SendFeeInteractor

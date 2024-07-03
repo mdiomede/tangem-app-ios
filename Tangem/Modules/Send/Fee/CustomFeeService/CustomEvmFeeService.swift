@@ -12,7 +12,6 @@ import Combine
 import BigInt
 
 class CustomEvmFeeService {
-    private weak var input: CustomFeeServiceInput?
     private weak var output: CustomFeeServiceOutput?
 
     private let feeTokenItem: TokenItem
@@ -172,8 +171,7 @@ class CustomEvmFeeService {
 // MARK: - EditableCustomFeeService
 
 extension CustomEvmFeeService: CustomFeeService {
-    func setup(input: any CustomFeeServiceInput, output: any CustomFeeServiceOutput) {
-        self.input = input
+    func setup(input _: any CustomFeeServiceInput, output: any CustomFeeServiceOutput) {
         self.output = output
     }
 

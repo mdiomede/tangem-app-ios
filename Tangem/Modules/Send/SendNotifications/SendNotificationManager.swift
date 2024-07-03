@@ -128,7 +128,7 @@ class CommonSendNotificationManager: SendNotificationManager {
                         customFeeTooHigh = customFee.amount.value > highestFee.amount.value * highFeeOrderOfMagnitudeTrigger
 
                         let highFeeOrder = customFee.amount.value / highestFee.amount.value
-                        highFeeOrderOfMagnitude = highFeeOrder.rounded(roundingMode: .plain).intValue
+                        highFeeOrderOfMagnitude = highFeeOrder.intValue(roundingMode: .plain)
                     }
 
                     self?.updateEventVisibility(customFeeTooLow, event: .customFeeTooLow)

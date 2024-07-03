@@ -28,7 +28,7 @@ extension Decimal {
         (self as NSDecimalNumber).stringValue
     }
 
-    var intValue: Int {
-        (self as NSDecimalNumber).intValue
+    func intValue(roundingMode: NSDecimalNumber.RoundingMode = .down) -> Int {
+        (rounded(roundingMode: roundingMode) as NSDecimalNumber).intValue
     }
 }
