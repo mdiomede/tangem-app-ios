@@ -12,6 +12,8 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var loadingView: UIView?
 
+    var window: UIWindow? // Do not remove, this is needed by Sprinklr
+
     private lazy var servicesManager = ServicesManager()
 
     #warning("TODO: remove with LegacySend")
