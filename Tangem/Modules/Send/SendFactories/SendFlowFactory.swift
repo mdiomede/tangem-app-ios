@@ -57,4 +57,26 @@ struct SendFlowFactory {
 
         return baseBuilder.makeSendViewModel(sellParameters: sellParameters, router: router)
     }
+
+    func makeStakingViewModel(router: SendRoutable) -> SendViewModel {
+        let builder = SendDependenciesBuilder(userWalletModel: userWalletModel, walletModel: walletModel)
+        let stakingValidatorsStepBuilder = StakingValidatorsStepBuilder(walletModel: walletModel, builder: builder)
+        let sendAmountStepBuilder = SendAmountStepBuilder(walletModel: walletModel, builder: builder)
+        let sendFeeStepBuilder = SendFeeStepBuilder(walletModel: walletModel, builder: builder)
+        let sendSummaryStepBuilder = SendSummaryStepBuilder(walletModel: walletModel, builder: builder)
+        let sendFinishStepBuilder = SendFinishStepBuilder(walletModel: walletModel, builder: builder)
+
+        let baseBuilder = StakingFlowBaseBuilder(
+            userWalletModel: userWalletModel,
+            walletModel: walletModel,
+            sendAmountStepBuilder: sendAmountStepBuilder,
+            stakingValidatorsStepBuilder: stakingValidatorsStepBuilder,
+            sendFeeStepBuilder: sendFeeStepBuilder,
+            sendSummaryStepBuilder: sendSummaryStepBuilder,
+            sendFinishStepBuilder: sendFinishStepBuilder,
+            builder: builder
+        )
+
+        return baseBuilder.makeSendViewModel(router: router)
+    }
 }

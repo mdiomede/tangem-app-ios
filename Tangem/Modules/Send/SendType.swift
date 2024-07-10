@@ -12,6 +12,7 @@ import BlockchainSdk
 enum SendType {
     case send
     case sell(parameters: PredefinedSellParameters)
+    case staking
 }
 
 struct PredefinedSellParameters {

@@ -82,7 +82,7 @@ final class SingleTokenRouter: SingleTokenRoutable {
     }
 
     func openStaking(walletModel: WalletModel) {
-        coordinator?.openStaking(wallet: walletModel)
+        coordinator?.openStaking(userWalletModel: userWalletModel, wallet: walletModel)
     }
 
     func openSell(for walletModel: WalletModel) {

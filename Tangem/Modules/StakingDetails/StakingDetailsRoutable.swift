@@ -8,4 +8,6 @@
 
 import Foundation
 
-protocol StakingDetailsRoutable: AnyObject {}
+protocol StakingDetailsRoutable: AnyObject {
+    func openStaking(walletModel: WalletModel, userWalletModel: UserWalletModel)
+}

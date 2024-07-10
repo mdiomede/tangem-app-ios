@@ -36,7 +36,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var transactionDescription: String?
     @Published var transactionDescriptionIsVisible: Bool = false
 
-    let addressTextViewHeightModel: AddressTextViewHeightModel
+    let addressTextViewHeightModel: AddressTextViewHeightModel?
     var didProperlyDisappear: Bool = true
 
     var canEditAmount: Bool { editableType == .editable }

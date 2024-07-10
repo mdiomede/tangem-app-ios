@@ -22,8 +22,9 @@ struct SendSummaryView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 14) {
             GroupedScrollView(spacing: 14) {
-                if !viewModel.animatingDestinationOnAppear {
-                    destinationSection
+                if !viewModel.animatingDestinationOnAppear,
+                   let addressTextViewHeightModel = viewModel.addressTextViewHeightModel {
+                    destinationSection(addressTextViewHeightModel: addressTextViewHeightModel)
                 }
 
                 if !viewModel.animatingAmountOnAppear {
@@ -62,11 +63,11 @@ struct SendSummaryView: View {
 
     // MARK: - Destination
 
-    private var destinationSection: some View {
+    private func destinationSection(addressTextViewHeightModel: AddressTextViewHeightModel) -> some View {
         GroupedSection(viewModel.destinationViewTypes) { type in
             switch type {
             case .address(let address, let corners):
-                SendDestinationAddressSummaryView(addressTextViewHeightModel: viewModel.addressTextViewHeightModel, address: address)
+                SendDestinationAddressSummaryView(addressTextViewHeightModel: addressTextViewHeightModel, address: address)
                     .setNamespace(namespace)
                     .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
                     .background(

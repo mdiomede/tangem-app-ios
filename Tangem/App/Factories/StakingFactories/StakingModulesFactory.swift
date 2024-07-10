@@ -12,16 +12,18 @@ import TangemStaking
 class StakingModulesFactory {
     @Injected(\.stakingRepositoryProxy) private var stakingRepositoryProxy: StakingRepositoryProxy
 
+    private let userWalletModel: UserWalletModel
     private let wallet: WalletModel
 
     private lazy var manager: StakingManager = makeStakingManager()
 
-    init(wallet: WalletModel) {
+    init(userWalletModel: UserWalletModel, wallet: WalletModel) {
+        self.userWalletModel = userWalletModel
         self.wallet = wallet
     }
 
     func makeStakingDetailsViewModel(coordinator: StakingDetailsRoutable) -> StakingDetailsViewModel {
-        StakingDetailsViewModel(wallet: wallet, manager: manager, coordinator: coordinator)
+        StakingDetailsViewModel(userWalletModel: userWalletModel, wallet: wallet, manager: manager, coordinator: coordinator)
     }
 
     // MARK: - Dependecies

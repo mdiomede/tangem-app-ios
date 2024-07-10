@@ -21,6 +21,7 @@ final class StakingDetailsViewModel: ObservableObject {
 
     // MARK: - Dependencies
 
+    private let userWalletModel: UserWalletModel
     private let wallet: WalletModel
     private let manager: StakingManager
     private weak var coordinator: StakingDetailsRoutable?
@@ -35,17 +36,21 @@ final class StakingDetailsViewModel: ObservableObject {
     }()
 
     init(
+        userWalletModel: UserWalletModel,
         wallet: WalletModel,
         manager: StakingManager,
         coordinator: StakingDetailsRoutable
     ) {
+        self.userWalletModel = userWalletModel
         self.wallet = wallet
         self.manager = manager
         self.coordinator = coordinator
     }
 
     func userDidTapBanner() {}
-    func userDidTapActionButton() {}
+    func userDidTapActionButton() {
+        coordinator?.openStaking(walletModel: wallet, userWalletModel: userWalletModel)
+    }
 
     func onAppear() {
         runTask(in: self) { viewModel in

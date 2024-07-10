@@ -297,13 +297,13 @@ extension TokenDetailsCoordinator: SingleTokenBaseRoutable {
         expressCoordinator = coordinator
     }
 
-    func openStaking(wallet: WalletModel) {
+    func openStaking(userWalletModel: UserWalletModel, wallet: WalletModel) {
         let dismissAction: Action<Void> = { [weak self] _ in
             self?.stakingDetailsCoordinator = nil
         }
 
         let coordinator = StakingDetailsCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
-        coordinator.start(with: .init(wallet: wallet))
+        coordinator.start(with: .init(userWalletModel: userWalletModel, wallet: wallet))
         stakingDetailsCoordinator = coordinator
     }
 
