@@ -23,9 +23,9 @@ final class BottomScrollableSheetStateObject: ObservableObject {
     var sheetContainerHeight: CGFloat { UIScreen.main.bounds.height }
 
     @available(*, deprecated, message: "Test only")
-    let diff = 44.0
+    let diff = 48.0
 
-    var sheetHeight: CGFloat { UIScreen.main.bounds.height - diff } // FIXME: Andrey Fedorov - Test only, remove when not needed
+    var sheetHeight: CGFloat { sheetContainerHeight - diff } // FIXME: Andrey Fedorov - Test only, remove when not needed
 
     var headerHeight: CGFloat = .zero {
         didSet {
