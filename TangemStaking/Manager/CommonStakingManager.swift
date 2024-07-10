@@ -8,7 +8,7 @@
 
 import Foundation
 
-actor CommonStakingManager {
+class CommonStakingManager {
     private let wallet: StakingWallet
     private let provider: StakingAPIProvider
     private let repository: StakingRepository
@@ -34,6 +34,14 @@ extension CommonStakingManager: StakingManager {
         }
 
         return yield
+    }
+
+    func getFee() async throws {
+        // TBD: https://tangem.atlassian.net/browse/IOS-6897
+    }
+
+    func getTransaction() async throws {
+        // TBD: https://tangem.atlassian.net/browse/IOS-6897
     }
 }
 

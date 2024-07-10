@@ -44,9 +44,4 @@ protocol StakingValidatorsViewGeometryEffectNames {
 
 // MARK: - Summary section
 
-protocol SendSummaryViewGeometryEffectNames {
-    var amountContainer: String { get }
-    var tokenIcon: String { get }
-    var amountCryptoText: String { get }
-    var amountFiatText: String { get }
-}
+typealias SendSummaryViewGeometryEffectNames = SendAmountViewGeometryEffectNames & StakingValidatorsViewGeometryEffectNames

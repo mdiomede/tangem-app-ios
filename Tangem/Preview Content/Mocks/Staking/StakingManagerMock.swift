@@ -9,7 +9,7 @@
 import Foundation
 import TangemStaking
 
-actor StakingManagerMock: StakingManager {
+class StakingManagerMock: StakingManager {
     func getYield() throws -> YieldInfo {
         YieldInfo(
             id: "tron-trx-native-staking",
@@ -17,6 +17,21 @@ actor StakingManagerMock: StakingManager {
             rewardType: .apr,
             rewardRate: 0.03712381,
             minimumRequirement: 1,
+            validators: [
+                .init(
+                    address: UUID().uuidString,
+                    name: "InfStones",
+                    iconURL: URL(string: "https://assets.stakek.it/validators/infstones.png"),
+                    apr: 0.08
+                ),
+                .init(
+                    address: UUID().uuidString,
+                    name: "Aconcagua",
+                    iconURL: URL(string: "https://assets.stakek.it/validators/aconcagua.png"),
+                    apr: 0.032
+                ),
+            ],
+            defaultValidator: nil,
             item: .init(coinId: "tron", contractAdress: nil),
             unbondingPeriod: .days(14),
             warmupPeriod: .days(0),
@@ -24,4 +39,8 @@ actor StakingManagerMock: StakingManager {
             rewardScheduleType: .block
         )
     }
+
+    func getFee() async throws {}
+
+    func getTransaction() async throws {}
 }

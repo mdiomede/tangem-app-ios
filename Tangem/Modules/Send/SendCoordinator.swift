@@ -46,8 +46,8 @@ class SendCoordinator: CoordinatorObject {
             rootViewModel = factory.makeSendViewModel(router: self)
         case .sell(let parameters):
             rootViewModel = factory.makeSellViewModel(sellParameters: parameters, router: self)
-        case .staking:
-            rootViewModel = factory.makeStakingViewModel(router: self)
+        case .staking(let manager):
+            rootViewModel = factory.makeStakingViewModel(manager: manager, router: self)
         }
     }
 }

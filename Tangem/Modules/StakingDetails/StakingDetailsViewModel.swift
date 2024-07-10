@@ -14,7 +14,7 @@ import TangemStaking
 final class StakingDetailsViewModel: ObservableObject {
     // MARK: - ViewState
 
-    var title: String { Localization.stakingDetailsTitle(wallet.name) }
+    var title: String { Localization.stakingDetailsTitle(walletModel.name) }
     @Published var detailsViewModels: [DefaultRowViewModel] = []
     @Published var averageRewardingViewData: AverageRewardingViewData?
     @Published var rewardViewData: RewardViewData?
@@ -22,7 +22,7 @@ final class StakingDetailsViewModel: ObservableObject {
     // MARK: - Dependencies
 
     private let userWalletModel: UserWalletModel
-    private let wallet: WalletModel
+    private let walletModel: WalletModel
     private let manager: StakingManager
     private weak var coordinator: StakingDetailsRoutable?
 
@@ -37,19 +37,19 @@ final class StakingDetailsViewModel: ObservableObject {
 
     init(
         userWalletModel: UserWalletModel,
-        wallet: WalletModel,
+        walletModel: WalletModel,
         manager: StakingManager,
         coordinator: StakingDetailsRoutable
     ) {
         self.userWalletModel = userWalletModel
-        self.wallet = wallet
+        self.walletModel = walletModel
         self.manager = manager
         self.coordinator = coordinator
     }
 
     func userDidTapBanner() {}
     func userDidTapActionButton() {
-        coordinator?.openStaking(walletModel: wallet, userWalletModel: userWalletModel)
+        coordinator?.openStakingFlow()
     }
 
     func onAppear() {
@@ -65,7 +65,7 @@ private extension StakingDetailsViewModel {
     func setupView(yield: YieldInfo) {
         setupView(
             inputData: StakingDetailsData(
-                available: wallet.balanceValue ?? 0, // Maybe add skeleton?
+                available: walletModel.balanceValue ?? 0, // Maybe add skeleton?
                 staked: 0, // TBD
                 rewardType: yield.rewardType,
                 rewardRate: yield.rewardRate,
@@ -87,7 +87,7 @@ private extension StakingDetailsViewModel {
         let days = 30
         let periodProfitFormatted = daysFormatter.string(from: DateComponents(day: days)) ?? days.formatted()
 
-        let profitFormatted = wallet.balanceValue.map { balanceValue in
+        let profitFormatted = walletModel.balanceValue.map { balanceValue in
             let profit = StakingCalculator().earnValue(
                 invest: balanceValue,
                 apr: inputData.rewardRate,
@@ -107,12 +107,12 @@ private extension StakingDetailsViewModel {
     func setupDetailsSection(inputData: StakingDetailsData) {
         let availableFormatted = balanceFormatter.formatCryptoBalance(
             inputData.available,
-            currencyCode: wallet.tokenItem.currencySymbol
+            currencyCode: walletModel.tokenItem.currencySymbol
         )
 
         let stakedFormatted = balanceFormatter.formatCryptoBalance(
             inputData.staked,
-            currencyCode: wallet.tokenItem.currencySymbol
+            currencyCode: walletModel.tokenItem.currencySymbol
         )
 
         let rewardRateFormatted = percentFormatter.format(inputData.rewardRate, option: .staking)
@@ -120,7 +120,7 @@ private extension StakingDetailsViewModel {
         let unbondingFormatted = inputData.unbondingPeriod.formatted(formatter: daysFormatter)
         let minimumFormatted = balanceFormatter.formatCryptoBalance(
             inputData.minimumRequirement,
-            currencyCode: wallet.tokenItem.currencySymbol
+            currencyCode: walletModel.tokenItem.currencySymbol
         )
 
         let warmupFormatted = inputData.warmupPeriod.formatted(formatter: daysFormatter)

@@ -24,16 +24,19 @@ class StakingDetailsCoordinator: CoordinatorObject {
 
     // MARK: - Child view models
 
-    required init(
+    private let factory: StakingModulesFactory
+
+    init(
         dismissAction: @escaping Action<Void>,
-        popToRootAction: @escaping Action<PopToRootOptions>
+        popToRootAction: @escaping Action<PopToRootOptions>,
+        factory: StakingModulesFactory
     ) {
         self.dismissAction = dismissAction
         self.popToRootAction = popToRootAction
+        self.factory = factory
     }
 
     func start(with options: Options) {
-        let factory = StakingModulesFactory(userWalletModel: options.userWalletModel, wallet: options.wallet)
         rootViewModel = factory.makeStakingDetailsViewModel(coordinator: self)
     }
 }
@@ -41,9 +44,8 @@ class StakingDetailsCoordinator: CoordinatorObject {
 // MARK: - Options
 
 extension StakingDetailsCoordinator {
-    struct Options {
-        let userWalletModel: UserWalletModel
-        let wallet: WalletModel
+    enum Options {
+        case `default`
     }
 }
 
@@ -71,7 +73,7 @@ private extension StakingDetailsCoordinator {
 // MARK: - StakingDetailsRoutable
 
 extension StakingDetailsCoordinator: StakingDetailsRoutable {
-    func openStaking(walletModel: WalletModel, userWalletModel: UserWalletModel) {
+    func openStakingFlow() {
         let dismissAction: Action<(walletModel: WalletModel, userWalletModel: UserWalletModel)?> = { [weak self] navigationInfo in
             self?.sendCoordinator = nil
 
@@ -82,13 +84,14 @@ extension StakingDetailsCoordinator: StakingDetailsRoutable {
             }
         }
 
-        let coordinator = SendCoordinator(dismissAction: dismissAction)
-        let options = SendCoordinator.Options(
-            walletModel: walletModel,
-            userWalletModel: userWalletModel,
-            type: .staking
-        )
-        coordinator.start(with: options)
-        sendCoordinator = coordinator
+        sendCoordinator = factory.makeStakingFlow(dismissAction: dismissAction)
+    }
+
+    func openUnstakingFlow() {
+        // TBD: https://tangem.atlassian.net/browse/IOS-6898
+    }
+
+    func openClaimRewardsFlow() {
+        // TBD: https://tangem.atlassian.net/browse/IOS-6899
     }
 }

@@ -9,6 +9,8 @@
 import Foundation
 
 struct StakeKitMapper {
+    // MARK: - Yield
+
     func mapToYieldInfo(from response: StakeKitDTO.Yield.Info.Response) throws -> YieldInfo {
         guard let enterAction = response.args.enter else {
             throw StakeKitMapperError.noData("EnterAction not found")
@@ -20,11 +22,28 @@ struct StakeKitMapper {
             rewardType: mapToRewardType(from: response.rewardType),
             rewardRate: response.rewardRate,
             minimumRequirement: enterAction.args.amount.minimum,
+            validators: response.validators.compactMap { mapToValidatorInfo(from: $0) },
+            defaultValidator: response.metadata.defaultValidator,
             item: mapToStakingTokenItem(from: response.token),
             unbondingPeriod: mapToPeriod(from: response.metadata.cooldownPeriod),
             warmupPeriod: mapToPeriod(from: response.metadata.warmupPeriod),
             rewardClaimingType: mapToRewardClaimingType(from: response.metadata.rewardClaiming),
             rewardScheduleType: mapToRewardScheduleType(from: response.metadata.rewardSchedule)
+        )
+    }
+
+    // MARK: - Validators
+
+    func mapToValidatorInfo(from validator: StakeKitDTO.Validator) -> ValidatorInfo? {
+        guard validator.preferred == true else {
+            return nil
+        }
+
+        return ValidatorInfo(
+            address: validator.address,
+            name: validator.name ?? "No name",
+            iconURL: validator.image.flatMap { URL(string: $0) },
+            apr: validator.apr
         )
     }
 

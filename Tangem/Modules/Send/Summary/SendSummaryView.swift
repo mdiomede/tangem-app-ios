@@ -31,6 +31,10 @@ struct SendSummaryView: View {
                     amountSection
                 }
 
+                if !viewModel.animatingValidatorOnAppear {
+                    validatorSection
+                }
+
                 if !viewModel.animatingFeeOnAppear {
                     feeSection
                 }
@@ -117,6 +121,20 @@ struct SendSummaryView: View {
         .allowsHitTesting(viewModel.canEditAmount)
         .onTapGesture {
             viewModel.userDidTapAmount()
+        }
+    }
+
+    // MARK: - Validator
+
+    private var validatorSection: some View {
+        GroupedSection(viewModel.selectedValidatorData) { data in
+            ValidatorView(data: data)
+        }
+        .settings(\.backgroundColor, sectionBackground(type: viewModel.editableType))
+        .settings(\.backgroundGeometryEffect, .init(id: "ValidatorContainer", namespace: namespace))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.userDidTapValidator()
         }
     }
 

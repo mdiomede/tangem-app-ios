@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import BlockchainSdk
+import TangemStaking
 
 struct SendFlowFactory {
     private let userWalletModel: UserWalletModel
@@ -58,7 +58,7 @@ struct SendFlowFactory {
         return baseBuilder.makeSendViewModel(sellParameters: sellParameters, router: router)
     }
 
-    func makeStakingViewModel(router: SendRoutable) -> SendViewModel {
+    func makeStakingViewModel(manager: any StakingManager, router: SendRoutable) -> SendViewModel {
         let builder = SendDependenciesBuilder(userWalletModel: userWalletModel, walletModel: walletModel)
         let stakingValidatorsStepBuilder = StakingValidatorsStepBuilder(walletModel: walletModel, builder: builder)
         let sendAmountStepBuilder = SendAmountStepBuilder(walletModel: walletModel, builder: builder)
@@ -77,6 +77,6 @@ struct SendFlowFactory {
             builder: builder
         )
 
-        return baseBuilder.makeSendViewModel(router: router)
+        return baseBuilder.makeSendViewModel(manager: manager, router: router)
     }
 }

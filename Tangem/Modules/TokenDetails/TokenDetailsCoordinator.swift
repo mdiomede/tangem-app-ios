@@ -302,8 +302,13 @@ extension TokenDetailsCoordinator: SingleTokenBaseRoutable {
             self?.stakingDetailsCoordinator = nil
         }
 
-        let coordinator = StakingDetailsCoordinator(dismissAction: dismissAction, popToRootAction: popToRootAction)
-        coordinator.start(with: .init(userWalletModel: userWalletModel, wallet: wallet))
+        let coordinator = StakingDetailsCoordinator(
+            dismissAction: dismissAction,
+            popToRootAction: popToRootAction,
+            factory: .init(userWalletModel: userWalletModel, walletModel: wallet)
+        )
+
+        coordinator.start(with: .default)
         stakingDetailsCoordinator = coordinator
     }
 

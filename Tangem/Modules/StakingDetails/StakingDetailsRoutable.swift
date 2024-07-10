@@ -9,5 +9,7 @@
 import Foundation
 
 protocol StakingDetailsRoutable: AnyObject {
-    func openStaking(walletModel: WalletModel, userWalletModel: UserWalletModel)
+    func openStakingFlow()
+    func openClaimRewardsFlow()
+    func openUnstakingFlow()
 }

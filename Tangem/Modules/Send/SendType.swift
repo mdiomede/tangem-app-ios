@@ -7,12 +7,12 @@
 //
 
 import Foundation
-import BlockchainSdk
+import TangemStaking
 
 enum SendType {
     case send
     case sell(parameters: PredefinedSellParameters)
-    case staking
+    case staking(manager: StakingManager)
 }
 
 struct PredefinedSellParameters {

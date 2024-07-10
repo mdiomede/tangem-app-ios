@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import TangemStaking
 
 struct StakingFlowBaseBuilder {
     let userWalletModel: UserWalletModel
@@ -18,7 +19,7 @@ struct StakingFlowBaseBuilder {
     let sendFinishStepBuilder: SendFinishStepBuilder
     let builder: SendDependenciesBuilder
 
-    func makeSendViewModel(router: SendRoutable) -> SendViewModel {
+    func makeSendViewModel(manager: any StakingManager, router: SendRoutable) -> SendViewModel {
         let notificationManager = builder.makeSendNotificationManager()
         let sendTransactionDispatcher = builder.makeSendTransactionDispatcher()
         let stakingModel = builder.makeStakingModel(sendTransactionDispatcher: sendTransactionDispatcher)
@@ -32,7 +33,8 @@ struct StakingFlowBaseBuilder {
         )
 
         let validators = stakingValidatorsStepBuilder.makeStakingValidatorsStep(
-            io: (input: stakingModel, output: stakingModel)
+            io: (input: stakingModel, output: stakingModel),
+            manager: manager
         )
 
         let summary = sendSummaryStepBuilder.makeSendSummaryStep(
@@ -54,6 +56,7 @@ struct StakingFlowBaseBuilder {
 
         summary.step.setup(sendAmountInput: stakingModel)
         summary.step.setup(sendFeeInteractor: feeInteractor)
+        summary.step.setup(stakingValidatorsInput: stakingModel)
 
         finish.setup(sendAmountInput: stakingModel)
         finish.setup(sendFeeInteractor: feeInteractor)
