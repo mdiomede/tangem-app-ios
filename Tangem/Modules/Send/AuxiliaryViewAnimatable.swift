@@ -9,6 +9,13 @@
 import Foundation
 import SwiftUI
 
+enum StepAppearedState: Hashable {
+    case appearing
+    case appeared
+    case disappearing
+    case disappeared
+}
+
 protocol AuxiliaryViewAnimatable: AnyObject {
     var didProperlyDisappear: Bool { get set }
     var animatingAuxiliaryViewsOnAppear: Bool { get set }

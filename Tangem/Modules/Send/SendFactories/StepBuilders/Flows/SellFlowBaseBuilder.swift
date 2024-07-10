@@ -38,7 +38,12 @@ struct SellFlowBaseBuilder {
             sendTransactionDispatcher: sendTransactionDispatcher,
             notificationManager: notificationManager,
             addressTextViewHeightModel: addressTextViewHeightModel,
-            editableType: .disable
+            editableType: .disable,
+            sendAmountCompactViewModel: .init(
+                input: sendModel,
+                tokenIconInfo: builder.makeTokenIconInfo(),
+                tokenItem: walletModel.tokenItem
+            )
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(
@@ -63,7 +68,7 @@ struct SellFlowBaseBuilder {
         // notificationManager.setupManager(with: sendModel)
 
         summary.step.setup(sendDestinationInput: sendModel)
-        summary.step.setup(sendAmountInput: sendModel)
+//        summary.step.setup(sendAmountInput: sendModel)
         summary.step.setup(sendFeeInput: sendModel)
 
         finish.setup(sendDestinationInput: sendModel)

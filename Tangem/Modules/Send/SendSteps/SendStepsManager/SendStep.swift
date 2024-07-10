@@ -16,6 +16,7 @@ protocol SendStep {
 
     var type: SendStepType { get }
     var navigationTrailingViewType: SendStepNavigationTrailingViewType? { get }
+    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { get }
 
     var isValidPublisher: AnyPublisher<Bool, Never> { get }
 
@@ -41,8 +42,4 @@ extension SendStep {
 
     func willDisappear(next step: any SendStep) {}
     func didDisappear() {}
-}
-
-enum SendStepNavigationTrailingViewType {
-    case qrCodeButton(action: () -> Void)
 }

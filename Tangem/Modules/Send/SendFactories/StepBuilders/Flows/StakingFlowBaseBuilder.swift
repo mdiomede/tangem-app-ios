@@ -43,12 +43,13 @@ struct StakingFlowBaseBuilder {
             sendTransactionDispatcher: sendTransactionDispatcher,
             notificationManager: notificationManager,
             addressTextViewHeightModel: .none,
-            editableType: .editable
+            editableType: .editable,
+            sendAmountCompactViewModel: amount.compact
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(addressTextViewHeightModel: .none)
 
-        summary.step.setup(sendAmountInput: stakingModel)
+//        summary.step.setup(sendAmountInput: stakingModel)
         summary.step.setup(sendFeeInput: stakingModel)
         summary.step.setup(stakingValidatorsInput: stakingModel)
 

@@ -47,6 +47,8 @@ extension SendFeeStep: SendStep {
 
     var type: SendStepType { .fee(viewModel) }
 
+    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { nil }
+
     var isValidPublisher: AnyPublisher<Bool, Never> {
         .just(output: true)
     }

@@ -16,10 +16,10 @@ class SendDestinationViewModel: ObservableObject, Identifiable {
     @Published var additionalFieldViewModel: SendDestinationTextViewModel?
 
     @Published var suggestedDestinationViewModel: SendSuggestedDestinationViewModel?
-    @Published var animatingAuxiliaryViewsOnAppear: Bool = false
+    @Published var transition: AnyTransition = .move(edge: .leading)
     @Published var showSuggestedDestinations = true
 
-    var didProperlyDisappear: Bool = false
+//    var didProperlyDisappear: Bool = false
 
     // MARK: - Private
 
@@ -67,11 +67,11 @@ class SendDestinationViewModel: ObservableObject, Identifiable {
     }
 
     func onAppear() {
-        if animatingAuxiliaryViewsOnAppear {
-            Analytics.log(.sendScreenReopened, params: [.source: .address])
-        } else {
-            Analytics.log(.sendAddressScreenOpened)
-        }
+//        if animatingAuxiliaryViewsOnAppear {
+//            Analytics.log(.sendScreenReopened, params: [.source: .address])
+//        } else {
+//            Analytics.log(.sendAddressScreenOpened)
+//        }
     }
 
     private func setupView() {
@@ -177,7 +177,7 @@ class SendDestinationViewModel: ObservableObject, Identifiable {
 
 // MARK: - AuxiliaryViewAnimatable
 
-extension SendDestinationViewModel: AuxiliaryViewAnimatable {}
+// extension SendDestinationViewModel: AuxiliaryViewAnimatable {}
 
 extension SendDestinationViewModel {
     struct Settings {

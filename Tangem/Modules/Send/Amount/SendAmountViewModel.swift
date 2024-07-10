@@ -13,12 +13,14 @@ import Combine
 class SendAmountViewModel: ObservableObject, Identifiable {
     // MARK: - ViewState
 
-    @Published var animatingAuxiliaryViewsOnAppear: Bool = false
-
     let userWalletName: String
     let balance: String
     let tokenIconInfo: TokenIconInfo
     let currencyPickerData: SendCurrencyPickerData
+    let amountMinTextScale: CGFloat = SendView.Constants.amountMinTextScale
+
+    @Published var segmentControlVisible: Bool = true
+    @Published var transition: AnyTransition = .move(edge: .trailing)
 
     @Published var decimalNumberTextFieldViewModel: DecimalNumberTextField.ViewModel
     @Published var alternativeAmount: String?
@@ -36,7 +38,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
         )
     }
 
-    var didProperlyDisappear = false
+//    var didProperlyDisappear = false
 
     // MARK: - Dependencies
 
@@ -73,11 +75,12 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     }
 
     func onAppear() {
-        if animatingAuxiliaryViewsOnAppear {
-            Analytics.log(.sendScreenReopened, params: [.source: .amount])
-        } else {
-            Analytics.log(.sendAmountScreenOpened)
-        }
+        segmentControlVisible = true
+//        if animatingAuxiliaryViewsOnAppear {
+//            Analytics.log(.sendScreenReopened, params: [.source: .amount])
+//        } else {
+//            Analytics.log(.sendAmountScreenOpened)
+//        }
     }
 
     func userDidTapMaxAmount() {
@@ -169,9 +172,31 @@ private extension SendAmountViewModel {
     }
 }
 
-// MARK: - AuxiliaryViewAnimatable
+// MARK: - SendStepViewAnimatable
 
-extension SendAmountViewModel: AuxiliaryViewAnimatable {}
+extension SendAmountViewModel: SendStepViewAnimatable {
+    func viewDidChangeVisibilityState(_ state: SendStepVisibilityState) {
+        switch state {
+        case .appearing(.summary(_), _):
+            // Will be expand with animation
+            segmentControlVisible = false
+            transition = .offset(y: 102)
+
+        case .appearing(.destination(_), _), .disappearing(.destination(_), _):
+            UIApplication.shared.endEditing()
+
+            // Have to be always visible
+            segmentControlVisible = true
+            transition = .move(edge: .trailing)
+
+        case .disappearing(.summary(_), _):
+            UIApplication.shared.endEditing()
+            transition = .opacity
+        default:
+            break
+        }
+    }
+}
 
 extension SendAmountViewModel {
     struct Settings {

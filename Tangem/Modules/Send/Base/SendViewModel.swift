@@ -17,12 +17,8 @@ protocol SendViewAlertPresenter: AnyObject {
 final class SendViewModel: ObservableObject {
     // MARK: - ViewState
 
-    @Published var stepAnimation: SendView.StepAnimation
     @Published var step: SendStep {
-        willSet {
-            step.willDisappear(next: newValue)
-            newValue.willAppear(previous: step)
-        } didSet {
+        didSet {
             bind(step: step)
         }
     }
@@ -80,7 +76,7 @@ final class SendViewModel: ObservableObject {
         self.coordinator = coordinator
 
         step = stepsManager.initialState.step
-        stepAnimation = stepsManager.initialState.animation
+//        stepAnimation = stepsManager.initialState.animation
         mainButtonType = stepsManager.initialState.mainButtonType
 
         bind()
@@ -234,11 +230,25 @@ extension SendViewModel: SendViewAlertPresenter {
 
 extension SendViewModel: SendStepsManagerOutput {
     func update(state: SendStepsManagerViewState) {
-        stepAnimation = state.animation
+        let isEditAction = state.mainButtonType == .continue
+
+        step.willDisappear(next: state.step)
+        step.sendStepViewAnimatable?.viewDidChangeVisibilityState(
+            .disappearing(nextStep: state.step.type, isEditAction: isEditAction)
+        )
+
+        state.step.willAppear(previous: step)
+        state.step.sendStepViewAnimatable?.viewDidChangeVisibilityState(
+            .appearing(previousStep: step.type, isEditAction: isEditAction)
+        )
+
         mainButtonType = state.mainButtonType
         showBackButton = state.backButtonVisible
 
         // Give some time to update `stepAnimation`
+//        RunLoop.main.perform {
+//            self.step = state.step
+//        }
         DispatchQueue.main.async {
             self.step = state.step
         }

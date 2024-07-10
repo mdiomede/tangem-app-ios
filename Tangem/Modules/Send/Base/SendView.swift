@@ -10,6 +10,8 @@ import SwiftUI
 
 struct SendView: View {
     @ObservedObject var viewModel: SendViewModel
+    @ObservedObject var transitionService: SendTransitionService
+
     @Namespace private var namespace
 
     private let backButtonStyle: MainButton.Style = .secondary
@@ -23,10 +25,10 @@ struct SendView: View {
 
             ZStack(alignment: .bottom) {
                 currentPage
-                    .transition(viewModel.stepAnimation.transition)
+//                    .transition(viewModel.stepAnimation.transition)
                     .allowsHitTesting(!viewModel.isUserInteractionDisabled)
-                    .onAppear(perform: viewModel.onCurrentPageAppear)
-                    .onDisappear(perform: viewModel.onCurrentPageDisappear)
+//                    .onAppear(perform: viewModel.onCurrentPageAppear)
+//                    .onDisappear(perform: viewModel.onCurrentPageDisappear)
 
                 bottomOverlay
             }
@@ -45,15 +47,16 @@ struct SendView: View {
     @ViewBuilder
     private var headerView: some View {
         if let title = viewModel.title {
-            headerText(title: title)
-                .overlay(alignment: .leading) {
+            ZStack(alignment: .center) {
+                HStack {
                     Button(Localization.commonClose, action: viewModel.dismiss)
                         .foregroundColor(viewModel.closeButtonColor)
                         .disabled(viewModel.closeButtonDisabled)
-                }
-                .modifier(ifLet: viewModel.step.navigationTrailingViewType) { view, type in
-                    view.overlay(alignment: .trailing) {
-                        switch type {
+
+                    Spacer()
+
+                    if let trailing = viewModel.step.navigationTrailingViewType {
+                        switch trailing {
                         case .qrCodeButton(let action):
                             Button(action: action) {
                                 Assets.qrCode.image
@@ -63,9 +66,13 @@ struct SendView: View {
                         }
                     }
                 }
-                .frame(height: 44)
-                .padding(.top, 8)
-                .padding(.horizontal, 16)
+
+                headerText(title: title)
+            }
+            .animation(.default, value: viewModel.step.navigationTrailingViewType)
+            .frame(height: 44)
+            .padding(.top, 8)
+            .padding(.horizontal, 16)
         }
     }
 
@@ -75,7 +82,6 @@ struct SendView: View {
             Text(title)
                 .multilineTextAlignment(.center)
                 .style(Fonts.Bold.body, color: Colors.Text.primary1)
-                .animation(.default, value: title)
 
             if let subtitle = viewModel.subtitle {
                 Text(subtitle)
@@ -85,6 +91,7 @@ struct SendView: View {
         }
         .lineLimit(1)
         .frame(maxWidth: .infinity)
+        .animation(.default, value: title)
     }
 
     @ViewBuilder
@@ -95,12 +102,17 @@ struct SendView: View {
                 viewModel: sendDestinationViewModel,
                 namespace: .init(id: namespace, names: SendGeometryEffectNames())
             )
+            .onAppear(perform: {
+                print("->>> SendDestinationView onAppear")
+            })
+            .onDisappear(perform: {
+                print("->>> SendDestinationView onDisappear")
+            })
         case .amount(let sendAmountViewModel):
             SendAmountView(
                 viewModel: sendAmountViewModel,
                 namespace: .init(id: namespace, names: SendGeometryEffectNames())
             )
-            .amountMinTextScale(Constants.amountMinTextScale)
         case .fee(let sendFeeViewModel):
             SendFeeView(
                 viewModel: sendFeeViewModel,
@@ -114,6 +126,7 @@ struct SendView: View {
         case .summary(let sendSummaryViewModel):
             SendSummaryView(
                 viewModel: sendSummaryViewModel,
+                transitionService: transitionService,
                 namespace: .init(id: namespace, names: SendGeometryEffectNames())
             )
         case .finish(let sendFinishViewModel):
@@ -209,31 +222,9 @@ private struct SendViewBackButton: View {
 extension SendView {
     enum Constants {
         static let amountMinTextScale = 0.5
-        static let animationDuration: TimeInterval = 0.3
-        static let defaultAnimation: Animation = .spring(duration: animationDuration)
-        static let backButtonAnimation: Animation = .easeOut(duration: 0.1)
-    }
-}
-
-extension SendView {
-    enum StepAnimation {
-        case slideForward
-        case slideBackward
-        case moveAndFade
-
-        var transition: AnyTransition {
-            switch self {
-            case .slideForward:
-                return .asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading))
-            case .slideBackward:
-                return .asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing))
-            case .moveAndFade:
-                return .asymmetric(
-                    insertion: .offset(),
-                    removal: .opacity.animation(.spring(duration: SendView.Constants.animationDuration / 2))
-                )
-            }
-        }
+        static let animationDuration: TimeInterval = 1.3
+        static let defaultAnimation: Animation = .linear(duration: animationDuration)
+        static let backButtonAnimation: Animation = .linear(duration: animationDuration)
     }
 }
 

@@ -11,7 +11,7 @@ import Combine
 import SwiftUI
 
 class SendDestinationStep {
-    private let viewModel: SendDestinationViewModel
+    let viewModel: SendDestinationViewModel
     private let interactor: SendDestinationInteractor
     private let sendFeeInteractor: SendFeeInteractor
     private let tokenItem: TokenItem
@@ -40,6 +40,8 @@ extension SendDestinationStep: SendStep {
 
     var type: SendStepType { .destination(viewModel) }
 
+    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { nil }
+
     var navigationTrailingViewType: SendStepNavigationTrailingViewType? {
         .qrCodeButton { [weak self] in
             self?.viewModel.scanQRCode()
@@ -51,11 +53,14 @@ extension SendDestinationStep: SendStep {
     }
 
     func willAppear(previous step: any SendStep) {
-        guard step.type.isSummary else {
-            return
+        switch step.type {
+        case .summary:
+            viewModel.transition = .offset() // SendView.StepAnimation.moveAndFade.transition
+        case .amount:
+            viewModel.transition = .move(edge: .leading) // SendView.StepAnimation.slideBackward.transition
+        default:
+            assertionFailure("Not implemented")
         }
-
-        viewModel.setAnimatingAuxiliaryViewsOnAppear()
     }
 
     func willDisappear(next step: SendStep) {
@@ -65,6 +70,10 @@ extension SendDestinationStep: SendStep {
             return
         }
 
+//        RunLoop.main.perform {
+        viewModel.transition = .offset() // SendView.StepAnimation.moveAndFade.transition
+//        }
+//        viewModel.transition = SendView.StepAnimation.moveAndFade.transition
         sendFeeInteractor.updateFees()
     }
 }

@@ -8,6 +8,81 @@
 
 import SwiftUI
 
+struct SendDestinationCompactView: View {
+    @ObservedObject var viewModel: SendDestinationViewModel
+    let editableType: SendSummaryViewModel.EditableType
+    let namespace: SendDestinationView.Namespace
+
+    var body: some View {
+        GroupedSection(viewModel.fields) { field in
+            switch field {
+            case .address(let viewModel):
+                SendDestinationAddressSummaryView(
+                    addressTextViewHeightModel: viewModel.addressTextViewHeightModel,
+                    address: viewModel.text
+                )
+                .namespace(.init(id: namespace.id, names: namespace.names))
+
+//                SendDestinationTextView(viewModel: viewModel)
+//                    .setNamespace(namespace.id)
+//                    .setContainerNamespaceId(namespace.names.addressContainer)
+//                    .setTitleNamespaceId(namespace.names.addressTitle)
+//                    .setIconNamespaceId(namespace.names.addressIcon)
+//                    .setTextNamespaceId(namespace.names.addressText)
+//                    .setClearButtonNamespaceId(namespace.names.addressClearButton)
+//                    .disabled(true)
+            case .additionalField(let viewModel):
+                if !viewModel.text.isEmpty {
+                    DefaultTextWithTitleRowView(data: .init(title: viewModel.name, text: viewModel.text))
+                        .titleGeometryEffect(
+                            .init(id: namespace.names.addressAdditionalFieldTitle, namespace: namespace.id)
+                        )
+                        .textGeometryEffect(
+                            .init(id: namespace.names.addressAdditionalFieldText, namespace: namespace.id)
+                        )
+                }
+//
+//                SendDestinationTextView(viewModel: viewModel)
+//                    .setNamespace(namespace.id)
+//                    .setContainerNamespaceId(namespace.names.addressAdditionalFieldContainer)
+//                    .setTitleNamespaceId(namespace.names.addressAdditionalFieldTitle)
+//                    .setIconNamespaceId(namespace.names.addressAdditionalFieldIcon)
+//                    .setTextNamespaceId(namespace.names.addressAdditionalFieldText)
+//                    .setClearButtonNamespaceId(namespace.names.addressAdditionalFieldClearButton)
+//                    .disabled(true)
+            }
+        }
+        .settings(\.backgroundColor, editableType.sectionBackground)
+        .settings(\.backgroundGeometryEffect, .init(id: namespace.names.destinationContainer, namespace: namespace.id))
+    }
+}
+
+extension SendDestinationViewModel {
+    var fields: [SendDestinationCompactView.FieldType] {
+        [
+            addressViewModel.map { .address($0) },
+            additionalFieldViewModel.map { .additionalField($0) },
+        ]
+        .compactMap { $0 }
+    }
+}
+
+extension SendDestinationCompactView {
+    enum FieldType: Identifiable {
+        var id: ObjectIdentifier {
+            switch self {
+            case .address(let sendDestinationTextViewModel):
+                sendDestinationTextViewModel.id
+            case .additionalField(let sendDestinationTextViewModel):
+                sendDestinationTextViewModel.id
+            }
+        }
+
+        case address(SendDestinationTextViewModel)
+        case additionalField(SendDestinationTextViewModel)
+    }
+}
+
 struct SendDestinationView: View {
     @ObservedObject var viewModel: SendDestinationViewModel
     let namespace: Namespace
@@ -27,7 +102,7 @@ struct SendDestinationView: View {
                     .setTextNamespaceId(namespace.names.addressText)
                     .setClearButtonNamespaceId(namespace.names.addressClearButton)
             } footer: {
-                if !viewModel.animatingAuxiliaryViewsOnAppear, let viewModel = viewModel.addressViewModel {
+                if let viewModel = viewModel.addressViewModel {
                     Text(viewModel.description)
                         .style(Fonts.Regular.caption1, color: Colors.Text.tertiary)
                         .transition(auxiliaryViewTransition)
@@ -49,7 +124,7 @@ struct SendDestinationView: View {
                     .setClearButtonNamespaceId(namespace.names.addressAdditionalFieldClearButton)
                     .padding(.vertical, 2)
             } footer: {
-                if let additionalFieldViewModel = viewModel.additionalFieldViewModel, !viewModel.animatingAuxiliaryViewsOnAppear {
+                if let additionalFieldViewModel = viewModel.additionalFieldViewModel {
                     Text(additionalFieldViewModel.description)
                         .style(Fonts.Regular.caption1, color: Colors.Text.tertiary)
                         .transition(auxiliaryViewTransition)
@@ -67,9 +142,8 @@ struct SendDestinationView: View {
                     .transition(.opacity)
             }
         }
+        .transition(viewModel.transition)
         .onAppear(perform: viewModel.onAppear)
-        .onAppear(perform: viewModel.onAuxiliaryViewAppear)
-        .onDisappear(perform: viewModel.onAuxiliaryViewDisappear)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.showSuggestedDestinations)
     }
 }

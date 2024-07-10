@@ -33,16 +33,10 @@ extension SendAmountStep: SendStep {
 
     var type: SendStepType { .amount(viewModel) }
 
+    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { viewModel }
+
     var isValidPublisher: AnyPublisher<Bool, Never> {
         interactor.isValidPublisher.eraseToAnyPublisher()
-    }
-
-    func willAppear(previous step: any SendStep) {
-        guard step.type.isSummary else {
-            return
-        }
-
-        viewModel.setAnimatingAuxiliaryViewsOnAppear()
     }
 
     func willDisappear(next step: SendStep) {

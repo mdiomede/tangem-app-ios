@@ -11,8 +11,9 @@ import SwiftUI
 import Combine
 
 protocol SendSummaryViewModelSetupable: AnyObject {
+    func setup(sendDestinationViewModel: SendDestinationViewModel)
+
     func setup(sendDestinationInput: SendDestinationInput)
-    func setup(sendAmountInput: SendAmountInput)
     func setup(sendFeeInput: SendFeeInput)
     func setup(stakingValidatorsInput: StakingValidatorsInput)
 }
@@ -22,16 +23,18 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var canEditFee: Bool = false
 
     @Published var destinationViewTypes: [SendDestinationSummaryViewType] = []
-    @Published var amountSummaryViewData: SendAmountSummaryViewData?
+    @Published var sendDestinationViewModel: SendDestinationViewModel?
+    @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
+
     @Published var selectedValidatorData: ValidatorViewData?
     @Published var selectedFeeSummaryViewModel: SendFeeSummaryViewModel?
     @Published var selectedValidatorViewModel: ValidatorViewData?
     @Published var deselectedFeeRowViewModels: [FeeRowViewModel] = []
 
-    @Published var animatingDestinationOnAppear = false
-    @Published var animatingAmountOnAppear = false
-    @Published var animatingValidatorOnAppear = false
-    @Published var animatingFeeOnAppear = false
+    @Published var destinationVisible = false
+    @Published var amountVisible = false
+    @Published var validatorVisible = false
+    @Published var feeVisible = false
     @Published var showHint = false
 
     @Published var alert: AlertBinder?
@@ -41,7 +44,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var transactionDescriptionIsVisible: Bool = false
 
     let addressTextViewHeightModel: AddressTextViewHeightModel?
-    var didProperlyDisappear: Bool = true
+//    var didProperlyDisappear: Bool = true
 
     var canEditAmount: Bool { editableType == .editable }
     var canEditDestination: Bool { editableType == .editable }
@@ -52,7 +55,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     private let sectionViewModelFactory: SendSummarySectionViewModelFactory
     weak var router: SendSummaryStepsRoutable?
 
-    private lazy var stakingValidatorViewMapper = StakingValidatorViewMapper()
     private var bag: Set<AnyCancellable> = []
 
     init(
@@ -60,7 +62,8 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         interactor: SendSummaryInteractor,
         notificationManager: NotificationManager,
         addressTextViewHeightModel: AddressTextViewHeightModel?,
-        sectionViewModelFactory: SendSummarySectionViewModelFactory
+        sectionViewModelFactory: SendSummarySectionViewModelFactory,
+        sendAmountCompactViewModel: SendAmountCompactViewModel?
     ) {
         editableType = settings.editableType
         tokenItem = settings.tokenItem
@@ -70,43 +73,19 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         self.addressTextViewHeightModel = addressTextViewHeightModel
         self.sectionViewModelFactory = sectionViewModelFactory
 
+        self.sendAmountCompactViewModel = sendAmountCompactViewModel
+
         bind()
-    }
-
-    func setupAnimations(previousStep: SendStepType) {
-        switch previousStep {
-        case .destination:
-            animatingAmountOnAppear = true
-            animatingFeeOnAppear = true
-            animatingValidatorOnAppear = true
-        case .amount:
-            animatingDestinationOnAppear = true
-            animatingFeeOnAppear = true
-            animatingValidatorOnAppear = true
-        case .fee:
-            animatingDestinationOnAppear = true
-            animatingAmountOnAppear = true
-            animatingValidatorOnAppear = true
-        case .validators:
-            animatingDestinationOnAppear = true
-            animatingAmountOnAppear = true
-            animatingFeeOnAppear = true
-        case .summary, .finish:
-            break
-        }
-
-        showHint = false
-        transactionDescriptionIsVisible = false
     }
 
     func onAppear() {
         selectedFeeSummaryViewModel?.setAnimateTitleOnAppear(true)
 
         withAnimation(SendView.Constants.defaultAnimation) {
-            self.animatingDestinationOnAppear = false
-            self.animatingAmountOnAppear = false
-            self.animatingFeeOnAppear = false
-            self.animatingValidatorOnAppear = false
+            self.destinationVisible = true
+            self.amountVisible = true
+            self.validatorVisible = true
+            self.feeVisible = true
             self.transactionDescriptionIsVisible = true
         }
 
@@ -165,41 +144,85 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     }
 }
 
+// MARK: - SendStepViewAnimatable
+
+extension SendSummaryViewModel: SendStepViewAnimatable {
+    func viewDidChangeVisibilityState(_ state: SendStepVisibilityState) {
+        switch state {
+        case .appearing(.destination(_), _):
+            destinationVisible = true
+            amountVisible = false
+            validatorVisible = false
+            feeVisible = false
+        case .appearing(.amount(_), _):
+            destinationVisible = false
+            amountVisible = true
+            validatorVisible = false
+            feeVisible = false
+        case .appearing(.validators(_), _):
+            destinationVisible = false
+            amountVisible = false
+            validatorVisible = true
+            feeVisible = false
+        case .appearing(.fee(_), _):
+            destinationVisible = false
+            amountVisible = false
+            validatorVisible = false
+            feeVisible = true
+        case .appeared, .disappeared, .disappearing:
+            break
+        default:
+            assertionFailure("Not implemented")
+        }
+
+        showHint = false
+        transactionDescriptionIsVisible = false
+    }
+}
+
 // MARK: - SendSummaryViewModelSetupable
 
 extension SendSummaryViewModel: SendSummaryViewModelSetupable {
+    func setup(sendDestinationViewModel: SendDestinationViewModel) {
+        self.sendDestinationViewModel = sendDestinationViewModel
+    }
+
+//    func setup(sendAmountViewModel: SendAmountViewModel) {
+//        self.sendAmountViewModel = sendAmountViewModel
+//    }
+
     func setup(sendDestinationInput input: SendDestinationInput) {
-        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
-            .withWeakCaptureOf(self)
-            .map { viewModel, args in
-                let (destination, additionalField) = args
-                return viewModel.sectionViewModelFactory.makeDestinationViewTypes(
-                    address: destination.value,
-                    additionalField: additionalField
-                )
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.destinationViewTypes, on: self)
-            .store(in: &bag)
+//        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
+//            .withWeakCaptureOf(self)
+//            .map { viewModel, args in
+//                let (destination, additionalField) = args
+//                return viewModel.sectionViewModelFactory.makeDestinationViewTypes(
+//                    address: destination.value,
+//                    additionalField: additionalField
+//                )
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .assign(to: \.destinationViewTypes, on: self)
+//            .store(in: &bag)
     }
 
     func setup(sendAmountInput input: SendAmountInput) {
-        input.amountPublisher
-            .withWeakCaptureOf(self)
-            .compactMap { viewModel, amount in
-                guard let formattedAmount = amount?.format(currencySymbol: viewModel.tokenItem.currencySymbol),
-                      let formattedAlternativeAmount = amount?.formatAlternative(currencySymbol: viewModel.tokenItem.currencySymbol) else {
-                    return nil
-                }
-
-                return viewModel.sectionViewModelFactory.makeAmountViewData(
-                    amount: formattedAmount,
-                    amountAlternative: formattedAlternativeAmount
-                )
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
-            .store(in: &bag)
+//        input.amountPublisher
+//            .withWeakCaptureOf(self)
+//            .compactMap { viewModel, amount in
+//                guard let formattedAmount = amount?.format(currencySymbol: viewModel.tokenItem.currencySymbol),
+//                      let formattedAlternativeAmount = amount?.formatAlternative(currencySymbol: viewModel.tokenItem.currencySymbol) else {
+//                    return nil
+//                }
+//
+//                return viewModel.sectionViewModelFactory.makeAmountViewData(
+//                    amount: formattedAmount,
+//                    amountAlternative: formattedAlternativeAmount
+//                )
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
+//            .store(in: &bag)
     }
 
     func setup(sendFeeInput input: SendFeeInput) {
@@ -229,10 +252,11 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
     }
 
     func setup(stakingValidatorsInput input: any StakingValidatorsInput) {
+        let stakingValidatorViewMapper = StakingValidatorViewMapper()
+
         input.selectedValidatorPublisher
-            .withWeakCaptureOf(self)
-            .map { viewModel, validator in
-                viewModel.stakingValidatorViewMapper.mapToValidatorViewData(info: validator, detailsType: .chevron)
+            .map { validator in
+                stakingValidatorViewMapper.mapToValidatorViewData(info: validator, detailsType: .chevron)
             }
             .receive(on: DispatchQueue.main)
             .assign(to: \.selectedValidatorData, on: self, ownership: .weak)

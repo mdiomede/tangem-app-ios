@@ -25,6 +25,8 @@ extension SendFinishStep: SendStep {
 
     var type: SendStepType { .finish(viewModel) }
 
+    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { nil }
+
     var isValidPublisher: AnyPublisher<Bool, Never> {
         .just(output: true)
     }

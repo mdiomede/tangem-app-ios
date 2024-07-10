@@ -10,34 +10,54 @@ import SwiftUI
 
 struct SendSummaryView: View {
     @ObservedObject var viewModel: SendSummaryViewModel
+    @ObservedObject var transitionService: SendTransitionService
     let namespace: Namespace
 
-    private var amountMinTextScale: CGFloat?
-
-    init(viewModel: SendSummaryViewModel, namespace: Namespace) {
-        self.viewModel = viewModel
-        self.namespace = namespace
-    }
+    private let coordinateSpaceName = UUID()
 
     var body: some View {
         VStack(alignment: .center, spacing: 14) {
             GroupedScrollView(spacing: 14) {
-                if !viewModel.animatingDestinationOnAppear,
-                   let addressTextViewHeightModel = viewModel.addressTextViewHeightModel {
-                    destinationSection(addressTextViewHeightModel: addressTextViewHeightModel)
+                if viewModel.destinationVisible,
+                   let sendDestinationViewModel = viewModel.sendDestinationViewModel {
+                    SendDestinationCompactView(
+                        viewModel: sendDestinationViewModel,
+                        editableType: viewModel.editableType,
+                        namespace: .init(id: namespace.id, names: namespace.names)
+                    )
+                    .contentShape(Rectangle())
+                    .allowsHitTesting(viewModel.canEditDestination)
+                    .onTapGesture {
+                        viewModel.userDidTapDestination()
+                    }
                 }
 
-                if !viewModel.animatingAmountOnAppear {
-                    amountSection
+                if viewModel.amountVisible,
+                   let sendAmountViewModel = viewModel.sendAmountCompactViewModel {
+                    SendAmountCompactView(
+                        viewModel: sendAmountViewModel,
+                        editableType: viewModel.editableType,
+                        namespace: .init(id: namespace.id, names: namespace.names)
+                    )
+                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName), onChange: { value in
+                        print("->> contentOffset", value)
+                    })
+                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName), bindTo: $transitionService.amountContentOffset)
+                    .transition(.asymmetric(insertion: .offset(), removal: .opacity))
+                    .contentShape(Rectangle())
+                    .allowsHitTesting(viewModel.canEditAmount)
+                    .onTapGesture {
+                        viewModel.userDidTapAmount()
+                    }
                 }
 
-                if !viewModel.animatingValidatorOnAppear {
-                    validatorSection
-                }
-
-                if !viewModel.animatingFeeOnAppear {
-                    feeSection
-                }
+//                if !viewModel.animatingValidatorOnAppear {
+//                    validatorSection
+//                }
+//
+//                if !viewModel.animatingFeeOnAppear {
+//                    feeSection
+//                }
 
                 if viewModel.showHint {
                     HintView(
@@ -52,13 +72,19 @@ struct SendSummaryView: View {
                     )
                 }
 
-                ForEach(viewModel.notificationInputs) { input in
-                    NotificationView(input: input)
-                }
+//                ForEach(viewModel.notificationInputs) { input in
+//                    NotificationView(input: input)
+//                }
             }
+            .coordinateSpace(name: coordinateSpaceName)
 
             descriptionView
         }
+        .transition(SendTransitionService.Constants.summaryViewTransition)
+        .animation(SendView.Constants.defaultAnimation, value: viewModel.destinationVisible)
+        .animation(SendView.Constants.defaultAnimation, value: viewModel.amountVisible)
+        .animation(SendView.Constants.defaultAnimation, value: viewModel.validatorVisible)
+        .animation(SendView.Constants.defaultAnimation, value: viewModel.feeVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.transactionDescriptionIsVisible)
         .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
         .alert(item: $viewModel.alert) { $0.alert }
@@ -68,62 +94,62 @@ struct SendSummaryView: View {
 
     // MARK: - Destination
 
-    private func destinationSection(addressTextViewHeightModel: AddressTextViewHeightModel) -> some View {
-        GroupedSection(viewModel.destinationViewTypes) { type in
-            switch type {
-            case .address(let address, let corners):
-                SendDestinationAddressSummaryView(addressTextViewHeightModel: addressTextViewHeightModel, address: address)
-                    .namespace(.init(id: namespace.id, names: namespace.names))
-                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
-                    .background(
-                        sectionBackground(type: viewModel.editableType)
-                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: corners)
-                            .matchedGeometryEffect(id: namespace.names.addressBackground, in: namespace.id)
-                    )
-            case .additionalField(let type, let value):
-                DefaultTextWithTitleRowView(data: .init(title: type.name, text: value))
-                    .setNamespace(namespace.id)
-                    .setTitleNamespaceId(namespace.names.addressAdditionalFieldTitle)
-                    .setTextNamespaceId(namespace.names.addressAdditionalFieldText)
-                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
-                    .background(
-                        sectionBackground(type: viewModel.editableType)
-                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: [.bottomLeft, .bottomRight])
-                            .matchedGeometryEffect(id: namespace.names.addressAdditionalFieldBackground, in: namespace.id)
-                    )
-            }
-        }
-        .backgroundColor(.clear)
-        .geometryEffect(.init(id: namespace.names.destinationContainer, namespace: namespace.id))
-        .horizontalPadding(0)
-        .separatorStyle(.single)
-        .contentShape(Rectangle())
-        .allowsHitTesting(viewModel.canEditDestination)
-        .onTapGesture {
-            viewModel.userDidTapDestination()
-        }
-    }
+//    private func destinationSection(addressTextViewHeightModel: AddressTextViewHeightModel) -> some View {
+//        GroupedSection(viewModel.destinationViewTypes) { type in
+//            switch type {
+//            case .address(let address, let corners):
+//                SendDestinationAddressSummaryView(addressTextViewHeightModel: addressTextViewHeightModel, address: address)
+//                    .namespace(.init(id: namespace.id, names: namespace.names))
+//                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
+//                    .background(
+//                        viewModel.editableType.sectionBackground
+//                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: corners)
+//                            .matchedGeometryEffect(id: namespace.names.addressBackground, in: namespace.id)
+//                    )
+//            case .additionalField(let type, let value):
+//                DefaultTextWithTitleRowView(data: .init(title: type.name, text: value))
+    ////                    .setNamespace(namespace.id)
+    ////                    .setTitleNamespaceId(namespace.names.addressAdditionalFieldTitle)
+    ////                    .setTextNamespaceId(namespace.names.addressAdditionalFieldText)
+//                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
+//                    .background(
+//                        viewModel.editableType.sectionBackground
+//                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: [.bottomLeft, .bottomRight])
+//                            .matchedGeometryEffect(id: namespace.names.addressAdditionalFieldBackground, in: namespace.id)
+//                    )
+//            }
+//        }
+//        .backgroundColor(.clear)
+//        .geometryEffect(.init(id: namespace.names.destinationContainer, namespace: namespace.id))
+//        .horizontalPadding(0)
+//        .separatorStyle(.single)
+//        .contentShape(Rectangle())
+//        .allowsHitTesting(viewModel.canEditDestination)
+//        .onTapGesture {
+//            viewModel.userDidTapDestination()
+//        }
+//    }
 
     // MARK: - Amount
 
-    private var amountSection: some View {
-        GroupedSection(viewModel.amountSummaryViewData) { data in
-            SendAmountSummaryView(data: data)
-                .amountMinTextScale(amountMinTextScale)
-                .setNamespace(namespace.id)
-                .setIconNamespaceId(namespace.names.tokenIcon)
-                .setAmountCryptoNamespaceId(namespace.names.amountCryptoText)
-                .setAmountFiatNamespaceId(namespace.names.amountFiatText)
-        }
-        .innerContentPadding(0)
-        .backgroundColor(sectionBackground(type: viewModel.editableType))
-        .geometryEffect(.init(id: namespace.names.amountContainer, namespace: namespace.id))
-        .contentShape(Rectangle())
-        .allowsHitTesting(viewModel.canEditAmount)
-        .onTapGesture {
-            viewModel.userDidTapAmount()
-        }
-    }
+//    private var amountSection: some View {
+//        GroupedSection(viewModel.amountSummaryViewData) { data in
+//            SendAmountSummaryView(data: data)
+//                .amountMinTextScale(amountMinTextScale)
+//                .setNamespace(namespace.id)
+//                .setIconNamespaceId(namespace.names.tokenIcon)
+//                .setAmountCryptoNamespaceId(namespace.names.amountCryptoText)
+//                .setAmountFiatNamespaceId(namespace.names.amountFiatText)
+//        }
+//        .innerContentPadding(0)
+//        .backgroundColor(sectionBackground(type: viewModel.editableType))
+//        .geometryEffect(.init(id: namespace.names.amountContainer, namespace: namespace.id))
+//        .contentShape(Rectangle())
+//        .allowsHitTesting(viewModel.canEditAmount)
+//        .onTapGesture {
+//            viewModel.userDidTapAmount()
+//        }
+//    }
 
     // MARK: - Validator
 
@@ -136,7 +162,7 @@ struct SendSummaryView: View {
                 .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
                 .padding(.top, 12)
         }
-        .settings(\.backgroundColor, sectionBackground(type: viewModel.editableType))
+        .settings(\.backgroundColor, viewModel.editableType.sectionBackground)
         .settings(\.backgroundGeometryEffect, .init(id: namespace.names.validatorContainer, namespace: namespace.id))
         .contentShape(Rectangle())
         .onTapGesture {
@@ -187,15 +213,6 @@ struct SendSummaryView: View {
             .matchedGeometryEffect(id: namespace.names.feeSeparator(feeOption: option), in: namespace.id)
     }
 
-    private func sectionBackground(type: SendSummaryViewModel.EditableType) -> Color {
-        switch type {
-        case .editable:
-            Colors.Background.action
-        case .disable:
-            Colors.Button.disabled
-        }
-    }
-
     // MARK: - Description
 
     @ViewBuilder
@@ -210,11 +227,14 @@ struct SendSummaryView: View {
     }
 }
 
-// MARK: - Setupable protocol conformance
-
-extension SendSummaryView: Setupable {
-    func amountMinTextScale(_ amountMinTextScale: CGFloat?) -> Self {
-        map { $0.amountMinTextScale = amountMinTextScale }
+extension SendSummaryViewModel.EditableType {
+    var sectionBackground: Color {
+        switch self {
+        case .editable:
+            Colors.Background.action
+        case .disable:
+            Colors.Button.disabled
+        }
     }
 }
 
