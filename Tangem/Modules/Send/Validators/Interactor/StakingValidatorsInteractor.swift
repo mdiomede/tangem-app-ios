@@ -21,18 +21,22 @@ class CommonStakingValidatorsInteractor {
     private weak var input: StakingValidatorsInput?
     private weak var output: StakingValidatorsOutput?
 
-    private let manager: StakingManager
+    private let tokenItem: TokenItem
+    private let stakingRepository: StakingRepository
 
     private let _validators = CurrentValueSubject<[ValidatorInfo], Never>([])
+    private var bag: Set<AnyCancellable> = []
 
     init(
         input: StakingValidatorsInput,
         output: StakingValidatorsOutput,
-        manager: StakingManager
+        tokenItem: TokenItem,
+        stakingRepository: StakingRepository
     ) {
         self.input = input
         self.output = output
-        self.manager = manager
+        self.tokenItem = tokenItem
+        self.stakingRepository = stakingRepository
 
         bind()
     }
@@ -42,24 +46,23 @@ class CommonStakingValidatorsInteractor {
 
 private extension CommonStakingValidatorsInteractor {
     func bind() {
-        do {
-            let yield = try manager.getYield()
-
-            guard !yield.validators.isEmpty else {
-                AppLog.shared.debug("Yield.Validators is empty")
-                return
-            }
-
-            if let defaultValidator = yield.validators.first(where: { $0.address == yield.defaultValidator }) {
-                output?.userDidSelected(validator: defaultValidator)
-            } else if let first = yield.validators.first {
-                output?.userDidSelected(validator: first)
-            }
-
-            _validators.send(yield.validators)
-        } catch {
+        guard let yield = stakingRepository.getYield(item: tokenItem.stakingTokenItem) else {
             AppLog.shared.debug("Yield not found")
+            return
         }
+
+        guard !yield.validators.isEmpty else {
+            AppLog.shared.debug("Yield.Validators is empty")
+            return
+        }
+
+        if let defaultValidator = yield.validators.first(where: { $0.address == yield.defaultValidator }) {
+            output?.userDidSelected(validator: defaultValidator)
+        } else if let first = yield.validators.first {
+            output?.userDidSelected(validator: first)
+        }
+
+        _validators.send(yield.validators)
     }
 }
 

@@ -9,6 +9,41 @@
 import Foundation
 
 struct StakeKitMapper {
+    // MARK: - Actions
+
+    func mapToEnterAction(from response: StakeKitDTO.Actions.Enter.Response) throws -> EnterAction {
+        guard let transactions = response.transactions, !transactions.isEmpty else {
+            throw StakeKitMapperError.noData("EnterAction.transactions not found")
+        }
+
+        return try EnterAction(transactions: transactions.map(mapToTransactionInfo))
+    }
+
+    // MARK: - Transaction
+
+    func mapToTransactionInfo(from response: StakeKitDTO.Transaction.Response) throws -> TransactionInfo {
+        guard let hexData = response.hash.map(Data.init(hexString:)) else {
+            throw StakeKitMapperError.noData("Transaction.hash not found")
+        }
+
+        return TransactionInfo(id: response.id, hexData: hexData)
+    }
+
+    // MARK: - Balance
+
+    func mapToBalanceInfo(from response: StakeKitDTO.Balances.Response) throws -> BalanceInfo {
+        guard let token = response.balances.first?.token else {
+            throw StakeKitMapperError.noData("Balances.Response.first.token not found")
+        }
+
+        let blocked = response.balances.reduce(0) { $0 + $1.amount }
+
+        return BalanceInfo(
+            item: mapToStakingTokenItem(from: token),
+            blocked: blocked
+        )
+    }
+
     // MARK: - Yield
 
     func mapToYieldInfo(from response: StakeKitDTO.Yield.Info.Response) throws -> YieldInfo {

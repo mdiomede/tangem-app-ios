@@ -16,13 +16,13 @@ public struct TangemStakingFactory {
     public func makeStakingManager(
         wallet: StakingWallet,
         provider: StakingAPIProvider,
-        repository: StakingRepository,
+        yield: YieldInfo,
         logger: Logger
     ) -> StakingManager {
         CommonStakingManager(
             wallet: wallet,
+            yield: yield,
             provider: provider,
-            repository: repository,
             logger: logger
         )
     }

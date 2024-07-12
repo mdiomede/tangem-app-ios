@@ -15,8 +15,6 @@ class StakingModulesFactory {
     private let userWalletModel: UserWalletModel
     private let walletModel: WalletModel
 
-    private lazy var manager: StakingManager = makeStakingManager()
-
     init(userWalletModel: UserWalletModel, walletModel: WalletModel) {
         self.userWalletModel = userWalletModel
         self.walletModel = walletModel
@@ -26,17 +24,20 @@ class StakingModulesFactory {
         StakingDetailsViewModel(
             userWalletModel: userWalletModel,
             walletModel: walletModel,
-            manager: manager,
+            stakingRepository: stakingRepositoryProxy,
             coordinator: coordinator
         )
     }
 
-    func makeStakingFlow(dismissAction: @escaping Action<(walletModel: WalletModel, userWalletModel: UserWalletModel)?>) -> SendCoordinator {
+    func makeStakingFlow(
+        yield: YieldInfo,
+        dismissAction: @escaping Action<(walletModel: WalletModel, userWalletModel: UserWalletModel)?>
+    ) -> SendCoordinator {
         let coordinator = SendCoordinator(dismissAction: dismissAction)
         let options = SendCoordinator.Options(
             walletModel: walletModel,
             userWalletModel: userWalletModel,
-            type: .staking(manager: manager)
+            type: .staking(manager: makeStakingManager(yield: yield))
         )
         coordinator.start(with: options)
         return coordinator
@@ -44,12 +45,12 @@ class StakingModulesFactory {
 
     // MARK: - Dependencies
 
-    func makeStakingManager() -> StakingManager {
+    func makeStakingManager(yield: YieldInfo) -> StakingManager {
         let provider = StakingDependenciesFactory().makeStakingAPIProvider()
         return TangemStakingFactory().makeStakingManager(
             wallet: walletModel,
             provider: provider,
-            repository: stakingRepositoryProxy,
+            yield: yield,
             logger: AppLog.shared
         )
     }

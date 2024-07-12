@@ -10,6 +10,8 @@ import Foundation
 import TangemStaking
 
 struct StakingFlowBaseBuilder {
+    @Injected(\.stakingRepositoryProxy) private var stakingRepositoryProxy: StakingRepositoryProxy
+
     let userWalletModel: UserWalletModel
     let walletModel: WalletModel
     let sendAmountStepBuilder: SendAmountStepBuilder
@@ -34,7 +36,7 @@ struct StakingFlowBaseBuilder {
 
         let validators = stakingValidatorsStepBuilder.makeStakingValidatorsStep(
             io: (input: stakingModel, output: stakingModel),
-            manager: manager
+            stakingRepository: stakingRepositoryProxy
         )
 
         let summary = sendSummaryStepBuilder.makeSendSummaryStep(

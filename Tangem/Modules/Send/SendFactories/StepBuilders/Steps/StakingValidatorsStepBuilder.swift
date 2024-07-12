@@ -16,8 +16,8 @@ struct StakingValidatorsStepBuilder {
     let walletModel: WalletModel
     let builder: SendDependenciesBuilder
 
-    func makeStakingValidatorsStep(io: IO, manager: any StakingManager) -> ReturnValue {
-        let interactor = makeStakingValidatorsInteractor(io: io, manager: manager)
+    func makeStakingValidatorsStep(io: IO, stakingRepository: any StakingRepository) -> ReturnValue {
+        let interactor = makeStakingValidatorsInteractor(io: io, stakingRepository: stakingRepository)
         let viewModel = makeStakingValidatorsViewModel(interactor: interactor)
 
         let step = StakingValidatorsStep(viewModel: viewModel, interactor: interactor)
@@ -33,7 +33,12 @@ private extension StakingValidatorsStepBuilder {
         StakingValidatorsViewModel(interactor: interactor)
     }
 
-    func makeStakingValidatorsInteractor(io: IO, manager: any StakingManager) -> StakingValidatorsInteractor {
-        CommonStakingValidatorsInteractor(input: io.input, output: io.output, manager: manager)
+    func makeStakingValidatorsInteractor(io: IO, stakingRepository: any StakingRepository) -> StakingValidatorsInteractor {
+        CommonStakingValidatorsInteractor(
+            input: io.input,
+            output: io.output,
+            tokenItem: walletModel.tokenItem,
+            stakingRepository: stakingRepository
+        )
     }
 }

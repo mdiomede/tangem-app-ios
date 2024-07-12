@@ -10,34 +10,31 @@ import Foundation
 
 class CommonStakingManager {
     private let wallet: StakingWallet
+    private let yield: YieldInfo
     private let provider: StakingAPIProvider
-    private let repository: StakingRepository
     private let logger: Logger
 
     init(
         wallet: StakingWallet,
+        yield: YieldInfo,
         provider: StakingAPIProvider,
-        repository: StakingRepository,
         logger: Logger
     ) {
         self.wallet = wallet
+        self.yield = yield
         self.provider = provider
-        self.repository = repository
         self.logger = logger
     }
 }
 
 extension CommonStakingManager: StakingManager {
-    func getYield() throws -> YieldInfo {
-        guard let yield = repository.getYield(item: wallet.stakingTokenItem) else {
-            throw StakingManagerError.notFound
-        }
-
-        return yield
-    }
-
-    func getFee() async throws {
-        // TBD: https://tangem.atlassian.net/browse/IOS-6897
+    func getFee(amount: Decimal, validator: String) async throws {
+        let action = try await provider.enterAction(
+            amount: amount,
+            address: wallet.defaultAddress,
+            validator: validator,
+            integrationId: yield.id
+        )
     }
 
     func getTransaction() async throws {

@@ -9,10 +9,7 @@
 import Foundation
 
 public protocol StakingManager {
-    // Storage info
-    func getYield() throws -> YieldInfo
-
     // Actual info from Stakek.it
-    func getFee() async throws
+    func getFee(amount: Decimal, validator: String) async throws
     func getTransaction() async throws
 }

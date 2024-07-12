@@ -23,7 +23,7 @@ final class StakingDetailsViewModel: ObservableObject {
 
     private let userWalletModel: UserWalletModel
     private let walletModel: WalletModel
-    private let manager: StakingManager
+    private let stakingRepository: StakingRepository
     private weak var coordinator: StakingDetailsRoutable?
 
     private let balanceFormatter = BalanceFormatter()
@@ -35,38 +35,69 @@ final class StakingDetailsViewModel: ObservableObject {
         return formatter
     }()
 
+    private let _yieldInfo = CurrentValueSubject<LoadingValue<YieldInfo>, Never>(.loading)
+    private let _balanceInfo = CurrentValueSubject<LoadingValue<TangemStaking.BalanceInfo>, Never>(.loading)
+
+    private var bag: Set<AnyCancellable> = []
+
     init(
         userWalletModel: UserWalletModel,
         walletModel: WalletModel,
-        manager: StakingManager,
+        stakingRepository: StakingRepository,
         coordinator: StakingDetailsRoutable
     ) {
         self.userWalletModel = userWalletModel
         self.walletModel = walletModel
-        self.manager = manager
+        self.stakingRepository = stakingRepository
         self.coordinator = coordinator
+
+        bind()
     }
 
     func userDidTapBanner() {}
     func userDidTapActionButton() {
-        coordinator?.openStakingFlow()
+        guard let yieldInfo = _yieldInfo.value.value else {
+            return
+        }
+
+        coordinator?.openStakingFlow(yield: yieldInfo)
     }
 
     func onAppear() {
-        runTask(in: self) { viewModel in
-            let yield = try await viewModel.manager.getYield()
-            await viewModel.setupView(yield: yield)
-        }
+        loadValues()
     }
 }
 
 private extension StakingDetailsViewModel {
-    @MainActor
-    func setupView(yield: YieldInfo) {
+    func loadValues() {
+        guard let yield = stakingRepository.getYield(item: walletModel.stakingTokenItem) else {
+            assertionFailure("StakingRepository doesn't contains yield")
+            return
+        }
+
+        _yieldInfo.send(.loaded(yield))
+        _balanceInfo.send(.loaded(.init(item: walletModel.stakingTokenItem, blocked: 1.23)))
+    }
+
+    func bind() {
+        Publishers.CombineLatest(
+            _yieldInfo.compactMap { $0.value },
+            _balanceInfo.compactMap { $0.value }
+        )
+        .withWeakCaptureOf(self)
+        .receive(on: DispatchQueue.main)
+        .sink { viewModel, args in
+            viewModel.setupView(yield: args.0, balanceInfo: args.1)
+        }
+        .store(in: &bag)
+    }
+
+    func setupView(yield: YieldInfo, balanceInfo: TangemStaking.BalanceInfo) {
+        let available = walletModel.balanceValue ?? 0 - balanceInfo.blocked
         setupView(
             inputData: StakingDetailsData(
-                available: walletModel.balanceValue ?? 0, // Maybe add skeleton?
-                staked: 0, // TBD
+                available: available,
+                staked: balanceInfo.blocked,
                 rewardType: yield.rewardType,
                 rewardRate: yield.rewardRate,
                 minimumRequirement: yield.minimumRequirement,

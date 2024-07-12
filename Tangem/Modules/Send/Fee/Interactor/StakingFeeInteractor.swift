@@ -14,14 +14,16 @@ import TangemStaking
 class StakingFeeInteractor {
     private weak var input: SendFeeInput?
     private weak var output: SendFeeOutput?
+    private let manager: StakingManager
 
     private let _fee: CurrentValueSubject<LoadingValue<Fee>, Never> = .init(.loading)
 
     private var bag: Set<AnyCancellable> = []
 
-    init(input: SendFeeInput, output: SendFeeOutput) {
+    init(input: SendFeeInput, output: SendFeeOutput, manager: StakingManager) {
         self.input = input
         self.output = output
+        self.manager = manager
 
         bind()
     }
@@ -68,7 +70,7 @@ extension StakingFeeInteractor: SendFeeInteractor {
     var customFeeInputFieldModels: [SendCustomFeeInputFieldModel] { [] }
 
     func updateFees() {
-        // TODO: Stake flow
+//        manager.getFee(amount: <#T##Decimal#>, validator: <#T##String#>)
     }
 
     func update(selectedFee: SendFee) {

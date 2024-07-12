@@ -8,6 +8,7 @@
 
 import Foundation
 import Combine
+import TangemStaking
 
 class StakingDetailsCoordinator: CoordinatorObject {
     let dismissAction: Action<Void>
@@ -73,7 +74,7 @@ private extension StakingDetailsCoordinator {
 // MARK: - StakingDetailsRoutable
 
 extension StakingDetailsCoordinator: StakingDetailsRoutable {
-    func openStakingFlow() {
+    func openStakingFlow(yield: YieldInfo) {
         let dismissAction: Action<(walletModel: WalletModel, userWalletModel: UserWalletModel)?> = { [weak self] navigationInfo in
             self?.sendCoordinator = nil
 
@@ -84,7 +85,7 @@ extension StakingDetailsCoordinator: StakingDetailsRoutable {
             }
         }
 
-        sendCoordinator = factory.makeStakingFlow(dismissAction: dismissAction)
+        sendCoordinator = factory.makeStakingFlow(yield: yield, dismissAction: dismissAction)
     }
 
     func openUnstakingFlow() {
