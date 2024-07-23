@@ -20,7 +20,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     let amountMinTextScale: CGFloat = SendView.Constants.amountMinTextScale
 
     @Published var auxiliaryViewsVisible: Bool = true
-    @Published var transition: AnyTransition = .move(edge: .trailing)
+    @Published var isEditMode: Bool = false
 
     @Published var decimalNumberTextFieldViewModel: DecimalNumberTextField.ViewModel
     @Published var alternativeAmount: String?
@@ -173,12 +173,14 @@ extension SendAmountViewModel: SendStepViewAnimatable {
         case .appearing(.summary(_), _):
             // Will be shown with animation
             auxiliaryViewsVisible = false
-            transition = .offset(y: 102)
+            isEditMode = true
+//            transition = .offset(y: 102)
 
         case .appearing(.destination(_), _):
             // Have to be always visible
             auxiliaryViewsVisible = true
-            transition = .move(edge: .trailing)
+            isEditMode = false
+//            transition = .move(edge: .trailing)
 
         case .disappearing:
             UIApplication.shared.endEditing()

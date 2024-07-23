@@ -13,7 +13,6 @@ struct SendAmountView: View {
     @ObservedObject var transitionService: SendTransitionService
 
     let namespace: Namespace
-//    @FocusState private var isInputActive: Bool
 
     var body: some View {
         GroupedScrollView(spacing: 14) {
@@ -23,13 +22,9 @@ struct SendAmountView: View {
                 segmentControl
             }
         }
-//        .focused($isInputActive)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.auxiliaryViewsVisible)
-        .transition(viewModel.transition)
+        .transition(transitionService.transitionToAmountStep(isEditMode: viewModel.isEditMode))
         .onAppear(perform: viewModel.onAppear)
-        .onAppear {
-            print("->> isInputActive", isInputActive)
-        }
     }
 
     private var amountContainer: some View {
@@ -145,15 +140,3 @@ extension SendAmountView {
      }
  }
  */
-
-extension View {
-    @ViewBuilder
-    func transactionMonitor(_ title: String, _ showAnimation: Bool = true) -> some View {
-        transaction {
-            print("monitor", title, terminator: showAnimation ? ": " : "\n")
-            if showAnimation {
-                print("monitor", $0.animation ?? "nil")
-            }
-        }
-    }
-}

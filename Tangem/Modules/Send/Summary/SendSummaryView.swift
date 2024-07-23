@@ -42,9 +42,11 @@ struct SendSummaryView: View {
                     .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName), onChange: { value in
                         print("->> contentOffset", value)
                     })
-                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName),
-                                       bindTo: $transitionService.amountContentOffset)
-                    .transition(.asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity))
+                    .readContentOffset(
+                        inCoordinateSpace: .named(coordinateSpaceName),
+                        bindTo: $transitionService.amountContentOffset
+                    )
+                    .transition(transitionService.transitionToAmountCompactView)
                     .contentShape(Rectangle())
                     .allowsHitTesting(viewModel.canEditAmount)
                     .onTapGesture {

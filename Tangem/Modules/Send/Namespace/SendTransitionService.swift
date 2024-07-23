@@ -12,14 +12,12 @@ import SwiftUI
 class SendTransitionService: ObservableObject {
     @Published var amountContentOffset: CGPoint = .zero
 
-    var transitionToAmountView: AnyTransition {
-        .offset(y: amountContentOffset.y)
-            .animation(.easeOut(duration: SendView.Constants.animationDuration / 2))
+    func transitionToAmountStep(isEditMode: Bool) -> AnyTransition {
+        isEditMode ? .offset(y: -amountContentOffset.y) : .move(edge: .trailing)
     }
 
     var transitionToAmountCompactView: AnyTransition {
-        .offset(y: amountContentOffset.y)
-            .animation(.easeOut(duration: SendView.Constants.animationDuration / 2))
+        .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
     }
 }
 

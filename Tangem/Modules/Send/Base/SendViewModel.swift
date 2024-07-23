@@ -76,7 +76,6 @@ final class SendViewModel: ObservableObject {
         self.coordinator = coordinator
 
         step = stepsManager.initialState.step
-//        stepAnimation = stepsManager.initialState.animation
         mainButtonType = stepsManager.initialState.mainButtonType
 
         bind()

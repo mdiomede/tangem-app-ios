@@ -69,7 +69,7 @@ struct SendView: View {
 
                 headerText(title: title)
             }
-            .animation(.default, value: viewModel.step.navigationTrailingViewType)
+            .animation(Constants.defaultAnimation, value: viewModel.step.navigationTrailingViewType)
             .frame(height: 44)
             .padding(.top, 8)
             .padding(.horizontal, 16)
@@ -91,7 +91,7 @@ struct SendView: View {
         }
         .lineLimit(1)
         .frame(maxWidth: .infinity)
-        .animation(.default, value: title)
+        .animation(SendView.Constants.defaultAnimation, value: title)
     }
 
     @ViewBuilder
@@ -111,6 +111,7 @@ struct SendView: View {
         case .amount(let sendAmountViewModel):
             SendAmountView(
                 viewModel: sendAmountViewModel,
+                transitionService: transitionService,
                 namespace: .init(id: namespace, names: SendGeometryEffectNames())
             )
         case .fee(let sendFeeViewModel):
@@ -167,7 +168,6 @@ struct SendView: View {
                         action: viewModel.userDidTapBackButton
                     )
                     .transition(.move(edge: .leading).combined(with: .opacity))
-                    .animation(SendView.Constants.backButtonAnimation, value: viewModel.showBackButton)
                 }
 
                 MainButton(
@@ -222,9 +222,8 @@ private struct SendViewBackButton: View {
 extension SendView {
     enum Constants {
         static let amountMinTextScale = 0.5
-        static let animationDuration: TimeInterval = 1.3
+        static let animationDuration: TimeInterval = 0.3
         static let defaultAnimation: Animation = .linear(duration: animationDuration)
-        static let backButtonAnimation: Animation = .linear(duration: animationDuration)
     }
 }
 
