@@ -44,7 +44,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var transactionDescriptionIsVisible: Bool = false
 
     let addressTextViewHeightModel: AddressTextViewHeightModel?
-//    var didProperlyDisappear: Bool = true
 
     var canEditAmount: Bool { editableType == .editable }
     var canEditDestination: Bool { editableType == .editable }
@@ -81,13 +80,11 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     func onAppear() {
         selectedFeeSummaryViewModel?.setAnimateTitleOnAppear(true)
 
-        withAnimation(SendView.Constants.defaultAnimation) {
-            self.destinationVisible = true
-            self.amountVisible = true
-            self.validatorVisible = true
-            self.feeVisible = true
-            self.transactionDescriptionIsVisible = true
-        }
+        destinationVisible = true
+        amountVisible = true
+        validatorVisible = true
+        feeVisible = true
+        transactionDescriptionIsVisible = true
 
         Analytics.log(.sendConfirmScreenOpened)
 

@@ -19,7 +19,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     let currencyPickerData: SendCurrencyPickerData
     let amountMinTextScale: CGFloat = SendView.Constants.amountMinTextScale
 
-    @Published var segmentControlVisible: Bool = true
+    @Published var auxiliaryViewsVisible: Bool = true
     @Published var transition: AnyTransition = .move(edge: .trailing)
 
     @Published var decimalNumberTextFieldViewModel: DecimalNumberTextField.ViewModel
@@ -37,8 +37,6 @@ class SendAmountViewModel: ObservableObject, Identifiable {
             set: { $0.amountType = $1 ? .fiat : .crypto }
         )
     }
-
-//    var didProperlyDisappear = false
 
     // MARK: - Dependencies
 
@@ -75,12 +73,7 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     }
 
     func onAppear() {
-        segmentControlVisible = true
-//        if animatingAuxiliaryViewsOnAppear {
-//            Analytics.log(.sendScreenReopened, params: [.source: .amount])
-//        } else {
-//            Analytics.log(.sendAmountScreenOpened)
-//        }
+        auxiliaryViewsVisible = true
     }
 
     func userDidTapMaxAmount() {
@@ -178,20 +171,17 @@ extension SendAmountViewModel: SendStepViewAnimatable {
     func viewDidChangeVisibilityState(_ state: SendStepVisibilityState) {
         switch state {
         case .appearing(.summary(_), _):
-            // Will be expand with animation
-            segmentControlVisible = false
+            // Will be shown with animation
+            auxiliaryViewsVisible = false
             transition = .offset(y: 102)
 
-        case .appearing(.destination(_), _), .disappearing(.destination(_), _):
-            UIApplication.shared.endEditing()
-
+        case .appearing(.destination(_), _):
             // Have to be always visible
-            segmentControlVisible = true
+            auxiliaryViewsVisible = true
             transition = .move(edge: .trailing)
 
-        case .disappearing(.summary(_), _):
+        case .disappearing:
             UIApplication.shared.endEditing()
-            transition = .opacity
         default:
             break
         }

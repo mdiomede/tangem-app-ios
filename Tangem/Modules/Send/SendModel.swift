@@ -31,6 +31,7 @@ class SendModel {
 
     // MARK: - Dependencies
 
+    var sendAmountInteractor: SendAmountInteractor!
     var sendFeeInteractor: SendFeeInteractor!
     var informationRelevanceService: InformationRelevanceService!
     weak var router: SendModelRoutable?

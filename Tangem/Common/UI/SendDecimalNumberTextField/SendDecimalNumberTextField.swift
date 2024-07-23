@@ -146,6 +146,13 @@ struct SendDecimalNumberTextField: View {
             .onChange(of: isInputActive) { isInputActive in
                 onFocusChanged?(isInputActive)
             }
+            .transaction { transaction in
+                if #available(iOS 17.0, *) {
+                    transaction.addAnimationCompletion(criteria: .logicallyComplete) {
+                        print("addAnimationCompletion ->> ")
+                    }
+                }
+            }
     }
 
     @ViewBuilder

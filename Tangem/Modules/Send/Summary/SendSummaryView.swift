@@ -42,8 +42,9 @@ struct SendSummaryView: View {
                     .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName), onChange: { value in
                         print("->> contentOffset", value)
                     })
-                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName), bindTo: $transitionService.amountContentOffset)
-                    .transition(.asymmetric(insertion: .offset(), removal: .opacity))
+                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName),
+                                       bindTo: $transitionService.amountContentOffset)
+                    .transition(.asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity))
                     .contentShape(Rectangle())
                     .allowsHitTesting(viewModel.canEditAmount)
                     .onTapGesture {
@@ -80,13 +81,14 @@ struct SendSummaryView: View {
 
             descriptionView
         }
+        .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
         .transition(SendTransitionService.Constants.summaryViewTransition)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.destinationVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.amountVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.validatorVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.feeVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.transactionDescriptionIsVisible)
-        .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
+
         .alert(item: $viewModel.alert) { $0.alert }
         .onAppear(perform: viewModel.onAppear)
         .onDisappear(perform: viewModel.onDisappear)

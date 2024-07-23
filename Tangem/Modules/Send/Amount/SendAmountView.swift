@@ -10,43 +10,36 @@ import SwiftUI
 
 struct SendAmountView: View {
     @ObservedObject var viewModel: SendAmountViewModel
-    let namespace: Namespace
-    @FocusState private var isInputActive: Bool
+    @ObservedObject var transitionService: SendTransitionService
 
-//    @State private var isAppeared = false
-//    @State private var containerSize: CGSize = .zero
+    let namespace: Namespace
+//    @FocusState private var isInputActive: Bool
 
     var body: some View {
         GroupedScrollView(spacing: 14) {
             amountContainer
 
-            if viewModel.segmentControlVisible {
+            if viewModel.auxiliaryViewsVisible {
                 segmentControl
             }
         }
-//        .offset(y: viewModel.segmentControlVisible ? 0 : 100)
+//        .focused($isInputActive)
+        .animation(SendView.Constants.defaultAnimation, value: viewModel.auxiliaryViewsVisible)
         .transition(viewModel.transition)
         .onAppear(perform: viewModel.onAppear)
-        .animation(SendView.Constants.defaultAnimation, value: viewModel.segmentControlVisible)
-//        .onAppear {
-//            isAppeared = true
-//        }
-//        .onDisappear {
-//            isAppeared = false
-//        }
-//        .onAppear(perform: viewModel.onAuxiliaryViewAppear)
-//        .onDisappear(perform: viewModel.onAuxiliaryViewDisappear)
+        .onAppear {
+            print("->> isInputActive", isInputActive)
+        }
     }
 
     private var amountContainer: some View {
         VStack(spacing: 32) {
-//            if viewModel.segmentControlVisible {
-            walletInfoView
-                // Because the top padding have to be is 16 to the white background
-                // But the bottom padding have to be is 12
-                .padding(.top, 4)
-            // .transition(.opacity) //  .move(edge: .bottom)
-//            }
+            if viewModel.auxiliaryViewsVisible {
+                walletInfoView
+                    // Because the top padding have to be is 16 to the white background
+                    // But the bottom padding have to be is 12
+                    .padding(.top, 4)
+            }
 
             amountContent
         }
@@ -85,7 +78,6 @@ struct SendAmountView: View {
                         .alignment(.center)
                         .prefixSuffixOptions(viewModel.currentFieldOptions)
                         .minTextScale(viewModel.amountMinTextScale)
-                        .focused($isInputActive)
                 }
                 // We have to keep frame until SendDecimalNumberTextField size fix
                 // Just on appear it has the zero height. Is cause break animation
@@ -104,33 +96,22 @@ struct SendAmountView: View {
                     .lineLimit(1)
             }
         }
-//        .fixedSize(horizontal: false, vertical: true)
-//        .layoutPriority(1)
-        .readGeometry(onChange: { print("->> size \($0.size)") })
     }
 
     private var segmentControl: some View {
-//        GeometryReader { proxy in
-        HStack(spacing: 8) {
-            SendCurrencyPicker(
-                data: viewModel.currencyPickerData,
-                useFiatCalculation: viewModel.isFiatCalculation.asBinding
-            )
+        GeometryReader { proxy in
+            HStack(spacing: 8) {
+                SendCurrencyPicker(
+                    data: viewModel.currencyPickerData,
+                    useFiatCalculation: viewModel.isFiatCalculation.asBinding
+                )
 
-            MainButton(title: Localization.sendMaxAmount, style: .secondary) {
-                viewModel.userDidTapMaxAmount()
+                MainButton(title: Localization.sendMaxAmount, style: .secondary) {
+                    viewModel.userDidTapMaxAmount()
+                }
+                .frame(width: proxy.size.width / 3)
             }
-            .frame(width: UIScreen.main.bounds.size.width / 3)
         }
-//        }
-//        .border(Color.red)
-//        .transition(.move(edge: .bottom))
-//        }
-//        .border(Color.red)
-//        .transactionMonitor("segmentControl before")
-//        .transition(.move(edge: .bottom).combined(with: .opacity))
-//        .transactionMonitor("segmentControl after")
-//        .animation(.default, value: isAppeared)
     }
 }
 

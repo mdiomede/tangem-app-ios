@@ -39,6 +39,14 @@ extension SendAmountStep: SendStep {
         interactor.isValidPublisher.eraseToAnyPublisher()
     }
 
+    func willAppear(previous step: any SendStep) {
+        if step.type.isSummary {
+            Analytics.log(.sendScreenReopened, params: [.source: .amount])
+        } else {
+            Analytics.log(.sendAmountScreenOpened)
+        }
+    }
+
     func willDisappear(next step: SendStep) {
         UIApplication.shared.endEditing()
 
