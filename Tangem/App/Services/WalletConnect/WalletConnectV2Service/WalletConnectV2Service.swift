@@ -59,19 +59,23 @@ final class WalletConnectV2Service {
         self.messageComposer = messageComposer
         self.wcHandlersService = wcHandlersService
 
-        Networking.configure(
-            groupIdentifier: AppEnvironment.current.suiteName,
-            projectId: keysManager.walletConnectProjectId,
-            socketFactory: factory,
-            socketConnectionType: .automatic
-        )
-        Pair.configure(metadata: AppMetadata(
-            name: "Tangem iOS",
-            description: "Tangem is a card-shaped self-custodial cold hardware wallet",
-            url: "tangem.com",
-            icons: ["https://user-images.githubusercontent.com/24321494/124071202-72a00900-da58-11eb-935a-dcdab21de52b.png"],
-            redirect: .init(native: IncomingActionConstants.universalLinkScheme, universal: IncomingActionConstants.tangemDomain)
-        ))
+        if let redirect = try? AppMetadata.Redirect(native: IncomingActionConstants.universalLinkScheme, universal: IncomingActionConstants.tangemDomain) {
+            Networking.configure(
+                groupIdentifier: AppEnvironment.current.suiteName,
+                projectId: keysManager.walletConnectProjectId,
+                socketFactory: factory,
+                socketConnectionType: .automatic
+            )
+            Pair.configure(metadata: AppMetadata(
+                name: "Tangem iOS",
+                description: "Tangem is a card-shaped self-custodial cold hardware wallet",
+                url: "tangem.com",
+                icons: ["https://user-images.githubusercontent.com/24321494/124071202-72a00900-da58-11eb-935a-dcdab21de52b.png"],
+                redirect: redirect
+            ))
+        } else {
+            AppLog.shared.debug("[WC 2.0] Failed to initialize WalletConnect ")
+        }
 
         setupSessionSubscriptions()
         setupMessagesSubscriptions()
@@ -95,9 +99,13 @@ final class WalletConnectV2Service {
     }
 
     func disconnectSession(with id: Int) async {
-        guard let session = await sessionsStorage.session(with: id) else { return }
+        guard let session = await sessionsStorage.session(with: id) else {
+            log("Failed to find session with id: \(id). Attempt to disconnect session failed")
+            return
+        }
 
         do {
+            log("Attempt to disconnect session with topic: \(session.topic)")
             try await signApi.disconnect(topic: session.topic)
 
             Analytics.log(
@@ -108,11 +116,13 @@ final class WalletConnectV2Service {
                 ]
             )
 
+            log("Session with topic: \(session.topic)    was disconnected from SignAPI. Removing from storage")
             await sessionsStorage.remove(session)
         } catch {
             let internalError = WalletConnectV2ErrorMappingUtils().mapWCv2Error(error)
             switch internalError {
             case .sessionForTopicNotFound, .symmetricKeyForTopicNotFound:
+                log("Failed to remove session with \(session.topic)   from SignAPI. Reason: \(internalError.localizedDescription). Removing anyway from storage")
                 await sessionsStorage.remove(session)
                 return
             default:
@@ -231,6 +241,7 @@ final class WalletConnectV2Service {
 
                 canEstablishNewSessionSubject.send(true)
 
+                log("Saving session with topic: \(savedSession.topic).\ndApp url: \(savedSession.sessionInfo.dAppInfo.url)")
                 await sessionsStorage.save(savedSession)
             }
             .sink()

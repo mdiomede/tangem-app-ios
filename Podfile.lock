@@ -175,44 +175,49 @@ PODS:
     - BigInt
     - TweetNacl
   - TweetNacl (1.0.2)
-  - WalletConnectSwiftV2 (1.18.7):
-    - WalletConnectSwiftV2/WalletConnect (= 1.18.7)
-  - WalletConnectSwiftV2/Commons (1.18.7)
-  - WalletConnectSwiftV2/HTTPClient (1.18.7)
-  - WalletConnectSwiftV2/JSONRPC (1.18.7):
+  - WalletConnectSwiftV2 (1.19.5):
+    - WalletConnectSwiftV2/WalletConnect (= 1.19.5)
+  - WalletConnectSwiftV2/Commons (1.19.5)
+  - WalletConnectSwiftV2/Events (1.19.5):
+    - WalletConnectSwiftV2/WalletConnectNetworking
+    - WalletConnectSwiftV2/WalletConnectUtils
+  - WalletConnectSwiftV2/HTTPClient (1.19.5)
+  - WalletConnectSwiftV2/JSONRPC (1.19.5):
     - WalletConnectSwiftV2/Commons
-  - WalletConnectSwiftV2/WalletConnect (1.18.7):
+  - WalletConnectSwiftV2/WalletConnect (1.19.5):
     - WalletConnectSwiftV2/WalletConnectAuth
     - WalletConnectSwiftV2/WalletConnectPush
     - WalletConnectSwiftV2/WalletConnectSign
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectAuth (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectAuth (1.19.5):
     - WalletConnectSwiftV2/WalletConnectPairing
     - WalletConnectSwiftV2/WalletConnectSigner
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectJWT (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectJWT (1.19.5):
     - WalletConnectSwiftV2/WalletConnectKMS
-  - WalletConnectSwiftV2/WalletConnectKMS (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectKMS (1.19.5):
     - WalletConnectSwiftV2/WalletConnectUtils
-  - WalletConnectSwiftV2/WalletConnectNetworking (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectNetworking (1.19.5):
     - WalletConnectSwiftV2/HTTPClient
     - WalletConnectSwiftV2/WalletConnectRelay
-  - WalletConnectSwiftV2/WalletConnectPairing (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectPairing (1.19.5):
+    - WalletConnectSwiftV2/Events
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectPush (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectPush (1.19.5):
     - WalletConnectSwiftV2/WalletConnectJWT
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectRelay (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectRelay (1.19.5):
     - WalletConnectSwiftV2/WalletConnectJWT
-  - WalletConnectSwiftV2/WalletConnectSign (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectSign (1.19.5):
+    - WalletConnectSwiftV2/Events
     - WalletConnectSwiftV2/WalletConnectPairing
     - WalletConnectSwiftV2/WalletConnectSigner
     - WalletConnectSwiftV2/WalletConnectVerify
-  - WalletConnectSwiftV2/WalletConnectSigner (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectSigner (1.19.5):
     - WalletConnectSwiftV2/WalletConnectNetworking
-  - WalletConnectSwiftV2/WalletConnectUtils (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectUtils (1.19.5):
     - WalletConnectSwiftV2/JSONRPC
-  - WalletConnectSwiftV2/WalletConnectVerify (1.18.7):
+  - WalletConnectSwiftV2/WalletConnectVerify (1.19.5):
     - WalletConnectSwiftV2/WalletConnectNetworking
     - WalletConnectSwiftV2/WalletConnectUtils
 
@@ -232,7 +237,7 @@ DEPENDENCIES:
   - SwiftyJSON (from `https://github.com/tangem/SwiftyJSON.git`, tag `5.0.1-tangem1`)
   - TangemSdk (from `https://github.com/Tangem/tangem-sdk-ios.git`, tag `develop-298`)
   - TonSwift (from `https://github.com/tangem/ton-swift.git`, tag `1.0.10-tangem1`)
-  - WalletConnectSwiftV2 (from `https://github.com/WalletConnect/WalletConnectSwiftV2`, tag `1.18.7`)
+  - WalletConnectSwiftV2 (from `https://github.com/WalletConnect/WalletConnectSwiftV2`, tag `1.19.5`)
 
 SPEC REPOS:
   trunk:
@@ -293,7 +298,7 @@ EXTERNAL SOURCES:
     :tag: 1.0.10-tangem1
   WalletConnectSwiftV2:
     :git: https://github.com/WalletConnect/WalletConnectSwiftV2
-    :tag: 1.18.7
+    :tag: 1.19.5
 
 CHECKOUT OPTIONS:
   BinanceChain:
@@ -319,7 +324,7 @@ CHECKOUT OPTIONS:
     :tag: 1.0.10-tangem1
   WalletConnectSwiftV2:
     :git: https://github.com/WalletConnect/WalletConnectSwiftV2
-    :tag: 1.18.7
+    :tag: 1.19.5
 
 SPEC CHECKSUMS:
   Alamofire: f36a35757af4587d8e4f4bfa223ad10be2422b8c
@@ -361,8 +366,8 @@ SPEC CHECKSUMS:
   TangemSdk: 4a188873f9dbed6340cca9ad6a010240af6df432
   TonSwift: 4bec2e932ae922f1e0419bdfd6d59dace5c63a31
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  WalletConnectSwiftV2: 5ea47db4d86e39fc749b66a05a661af9e87b277d
+  WalletConnectSwiftV2: 52356e22c518bfc6deb0bb93e71f915be1c33536
 
-PODFILE CHECKSUM: 8038b11c208c272bac15d2aed41704614dbabb22
+PODFILE CHECKSUM: d8ae941dc50b573748c3e2f8aa1b1a86594aeb95
 
 COCOAPODS: 1.15.2
