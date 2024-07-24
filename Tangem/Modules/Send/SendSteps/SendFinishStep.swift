@@ -31,15 +31,3 @@ extension SendFinishStep: SendStep {
         .just(output: true)
     }
 }
-
-// MARK: - SendFinishViewModelSetupable
-
-extension SendFinishStep: SendFinishViewModelSetupable {
-    func setup(sendFinishInput: any SendFinishInput) {
-        viewModel.setup(sendFinishInput: sendFinishInput)
-    }
-
-    func setup(sendFeeInput: any SendFeeInput) {
-        viewModel.setup(sendFeeInput: sendFeeInput)
-    }
-}

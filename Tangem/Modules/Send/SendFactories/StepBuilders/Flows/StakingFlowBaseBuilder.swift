@@ -48,19 +48,16 @@ struct StakingFlowBaseBuilder {
             editableType: .editable,
             sendDestinationCompactViewModel: .none,
             sendAmountCompactViewModel: amount.compact,
+            stakingValidatorsCompactViewModel: validators.compact,
             sendFeeCompactViewModel: sendFeeCompactViewModel
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(
             sendDestinationCompactViewModel: .none,
-            sendAmountCompactViewModel: amount.compact
+            sendAmountCompactViewModel: amount.compact,
+            stakingValidatorsCompactViewModel: validators.compact,
+            sendFeeCompactViewModel: sendFeeCompactViewModel
         )
-
-        summary.step.setup(sendFeeInput: stakingModel)
-        summary.step.setup(stakingValidatorsInput: stakingModel)
-
-        finish.setup(sendFeeInput: stakingModel)
-        finish.setup(sendFinishInput: stakingModel)
 
         let stepsManager = CommonStakingStepsManager(
             amountStep: amount.step,

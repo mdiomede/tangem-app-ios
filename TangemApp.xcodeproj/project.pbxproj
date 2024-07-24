@@ -1289,6 +1289,8 @@
 		EF0FBB482C50F2E70095A6BD /* SendDestinationCompactViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB472C50F2E70095A6BD /* SendDestinationCompactViewModel.swift */; };
 		EF0FBB4B2C51146A0095A6BD /* SendFeeCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB4A2C51146A0095A6BD /* SendFeeCompactView.swift */; };
 		EF0FBB4D2C5114710095A6BD /* SendFeeCompactViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB4C2C5114710095A6BD /* SendFeeCompactViewModel.swift */; };
+		EF0FBB502C518CE20095A6BD /* StakingValidatorsCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB4F2C518CE20095A6BD /* StakingValidatorsCompactView.swift */; };
+		EF0FBB522C518CE80095A6BD /* StakingValidatorsCompactViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB512C518CE80095A6BD /* StakingValidatorsCompactViewModel.swift */; };
 		EF0FF8712866021B00B7CEAF /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FF8702866021B00B7CEAF /* AppEnvironment.swift */; };
 		EF193C032A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF193C022A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift */; };
 		EF1D1ADE2C270DDE000CB941 /* SendFeeInputOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */; };
@@ -3206,6 +3208,8 @@
 		EF0FBB472C50F2E70095A6BD /* SendDestinationCompactViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendDestinationCompactViewModel.swift; sourceTree = "<group>"; };
 		EF0FBB4A2C51146A0095A6BD /* SendFeeCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeCompactView.swift; sourceTree = "<group>"; };
 		EF0FBB4C2C5114710095A6BD /* SendFeeCompactViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeCompactViewModel.swift; sourceTree = "<group>"; };
+		EF0FBB4F2C518CE20095A6BD /* StakingValidatorsCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingValidatorsCompactView.swift; sourceTree = "<group>"; };
+		EF0FBB512C518CE80095A6BD /* StakingValidatorsCompactViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StakingValidatorsCompactViewModel.swift; sourceTree = "<group>"; };
 		EF0FF8702866021B00B7CEAF /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		EF193C022A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomScrollableSheetStateObject.swift; sourceTree = "<group>"; };
 		EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeInputOutput.swift; sourceTree = "<group>"; };
@@ -7953,6 +7957,15 @@
 			path = SendFeeCompactView;
 			sourceTree = "<group>";
 		};
+		EF0FBB4E2C518CD10095A6BD /* CompactView */ = {
+			isa = PBXGroup;
+			children = (
+				EF0FBB4F2C518CE20095A6BD /* StakingValidatorsCompactView.swift */,
+				EF0FBB512C518CE80095A6BD /* StakingValidatorsCompactViewModel.swift */,
+			);
+			path = CompactView;
+			sourceTree = "<group>";
+		};
 		EF1D1AE32C296D79000CB941 /* SendAmountSummaryView */ = {
 			isa = PBXGroup;
 			children = (
@@ -9190,6 +9203,7 @@
 			children = (
 				EFB932122C3EC18300C999E9 /* StakingValidatorsView.swift */,
 				EFB932132C3EC18300C999E9 /* StakingValidatorsViewModel.swift */,
+				EF0FBB4E2C518CD10095A6BD /* CompactView */,
 				EFB932142C3EC18300C999E9 /* Interactor */,
 			);
 			path = Validators;
@@ -10436,6 +10450,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC70C0312B96129E002205BA /* KeysDerivingProvider.swift in Sources */,
+				EF0FBB502C518CE20095A6BD /* StakingValidatorsCompactView.swift in Sources */,
 				B0E479C22C3EB39D0043B239 /* MarketsTokenDetailsMetrics.swift in Sources */,
 				B6FE5B282B93C0FF00B7A76B /* UserCodeRecoveringMock.swift in Sources */,
 				DA070DE52ADD4F6600F7C0E4 /* SprinklrConfig.swift in Sources */,
@@ -11688,6 +11703,7 @@
 				B691A8C02AFE43CE0059D182 /* CardsInfoPagerSwipeDiscoveryAnimationModifier.swift in Sources */,
 				EFEE236A2BFE20860099917E /* StakingDetailsCoordinator.swift in Sources */,
 				EFEE236B2BFE20860099917E /* StakingDetailsCoordinatorView.swift in Sources */,
+				EF0FBB522C518CE80095A6BD /* StakingValidatorsCompactViewModel.swift in Sources */,
 				EFEE236C2BFE20860099917E /* StakingDetailsView.swift in Sources */,
 				B040FA342C3BCA00002C127B /* MarketsTokenDetailsInsightsView.swift in Sources */,
 				EFEE236D2BFE20860099917E /* StakingDetailsViewModel.swift in Sources */,

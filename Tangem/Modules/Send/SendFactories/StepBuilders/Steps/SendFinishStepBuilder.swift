@@ -16,11 +16,15 @@ struct SendFinishStepBuilder {
 
     func makeSendFinishStep(
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
-        sendAmountCompactViewModel: SendAmountCompactViewModel?
+        sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?,
+        sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) -> ReturnValue {
         let viewModel = makeSendFinishViewModel(
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
-            sendAmountCompactViewModel: sendAmountCompactViewModel
+            sendAmountCompactViewModel: sendAmountCompactViewModel,
+            stakingValidatorsCompactViewModel: stakingValidatorsCompactViewModel,
+            sendFeeCompactViewModel: sendFeeCompactViewModel
         )
 
         let step = SendFinishStep(viewModel: viewModel)
@@ -34,14 +38,18 @@ struct SendFinishStepBuilder {
 private extension SendFinishStepBuilder {
     func makeSendFinishViewModel(
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
-        sendAmountCompactViewModel: SendAmountCompactViewModel?
+        sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?,
+        sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) -> SendFinishViewModel {
         SendFinishViewModel(
             settings: .init(tokenItem: walletModel.tokenItem),
             sectionViewModelFactory: makeSendSummarySectionViewModelFactory(),
             feeAnalyticsParameterBuilder: builder.makeFeeAnalyticsParameterBuilder(),
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
-            sendAmountCompactViewModel: sendAmountCompactViewModel
+            sendAmountCompactViewModel: sendAmountCompactViewModel,
+            stakingValidatorsCompactViewModel: stakingValidatorsCompactViewModel,
+            sendFeeCompactViewModel: sendFeeCompactViewModel
         )
     }
 

@@ -10,12 +10,12 @@ import Foundation
 import SwiftUI
 import Combine
 
-protocol SendFinishViewModelSetupable: AnyObject {
-    func setup(sendFinishInput: SendFinishInput)
+// protocol SendFinishViewModelSetupable: AnyObject {
+//    func setup(sendFinishInput: SendFinishInput)
 //    func setup(sendDestinationInput: SendDestinationInput)
 //    func setup(sendAmountInput: SendAmountInput)
-    func setup(sendFeeInput: SendFeeInput)
-}
+//    func setup(sendFeeInput: SendFeeInput)
+// }
 
 class SendFinishViewModel: ObservableObject, Identifiable {
     @Published var showHeader = false
@@ -24,8 +24,8 @@ class SendFinishViewModel: ObservableObject, Identifiable {
 
     @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
     @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
-    @Published var selectedValidatorData: ValidatorViewData?
-    @Published var selectedFeeSummaryViewModel: SendFeeSummaryViewModel?
+    @Published var stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?
+    @Published var sendFeeCompactViewModel: SendFeeCompactViewModel?
 
     private let tokenItem: TokenItem
     private let sectionViewModelFactory: SendSummarySectionViewModelFactory
@@ -39,7 +39,9 @@ class SendFinishViewModel: ObservableObject, Identifiable {
         sectionViewModelFactory: SendSummarySectionViewModelFactory,
         feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
-        sendAmountCompactViewModel: SendAmountCompactViewModel?
+        sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?,
+        sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) {
         tokenItem = settings.tokenItem
 
@@ -47,6 +49,8 @@ class SendFinishViewModel: ObservableObject, Identifiable {
         self.feeAnalyticsParameterBuilder = feeAnalyticsParameterBuilder
         self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
         self.sendAmountCompactViewModel = sendAmountCompactViewModel
+        self.stakingValidatorsCompactViewModel = stakingValidatorsCompactViewModel
+        self.sendFeeCompactViewModel = sendFeeCompactViewModel
     }
 
     func onAppear() {
@@ -63,7 +67,7 @@ class SendFinishViewModel: ObservableObject, Identifiable {
 
 // MARK: - SendFinishViewModelSetupable
 
-extension SendFinishViewModel: SendFinishViewModelSetupable {
+// extension SendFinishViewModel: SendFinishViewModelSetupable {
 //    func setup(sendDestinationInput input: SendDestinationInput) {
 //        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
 //            .withWeakCaptureOf(self)
@@ -97,35 +101,35 @@ extension SendFinishViewModel: SendFinishViewModelSetupable {
 //            .store(in: &bag)
 //    }
 
-    func setup(sendFeeInput input: SendFeeInput) {
-        input.selectedFeePublisher
-            .compactMap { $0 }
-            .withWeakCaptureOf(self)
-            .receive(on: DispatchQueue.main)
-            .sink { viewModel, selectedFee in
-                viewModel.feeTypeAnalyticsParameter = viewModel.feeAnalyticsParameterBuilder.analyticsParameter(selectedFee: selectedFee.option)
-                viewModel.selectedFeeSummaryViewModel = viewModel.sectionViewModelFactory.makeFeeViewData(from: selectedFee)
-            }
-            .store(in: &bag)
-    }
-
-    func setup(sendFinishInput input: any SendFinishInput) {
-        input.transactionSentDate
-            .map { date in
-                let formatter = DateFormatter()
-                formatter.dateStyle = .long
-                formatter.timeStyle = .short
-                return formatter.string(from: date)
-            }
-            .receive(on: DispatchQueue.main)
-            .sink(receiveValue: { [weak self] time in
-                withAnimation(SendView.Constants.defaultAnimation) {
-                    self?.transactionSentTime = time
-                }
-            })
-            .store(in: &bag)
-    }
-}
+//    func setup(sendFeeInput input: SendFeeInput) {
+//        input.selectedFeePublisher
+//            .compactMap { $0 }
+//            .withWeakCaptureOf(self)
+//            .receive(on: DispatchQueue.main)
+//            .sink { viewModel, selectedFee in
+//                viewModel.feeTypeAnalyticsParameter = viewModel.feeAnalyticsParameterBuilder.analyticsParameter(selectedFee: selectedFee.option)
+//                viewModel.selectedFeeSummaryViewModel = viewModel.sectionViewModelFactory.makeFeeViewData(from: selectedFee)
+//            }
+//            .store(in: &bag)
+//    }
+//
+//    func setup(sendFinishInput input: any SendFinishInput) {
+//        input.transactionSentDate
+//            .map { date in
+//                let formatter = DateFormatter()
+//                formatter.dateStyle = .long
+//                formatter.timeStyle = .short
+//                return formatter.string(from: date)
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .sink(receiveValue: { [weak self] time in
+//                withAnimation(SendView.Constants.defaultAnimation) {
+//                    self?.transactionSentTime = time
+//                }
+//            })
+//            .store(in: &bag)
+//    }
+// }
 
 extension SendFinishViewModel {
     struct Settings {

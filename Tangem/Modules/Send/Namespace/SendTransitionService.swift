@@ -12,18 +12,10 @@ import SwiftUI
 class SendTransitionService {
     var destinationContentOffset: CGPoint = .zero
     var amountContentOffset: CGPoint = .zero
-
-    var feeContentOffset: CGPoint = .zero {
-        didSet {
-            print("->> feeContentOffset", feeContentOffset)
-        }
-    }
-
-    var selectedFeeContentOffset: CGPoint = .zero {
-        didSet {
-            print("->> selectedFeeContentOffset", selectedFeeContentOffset)
-        }
-    }
+    var validatorsContentOffset: CGPoint = .zero
+    var selectedValidatorContentOffset: CGPoint = .zero
+    var feeContentOffset: CGPoint = .zero
+    var selectedFeeContentOffset: CGPoint = .zero
 
     // MARK: - Destination
 
@@ -47,6 +39,19 @@ class SendTransitionService {
 
     // MARK: - Validators
 
+    func transitionToValidatorsStep(isEditMode: Bool) -> AnyTransition {
+        isEditMode ? .offset(y: -validatorsContentOffset.y) : .move(edge: .trailing)
+    }
+
+    var transitionToValidatorsCompactView: AnyTransition {
+        let startAnimationPointCompactView: CGFloat = -selectedValidatorContentOffset.y + validatorsContentOffset.y
+        print("->> startAnimationPointCompactView v", startAnimationPointCompactView)
+        return .asymmetric(
+            insertion: .offset(y: startAnimationPointCompactView),
+            removal: .opacity
+        )
+    }
+
     // MARK: - Fee
 
     func transitionToFeeStep(isEditMode: Bool) -> AnyTransition {
@@ -55,7 +60,7 @@ class SendTransitionService {
 
     var transitionToFeeCompactView: AnyTransition {
         let startAnimationPointCompactView: CGFloat = -selectedFeeContentOffset.y + feeContentOffset.y
-        print("->> startAnimationPointCompactView", startAnimationPointCompactView)
+        print("->> startAnimationPointCompactView f", startAnimationPointCompactView)
         return .asymmetric(
             insertion: .offset(y: startAnimationPointCompactView),
             removal: .opacity

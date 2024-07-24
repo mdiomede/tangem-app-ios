@@ -52,12 +52,15 @@ struct SellFlowBaseBuilder {
             editableType: .disable,
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
             sendAmountCompactViewModel: sendAmountCompactViewModel,
+            stakingValidatorsCompactViewModel: nil,
             sendFeeCompactViewModel: fee.compact
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
-            sendAmountCompactViewModel: sendAmountCompactViewModel
+            sendAmountCompactViewModel: sendAmountCompactViewModel,
+            stakingValidatorsCompactViewModel: nil,
+            sendFeeCompactViewModel: fee.compact
         )
 
         // We have to set dependicies here after all setups is completed
@@ -76,11 +79,6 @@ struct SellFlowBaseBuilder {
 
         // notificationManager.setup(input: sendModel)
         // notificationManager.setupManager(with: sendModel)
-
-        summary.step.setup(sendFeeInput: sendModel)
-
-        finish.setup(sendFeeInput: sendModel)
-        finish.setup(sendFinishInput: sendModel)
 
         let stepsManager = CommonSellStepsManager(
             feeStep: fee.step,

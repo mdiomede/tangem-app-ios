@@ -10,24 +10,14 @@ import Foundation
 import SwiftUI
 import Combine
 
-protocol SendSummaryViewModelSetupable: AnyObject {
-//    func setup(sendDestinationViewModel: SendDestinationViewModel)
-
-//    func setup(sendDestinationInput: SendDestinationInput)
-    func setup(sendFeeInput: SendFeeInput)
-    func setup(stakingValidatorsInput: StakingValidatorsInput)
-}
-
 class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var editableType: EditableType
     @Published var canEditFee: Bool = false
 
     @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
     @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
+    @Published var stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?
     @Published var sendFeeCompactViewModel: SendFeeCompactViewModel?
-
-    @Published var selectedValidatorData: ValidatorViewData?
-    @Published var selectedValidatorViewModel: ValidatorViewData?
 
     @Published var destinationVisible = true
     @Published var amountVisible = true
@@ -62,6 +52,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         sectionViewModelFactory: SendSummarySectionViewModelFactory,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
         sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?,
         sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) {
         editableType = settings.editableType
@@ -73,6 +64,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         self.sectionViewModelFactory = sectionViewModelFactory
         self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
         self.sendAmountCompactViewModel = sendAmountCompactViewModel
+        self.stakingValidatorsCompactViewModel = stakingValidatorsCompactViewModel
         self.sendFeeCompactViewModel = sendFeeCompactViewModel
 
         bind()
@@ -180,89 +172,20 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
     }
 }
 
-// MARK: - SendSummaryViewModelSetupable
+/*
+ func setup(sendFeeInput input: SendFeeInput) {
+     input
+         .feesPublisher
+         .map { feeValues in
+             let multipleFeeOptions = feeValues.count > 1
+             let hasError = feeValues.contains { $0.value.error != nil }
 
-extension SendSummaryViewModel: SendSummaryViewModelSetupable {
-//    func setup(sendDestinationViewModel: SendDestinationViewModel) {
-//        self.sendDestinationViewModel = sendDestinationViewModel
-//    }
-
-//    func setup(sendAmountViewModel: SendAmountViewModel) {
-//        self.sendAmountViewModel = sendAmountViewModel
-//    }
-
-//    func setup(sendDestinationInput input: SendDestinationInput) {
-//        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
-//            .withWeakCaptureOf(self)
-//            .map { viewModel, args in
-//                let (destination, additionalField) = args
-//                return viewModel.sectionViewModelFactory.makeDestinationViewTypes(
-//                    address: destination.value,
-//                    additionalField: additionalField
-//                )
-//            }
-//            .receive(on: DispatchQueue.main)
-//            .assign(to: \.destinationViewTypes, on: self)
-//            .store(in: &bag)
-//    }
-
-//    func setup(sendAmountInput input: SendAmountInput) {
-//        input.amountPublisher
-//            .withWeakCaptureOf(self)
-//            .compactMap { viewModel, amount in
-//                guard let formattedAmount = amount?.format(currencySymbol: viewModel.tokenItem.currencySymbol),
-//                      let formattedAlternativeAmount = amount?.formatAlternative(currencySymbol: viewModel.tokenItem.currencySymbol) else {
-//                    return nil
-//                }
-//
-//                return viewModel.sectionViewModelFactory.makeAmountViewData(
-//                    amount: formattedAmount,
-//                    amountAlternative: formattedAlternativeAmount
-//                )
-//            }
-//            .receive(on: DispatchQueue.main)
-//            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
-//            .store(in: &bag)
-//    }
-
-    func setup(sendFeeInput input: SendFeeInput) {
-        input
-            .feesPublisher
-            .map { feeValues in
-                let multipleFeeOptions = feeValues.count > 1
-                let hasError = feeValues.contains { $0.value.error != nil }
-
-                return multipleFeeOptions && !hasError
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.canEditFee, on: self, ownership: .weak)
-            .store(in: &bag)
-
-//        Publishers.CombineLatest(input.feesPublisher, input.selectedFeePublisher)
-//            .withWeakCaptureOf(self)
-//            .receive(on: DispatchQueue.main)
-//            .sink { viewModel, args in
-//                let (feeValues, selectedFee) = args
-//                viewModel.selectedFeeSummaryViewModel = viewModel.sectionViewModelFactory.makeFeeViewData(from: selectedFee)
-//                viewModel.deselectedFeeRowViewModels = feeValues.filter { $0.option != selectedFee.option }.map { feeValue in
-//                    viewModel.sectionViewModelFactory.makeDeselectedFeeRowViewModel(from: feeValue)
-//                }
-//            }
-//            .store(in: &bag)
-    }
-
-    func setup(stakingValidatorsInput input: any StakingValidatorsInput) {
-        let stakingValidatorViewMapper = StakingValidatorViewMapper()
-
-        input.selectedValidatorPublisher
-            .map { validator in
-                stakingValidatorViewMapper.mapToValidatorViewData(info: validator, detailsType: .chevron)
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.selectedValidatorData, on: self, ownership: .weak)
-            .store(in: &bag)
-    }
-}
+             return multipleFeeOptions && !hasError
+         }
+         .receive(on: DispatchQueue.main)
+         .assign(to: \.canEditFee, on: self, ownership: .weak)
+         .store(in: &bag)
+ */
 
 extension SendSummaryViewModel {
     struct Settings {

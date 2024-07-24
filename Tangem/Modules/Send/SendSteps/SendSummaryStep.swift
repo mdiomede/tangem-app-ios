@@ -54,7 +54,7 @@ extension SendSummaryStep: SendStep {
 
 // MARK: - SendSummaryViewModelSetupable
 
-extension SendSummaryStep: SendSummaryViewModelSetupable {
+// extension SendSummaryStep: SendSummaryViewModelSetupable {
 //    func setup(sendDestinationViewModel: SendDestinationViewModel) {
 //        viewModel.setup(sendDestinationViewModel: sendDestinationViewModel)
 //    }
@@ -71,11 +71,11 @@ extension SendSummaryStep: SendSummaryViewModelSetupable {
 //        viewModel.setup(sendAmountInput: sendAmountInput)
 //    }
 
-    func setup(sendFeeInput: any SendFeeInput) {
-        viewModel.setup(sendFeeInput: sendFeeInput)
-    }
-
-    func setup(stakingValidatorsInput: any StakingValidatorsInput) {
-        viewModel.setup(stakingValidatorsInput: stakingValidatorsInput)
-    }
-}
+//    func setup(sendFeeInput: any SendFeeInput) {
+//        viewModel.setup(sendFeeInput: sendFeeInput)
+//    }
+//
+//    func setup(stakingValidatorsInput: any StakingValidatorsInput) {
+//        viewModel.setup(stakingValidatorsInput: stakingValidatorsInput)
+//    }
+// }

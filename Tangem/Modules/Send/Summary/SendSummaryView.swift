@@ -56,10 +56,23 @@ struct SendSummaryView: View {
                     }
                 }
 
-//                if !viewModel.animatingValidatorOnAppear {
-//                    validatorSection
-//                }
-//
+                if viewModel.validatorVisible,
+                   let stakingValidatorsCompactViewModel = viewModel.stakingValidatorsCompactViewModel {
+                    StakingValidatorsCompactView(
+                        viewModel: stakingValidatorsCompactViewModel,
+                        namespace: .init(id: namespace.id, names: namespace.names)
+                    )
+                    .readContentOffset(
+                        inCoordinateSpace: .named(coordinateSpaceName),
+                        onChange: { transitionService.validatorsContentOffset = $0 }
+                    )
+                    .transition(transitionService.transitionToValidatorsCompactView)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        viewModel.userDidTapValidator()
+                    }
+                }
+
                 if viewModel.feeVisible, let sendFeeCompactViewModel = viewModel.sendFeeCompactViewModel {
                     SendFeeCompactView(
                         viewModel: sendFeeCompactViewModel,
@@ -108,25 +121,6 @@ struct SendSummaryView: View {
         .alert(item: $viewModel.alert) { $0.alert }
         .onAppear(perform: viewModel.onAppear)
         .onDisappear(perform: viewModel.onDisappear)
-    }
-
-    // MARK: - Validator
-
-    private var validatorSection: some View {
-        GroupedSection(viewModel.selectedValidatorData) { data in
-            ValidatorView(data: data, selection: .constant(""))
-                .geometryEffect(.init(id: namespace.id, names: namespace.names))
-        } header: {
-            DefaultHeaderView(Localization.stakingValidator)
-                .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
-                .padding(.top, 12)
-        }
-        .settings(\.backgroundColor, viewModel.editableType.sectionBackground)
-        .settings(\.backgroundGeometryEffect, .init(id: namespace.names.validatorContainer, namespace: namespace.id))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            viewModel.userDidTapValidator()
-        }
     }
 
     // MARK: - Description

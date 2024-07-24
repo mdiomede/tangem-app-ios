@@ -12,7 +12,6 @@ import BlockchainSdk
 
 class SendFeeCompactViewModel: ObservableObject, Identifiable {
     @Published var selectedFeeRowViewModel: FeeRowViewModel?
-//    @Published var deselectedFeeRowViewModels: [FeeRowViewModel] = []
 
     private let feeTokenItem: TokenItem
     private let isFeeApproximate: Bool
@@ -32,22 +31,12 @@ class SendFeeCompactViewModel: ObservableObject, Identifiable {
         self.isFeeApproximate = isFeeApproximate
     }
 
-    func onAppear() {
-//        selectedFeeSummaryViewModel?.setAnimateTitleOnAppear(true)
-    }
-
     func bind(input: SendFeeInput) {
-        inputSubscription = Publishers.CombineLatest(input.feesPublisher, input.selectedFeePublisher)
+        inputSubscription = input.selectedFeePublisher
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
-            .sink { viewModel, args in
-                let (feeValues, selectedFee) = args
+            .sink { viewModel, selectedFee in
                 viewModel.selectedFeeRowViewModel = viewModel.mapToFeeRowViewModel(fee: selectedFee)
-//                viewModel.deselectedFeeRowViewModels = feeValues
-//                    .filter { $0.option != selectedFee.option }
-//                    .map { feeValue in
-//                        viewModel.makeDeselectedFeeRowViewModel(from: feeValue)
-//                    }
             }
     }
 
@@ -69,14 +58,6 @@ class SendFeeCompactViewModel: ObservableObject, Identifiable {
             formattedFeeComponents: formattedFeeComponents
         )
     }
-
-//    private func makeDeselectedFeeRowViewModel(from value: SendFee) -> FeeRowViewModel {
-//        return FeeRowViewModel(
-//            option: value.option,
-//            formattedFeeComponents: formattedFeeComponents(from: value.value),
-//            isSelected: .constant(false)
-//        )
-//    }
 
     private func formattedFeeComponents(from feeValue: LoadingValue<Fee>) -> LoadingValue<FormattedFeeComponents> {
         switch feeValue {

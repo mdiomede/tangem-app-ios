@@ -34,9 +34,19 @@ struct SendFinishView: View {
                 )
             }
 
-            validatorSection
+            if let stakingValidatorsCompactViewModel = viewModel.stakingValidatorsCompactViewModel {
+                StakingValidatorsCompactView(
+                    viewModel: stakingValidatorsCompactViewModel,
+                    namespace: .init(id: namespace.id, names: namespace.names)
+                )
+            }
 
-            feeSection
+            if let sendFeeCompactViewModel = viewModel.sendFeeCompactViewModel {
+                SendFeeCompactView(
+                    viewModel: sendFeeCompactViewModel,
+                    namespace: .init(id: namespace.id, names: namespace.names)
+                )
+            }
         }
         .onAppear(perform: viewModel.onAppear)
     }
@@ -61,34 +71,6 @@ struct SendFinishView: View {
         .transition(.move(edge: .top).combined(with: .opacity))
         .padding(.top, 24)
         .padding(.bottom, 12)
-    }
-
-    // MARK: - Validator
-
-    private var validatorSection: some View {
-        GroupedSection(viewModel.selectedValidatorData) { data in
-            ValidatorView(data: data, selection: .constant(""))
-                .geometryEffect(.init(id: namespace.id, names: namespace.names))
-        } header: {
-            DefaultHeaderView(Localization.stakingValidator)
-                .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
-        }
-        .settings(\.backgroundColor, Colors.Background.action)
-        .settings(\.backgroundGeometryEffect, .init(id: namespace.names.validatorContainer, namespace: namespace.id))
-    }
-
-    // MARK: - Fee
-
-    private var feeSection: some View {
-        GroupedSection(viewModel.selectedFeeSummaryViewModel) { data in
-            SendFeeSummaryView(data: data)
-                .setNamespace(namespace.id)
-                .setTitleNamespaceId(namespace.names.feeTitle)
-                .setOptionNamespaceId(namespace.names.feeOption(feeOption: .market))
-                .setAmountNamespaceId(namespace.names.feeAmount(feeOption: .market))
-        }
-        .backgroundColor(Colors.Background.action)
-        .geometryEffect(.init(id: namespace.names.feeContainer, namespace: namespace.id))
     }
 }
 

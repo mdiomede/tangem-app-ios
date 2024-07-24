@@ -124,6 +124,7 @@ struct SendView: View {
         case .validators(let stakingValidatorsViewModel):
             StakingValidatorsView(
                 viewModel: stakingValidatorsViewModel,
+                transitionService: transitionService,
                 namespace: .init(id: namespace, names: SendGeometryEffectNames())
             )
         case .summary(let sendSummaryViewModel):
