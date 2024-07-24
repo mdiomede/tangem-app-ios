@@ -77,7 +77,6 @@ struct SendAmountView: View {
                 // We have to keep frame until SendDecimalNumberTextField size fix
                 // Just on appear it has the zero height. Is cause break animation
                 .frame(height: 35)
-                .border(Color.red)
                 .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
 
                 // Keep empty text so that the view maintains its place in the layout

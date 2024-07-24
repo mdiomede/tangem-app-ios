@@ -19,12 +19,17 @@ struct SendSummaryView: View {
         VStack(alignment: .center, spacing: 14) {
             GroupedScrollView(spacing: 14) {
                 if viewModel.destinationVisible,
-                   let sendDestinationViewModel = viewModel.sendDestinationViewModel {
+                   let sendDestinationViewModel = viewModel.sendDestinationCompactViewModel {
                     SendDestinationCompactView(
                         viewModel: sendDestinationViewModel,
-                        editableType: viewModel.editableType,
+                        background: viewModel.editableType.sectionBackground,
                         namespace: .init(id: namespace.id, names: namespace.names)
                     )
+                    .readContentOffset(
+                        inCoordinateSpace: .named(coordinateSpaceName),
+                        bindTo: $transitionService.destinationContentOffset
+                    )
+                    .transition(transitionService.transitionToDestinationCompactView)
                     .contentShape(Rectangle())
                     .allowsHitTesting(viewModel.canEditDestination)
                     .onTapGesture {
@@ -36,12 +41,9 @@ struct SendSummaryView: View {
                    let sendAmountViewModel = viewModel.sendAmountCompactViewModel {
                     SendAmountCompactView(
                         viewModel: sendAmountViewModel,
-                        editableType: viewModel.editableType,
+                        background: viewModel.editableType.sectionBackground,
                         namespace: .init(id: namespace.id, names: namespace.names)
                     )
-                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName), onChange: { value in
-                        print("->> contentOffset", value)
-                    })
                     .readContentOffset(
                         inCoordinateSpace: .named(coordinateSpaceName),
                         bindTo: $transitionService.amountContentOffset
@@ -84,7 +86,7 @@ struct SendSummaryView: View {
             descriptionView
         }
         .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
-        .transition(SendTransitionService.Constants.summaryViewTransition)
+        .transition(transitionService.summaryViewTransition)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.destinationVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.amountVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.validatorVisible)
@@ -97,42 +99,6 @@ struct SendSummaryView: View {
     }
 
     // MARK: - Destination
-
-//    private func destinationSection(addressTextViewHeightModel: AddressTextViewHeightModel) -> some View {
-//        GroupedSection(viewModel.destinationViewTypes) { type in
-//            switch type {
-//            case .address(let address, let corners):
-//                SendDestinationAddressSummaryView(addressTextViewHeightModel: addressTextViewHeightModel, address: address)
-//                    .namespace(.init(id: namespace.id, names: namespace.names))
-//                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
-//                    .background(
-//                        viewModel.editableType.sectionBackground
-//                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: corners)
-//                            .matchedGeometryEffect(id: namespace.names.addressBackground, in: namespace.id)
-//                    )
-//            case .additionalField(let type, let value):
-//                DefaultTextWithTitleRowView(data: .init(title: type.name, text: value))
-    ////                    .setNamespace(namespace.id)
-    ////                    .setTitleNamespaceId(namespace.names.addressAdditionalFieldTitle)
-    ////                    .setTextNamespaceId(namespace.names.addressAdditionalFieldText)
-//                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
-//                    .background(
-//                        viewModel.editableType.sectionBackground
-//                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: [.bottomLeft, .bottomRight])
-//                            .matchedGeometryEffect(id: namespace.names.addressAdditionalFieldBackground, in: namespace.id)
-//                    )
-//            }
-//        }
-//        .backgroundColor(.clear)
-//        .geometryEffect(.init(id: namespace.names.destinationContainer, namespace: namespace.id))
-//        .horizontalPadding(0)
-//        .separatorStyle(.single)
-//        .contentShape(Rectangle())
-//        .allowsHitTesting(viewModel.canEditDestination)
-//        .onTapGesture {
-//            viewModel.userDidTapDestination()
-//        }
-//    }
 
     // MARK: - Amount
 

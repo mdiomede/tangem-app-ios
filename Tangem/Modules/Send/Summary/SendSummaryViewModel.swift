@@ -11,9 +11,9 @@ import SwiftUI
 import Combine
 
 protocol SendSummaryViewModelSetupable: AnyObject {
-    func setup(sendDestinationViewModel: SendDestinationViewModel)
+//    func setup(sendDestinationViewModel: SendDestinationViewModel)
 
-    func setup(sendDestinationInput: SendDestinationInput)
+//    func setup(sendDestinationInput: SendDestinationInput)
     func setup(sendFeeInput: SendFeeInput)
     func setup(stakingValidatorsInput: StakingValidatorsInput)
 }
@@ -22,8 +22,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var editableType: EditableType
     @Published var canEditFee: Bool = false
 
-    @Published var destinationViewTypes: [SendDestinationSummaryViewType] = []
-    @Published var sendDestinationViewModel: SendDestinationViewModel?
+    @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
     @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
 
     @Published var selectedValidatorData: ValidatorViewData?
@@ -62,6 +61,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         notificationManager: NotificationManager,
         addressTextViewHeightModel: AddressTextViewHeightModel?,
         sectionViewModelFactory: SendSummarySectionViewModelFactory,
+        sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
         sendAmountCompactViewModel: SendAmountCompactViewModel?
     ) {
         editableType = settings.editableType
@@ -71,7 +71,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         self.notificationManager = notificationManager
         self.addressTextViewHeightModel = addressTextViewHeightModel
         self.sectionViewModelFactory = sectionViewModelFactory
-
+        self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
         self.sendAmountCompactViewModel = sendAmountCompactViewModel
 
         bind()
@@ -180,15 +180,15 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
 // MARK: - SendSummaryViewModelSetupable
 
 extension SendSummaryViewModel: SendSummaryViewModelSetupable {
-    func setup(sendDestinationViewModel: SendDestinationViewModel) {
-        self.sendDestinationViewModel = sendDestinationViewModel
-    }
+//    func setup(sendDestinationViewModel: SendDestinationViewModel) {
+//        self.sendDestinationViewModel = sendDestinationViewModel
+//    }
 
 //    func setup(sendAmountViewModel: SendAmountViewModel) {
 //        self.sendAmountViewModel = sendAmountViewModel
 //    }
 
-    func setup(sendDestinationInput input: SendDestinationInput) {
+//    func setup(sendDestinationInput input: SendDestinationInput) {
 //        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
 //            .withWeakCaptureOf(self)
 //            .map { viewModel, args in
@@ -201,9 +201,9 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
 //            .receive(on: DispatchQueue.main)
 //            .assign(to: \.destinationViewTypes, on: self)
 //            .store(in: &bag)
-    }
+//    }
 
-    func setup(sendAmountInput input: SendAmountInput) {
+//    func setup(sendAmountInput input: SendAmountInput) {
 //        input.amountPublisher
 //            .withWeakCaptureOf(self)
 //            .compactMap { viewModel, amount in
@@ -220,7 +220,7 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
 //            .receive(on: DispatchQueue.main)
 //            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
 //            .store(in: &bag)
-    }
+//    }
 
     func setup(sendFeeInput input: SendFeeInput) {
         input

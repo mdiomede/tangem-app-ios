@@ -18,11 +18,21 @@ struct SendFinishView: View {
                 header(transactionTime: transactionTime)
             }
 
-            if let addressTextViewHeightModel = viewModel.addressTextViewHeightModel {
-                destinationSection(addressTextViewHeightModel: addressTextViewHeightModel)
+            if let sendDestinationCompactViewModel = viewModel.sendDestinationCompactViewModel {
+                SendDestinationCompactView(
+                    viewModel: sendDestinationCompactViewModel,
+                    background: Colors.Background.action,
+                    namespace: .init(id: namespace.id, names: namespace.names)
+                )
             }
 
-            amountSection
+            if let sendAmountCompactViewModel = viewModel.sendAmountCompactViewModel {
+                SendAmountCompactView(
+                    viewModel: sendAmountCompactViewModel,
+                    background: Colors.Background.action,
+                    namespace: .init(id: namespace.id, names: namespace.names)
+                )
+            }
 
             validatorSection
 
@@ -51,54 +61,6 @@ struct SendFinishView: View {
         .transition(.move(edge: .top).combined(with: .opacity))
         .padding(.top, 24)
         .padding(.bottom, 12)
-    }
-
-    // MARK: - Destination
-
-    private func destinationSection(addressTextViewHeightModel: AddressTextViewHeightModel) -> some View {
-        GroupedSection(viewModel.destinationViewTypes) { type in
-            switch type {
-            case .address(let address, let corners):
-                SendDestinationAddressSummaryView(addressTextViewHeightModel: addressTextViewHeightModel, address: address)
-                    .namespace(.init(id: namespace.id, names: namespace.names))
-                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
-                    .background(
-                        Colors.Background.action
-                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: corners)
-                            .matchedGeometryEffect(id: namespace.names.addressBackground, in: namespace.id)
-                    )
-            case .additionalField(let type, let value):
-                DefaultTextWithTitleRowView(data: .init(title: type.name, text: value))
-//                    .setNamespace(namespace.id)
-//                    .setTitleNamespaceId(namespace.names.addressAdditionalFieldTitle)
-//                    .setTextNamespaceId(namespace.names.addressAdditionalFieldText)
-                    .padding(.horizontal, GroupedSectionConstants.defaultHorizontalPadding)
-                    .background(
-                        Colors.Background.action
-                            .cornerRadius(GroupedSectionConstants.defaultCornerRadius, corners: [.bottomLeft, .bottomRight])
-                            .matchedGeometryEffect(id: namespace.names.addressAdditionalFieldBackground, in: namespace.id)
-                    )
-            }
-        }
-        .backgroundColor(.clear)
-        .geometryEffect(.init(id: namespace.names.destinationContainer, namespace: namespace.id))
-        .horizontalPadding(0)
-        .separatorStyle(.single)
-    }
-
-    // MARK: - Amount
-
-    private var amountSection: some View {
-        GroupedSection(viewModel.amountSummaryViewData) {
-            SendAmountSummaryView(data: $0)
-                .setNamespace(namespace.id)
-                .setIconNamespaceId(namespace.names.tokenIcon)
-                .setAmountCryptoNamespaceId(namespace.names.amountCryptoText)
-                .setAmountFiatNamespaceId(namespace.names.amountFiatText)
-        }
-        .innerContentPadding(0)
-        .backgroundColor(Colors.Background.action)
-        .geometryEffect(.init(id: namespace.names.amountContainer, namespace: namespace.id))
     }
 
     // MARK: - Validator

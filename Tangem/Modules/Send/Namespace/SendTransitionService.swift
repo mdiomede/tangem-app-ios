@@ -10,7 +10,20 @@ import Foundation
 import SwiftUI
 
 class SendTransitionService: ObservableObject {
+    @Published var destinationContentOffset: CGPoint = .zero
     @Published var amountContentOffset: CGPoint = .zero
+
+    // MARK: - Destination
+
+    func transitionToDestinationStep(isEditMode: Bool) -> AnyTransition {
+        isEditMode ? .offset(y: -destinationContentOffset.y) : .move(edge: .leading)
+    }
+
+    var transitionToDestinationCompactView: AnyTransition {
+        .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
+    }
+
+    // MARK: - Amount
 
     func transitionToAmountStep(isEditMode: Bool) -> AnyTransition {
         isEditMode ? .offset(y: -amountContentOffset.y) : .move(edge: .trailing)
@@ -19,10 +32,14 @@ class SendTransitionService: ObservableObject {
     var transitionToAmountCompactView: AnyTransition {
         .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
     }
-}
 
-extension SendTransitionService {
-    enum Constants {
-        static let summaryViewTransition: AnyTransition = .asymmetric(insertion: .identity, removal: .opacity)
+    // MARK: - Fee
+
+    // MARK: - Validators
+
+    // MARK: - Summary
+
+    var summaryViewTransition: AnyTransition {
+        .asymmetric(insertion: .identity, removal: .opacity)
     }
 }

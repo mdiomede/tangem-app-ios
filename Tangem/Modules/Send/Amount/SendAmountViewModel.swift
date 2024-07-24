@@ -174,13 +174,11 @@ extension SendAmountViewModel: SendStepViewAnimatable {
             // Will be shown with animation
             auxiliaryViewsVisible = false
             isEditMode = true
-//            transition = .offset(y: 102)
 
         case .appearing(.destination(_), _):
             // Have to be always visible
             auxiliaryViewsVisible = true
             isEditMode = false
-//            transition = .move(edge: .trailing)
 
         case .disappearing:
             UIApplication.shared.endEditing()

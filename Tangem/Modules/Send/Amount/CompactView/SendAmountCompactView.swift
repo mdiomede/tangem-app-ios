@@ -11,7 +11,7 @@ import SwiftUI
 
 struct SendAmountCompactView: View {
     @ObservedObject var viewModel: SendAmountCompactViewModel
-    let editableType: SendSummaryViewModel.EditableType
+    let background: Color
     let namespace: SendAmountView.Namespace
 
     var body: some View {
@@ -19,7 +19,7 @@ struct SendAmountCompactView: View {
             amountContent
         }
         .innerContentPadding(16)
-        .backgroundColor(editableType.sectionBackground)
+        .backgroundColor(background)
         .geometryEffect(.init(id: namespace.names.amountContainer, namespace: namespace.id))
     }
 

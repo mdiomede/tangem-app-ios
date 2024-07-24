@@ -12,8 +12,8 @@ import Combine
 
 protocol SendFinishViewModelSetupable: AnyObject {
     func setup(sendFinishInput: SendFinishInput)
-    func setup(sendDestinationInput: SendDestinationInput)
-    func setup(sendAmountInput: SendAmountInput)
+//    func setup(sendDestinationInput: SendDestinationInput)
+//    func setup(sendAmountInput: SendAmountInput)
     func setup(sendFeeInput: SendFeeInput)
 }
 
@@ -22,12 +22,10 @@ class SendFinishViewModel: ObservableObject, Identifiable {
     @Published var transactionSentTime: String?
     @Published var alert: AlertBinder?
 
-    @Published var destinationViewTypes: [SendDestinationSummaryViewType] = []
-    @Published var amountSummaryViewData: SendAmountSummaryViewData?
+    @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
+    @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
     @Published var selectedValidatorData: ValidatorViewData?
     @Published var selectedFeeSummaryViewModel: SendFeeSummaryViewModel?
-
-    let addressTextViewHeightModel: AddressTextViewHeightModel?
 
     private let tokenItem: TokenItem
     private let sectionViewModelFactory: SendSummarySectionViewModelFactory
@@ -38,15 +36,17 @@ class SendFinishViewModel: ObservableObject, Identifiable {
 
     init(
         settings: Settings,
-        addressTextViewHeightModel: AddressTextViewHeightModel?,
         sectionViewModelFactory: SendSummarySectionViewModelFactory,
-        feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder
+        feeAnalyticsParameterBuilder: FeeAnalyticsParameterBuilder,
+        sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
+        sendAmountCompactViewModel: SendAmountCompactViewModel?
     ) {
         tokenItem = settings.tokenItem
 
-        self.addressTextViewHeightModel = addressTextViewHeightModel
         self.sectionViewModelFactory = sectionViewModelFactory
         self.feeAnalyticsParameterBuilder = feeAnalyticsParameterBuilder
+        self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
+        self.sendAmountCompactViewModel = sendAmountCompactViewModel
     }
 
     func onAppear() {
@@ -64,38 +64,38 @@ class SendFinishViewModel: ObservableObject, Identifiable {
 // MARK: - SendFinishViewModelSetupable
 
 extension SendFinishViewModel: SendFinishViewModelSetupable {
-    func setup(sendDestinationInput input: SendDestinationInput) {
-        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
-            .withWeakCaptureOf(self)
-            .map { viewModel, args in
-                let (destination, additionalField) = args
-                return viewModel.sectionViewModelFactory.makeDestinationViewTypes(
-                    address: destination.value,
-                    additionalField: additionalField
-                )
-            }
-            .assign(to: \.destinationViewTypes, on: self)
-            .store(in: &bag)
-    }
-
-    func setup(sendAmountInput input: SendAmountInput) {
-        input.amountPublisher
-            .withWeakCaptureOf(self)
-            .compactMap { viewModel, amount in
-                guard let formattedAmount = amount?.format(currencySymbol: viewModel.tokenItem.currencySymbol),
-                      let formattedAlternativeAmount = amount?.formatAlternative(currencySymbol: viewModel.tokenItem.currencySymbol) else {
-                    return nil
-                }
-
-                return viewModel.sectionViewModelFactory.makeAmountViewData(
-                    amount: formattedAmount,
-                    amountAlternative: formattedAlternativeAmount
-                )
-            }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
-            .store(in: &bag)
-    }
+//    func setup(sendDestinationInput input: SendDestinationInput) {
+//        Publishers.CombineLatest(input.destinationPublisher, input.additionalFieldPublisher)
+//            .withWeakCaptureOf(self)
+//            .map { viewModel, args in
+//                let (destination, additionalField) = args
+//                return viewModel.sectionViewModelFactory.makeDestinationViewTypes(
+//                    address: destination.value,
+//                    additionalField: additionalField
+//                )
+//            }
+//            .assign(to: \.destinationViewTypes, on: self)
+//            .store(in: &bag)
+//    }
+//
+//    func setup(sendAmountInput input: SendAmountInput) {
+//        input.amountPublisher
+//            .withWeakCaptureOf(self)
+//            .compactMap { viewModel, amount in
+//                guard let formattedAmount = amount?.format(currencySymbol: viewModel.tokenItem.currencySymbol),
+//                      let formattedAlternativeAmount = amount?.formatAlternative(currencySymbol: viewModel.tokenItem.currencySymbol) else {
+//                    return nil
+//                }
+//
+//                return viewModel.sectionViewModelFactory.makeAmountViewData(
+//                    amount: formattedAmount,
+//                    amountAlternative: formattedAlternativeAmount
+//                )
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .assign(to: \.amountSummaryViewData, on: self, ownership: .weak)
+//            .store(in: &bag)
+//    }
 
     func setup(sendFeeInput input: SendFeeInput) {
         input.selectedFeePublisher

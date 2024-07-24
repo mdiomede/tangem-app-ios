@@ -12,6 +12,8 @@ struct SellFlowBaseBuilder {
     let userWalletModel: UserWalletModel
     let walletModel: WalletModel
 
+    let sendDestinationStepBuilder: SendDestinationStepBuilder
+    let sendAmountStepBuilder: SendAmountStepBuilder
     let sendFeeStepBuilder: SendFeeStepBuilder
     let sendSummaryStepBuilder: SendSummaryStepBuilder
     let sendFinishStepBuilder: SendFinishStepBuilder
@@ -27,6 +29,15 @@ struct SellFlowBaseBuilder {
             predefinedSellParameters: sellParameters
         )
 
+        let sendDestinationCompactViewModel = sendDestinationStepBuilder.makeSendDestinationCompactViewModel(
+            input: sendModel,
+            addressTextViewHeightModel: addressTextViewHeightModel
+        )
+
+        let sendAmountCompactViewModel = sendAmountStepBuilder.makeSendAmountCompactViewModel(
+            input: sendModel
+        )
+
         let fee = sendFeeStepBuilder.makeFeeSendStep(
             io: (input: sendModel, output: sendModel),
             notificationManager: notificationManager,
@@ -39,15 +50,13 @@ struct SellFlowBaseBuilder {
             notificationManager: notificationManager,
             addressTextViewHeightModel: addressTextViewHeightModel,
             editableType: .disable,
-            sendAmountCompactViewModel: .init(
-                input: sendModel,
-                tokenIconInfo: builder.makeTokenIconInfo(),
-                tokenItem: walletModel.tokenItem
-            )
+            sendDestinationCompactViewModel: sendDestinationCompactViewModel,
+            sendAmountCompactViewModel: sendAmountCompactViewModel
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(
-            addressTextViewHeightModel: addressTextViewHeightModel
+            sendDestinationCompactViewModel: sendDestinationCompactViewModel,
+            sendAmountCompactViewModel: sendAmountCompactViewModel
         )
 
         // We have to set dependicies here after all setups is completed
@@ -67,12 +76,8 @@ struct SellFlowBaseBuilder {
         // notificationManager.setup(input: sendModel)
         // notificationManager.setupManager(with: sendModel)
 
-        summary.step.setup(sendDestinationInput: sendModel)
-//        summary.step.setup(sendAmountInput: sendModel)
         summary.step.setup(sendFeeInput: sendModel)
 
-        finish.setup(sendDestinationInput: sendModel)
-        finish.setup(sendAmountInput: sendModel)
         finish.setup(sendFeeInput: sendModel)
         finish.setup(sendFinishInput: sendModel)
 

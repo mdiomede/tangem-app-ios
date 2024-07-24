@@ -52,11 +52,13 @@ struct SendFlowBaseBuilder {
             notificationManager: notificationManager,
             addressTextViewHeightModel: addressTextViewHeightModel,
             editableType: .editable,
+            sendDestinationCompactViewModel: destination.compact,
             sendAmountCompactViewModel: amount.compact
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(
-            addressTextViewHeightModel: addressTextViewHeightModel
+            sendDestinationCompactViewModel: destination.compact,
+            sendAmountCompactViewModel: amount.compact
         )
 
         // We have to set dependicies here after all setups is completed
@@ -69,14 +71,12 @@ struct SendFlowBaseBuilder {
         notificationManager.setup(input: sendModel)
         notificationManager.setupManager(with: sendModel)
 
-        summary.step.setup(sendDestinationViewModel: destination.step.viewModel)
+//        summary.step.setup(sendDestinationViewModel: destination.step.viewModel)
 //        summary.step.setup(sendAmountViewModel: amount.step.viewModel)
 //        summary.step.setup(sendDestinationInput: sendModel)
 //        summary.step.setup(sendAmountInput: sendModel)
         summary.step.setup(sendFeeInput: sendModel)
 
-        finish.setup(sendDestinationInput: sendModel)
-        finish.setup(sendAmountInput: sendModel)
         finish.setup(sendFeeInput: sendModel)
         finish.setup(sendFinishInput: sendModel)
 

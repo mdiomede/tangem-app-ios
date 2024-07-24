@@ -55,17 +55,17 @@ extension SendSummaryStep: SendStep {
 // MARK: - SendSummaryViewModelSetupable
 
 extension SendSummaryStep: SendSummaryViewModelSetupable {
-    func setup(sendDestinationViewModel: SendDestinationViewModel) {
-        viewModel.setup(sendDestinationViewModel: sendDestinationViewModel)
-    }
+//    func setup(sendDestinationViewModel: SendDestinationViewModel) {
+//        viewModel.setup(sendDestinationViewModel: sendDestinationViewModel)
+//    }
 
 //    func setup(sendAmountViewModel: SendAmountViewModel) {
 //        viewModel.setup(sendAmountViewModel: sendAmountViewModel)
 //    }
 
-    func setup(sendDestinationInput: any SendDestinationInput) {
-        viewModel.setup(sendDestinationInput: sendDestinationInput)
-    }
+//    func setup(sendDestinationInput: any SendDestinationInput) {
+//        viewModel.setup(sendDestinationInput: sendDestinationInput)
+//    }
 
 //    func setup(sendAmountInput: any SendAmountInput) {
 //        viewModel.setup(sendAmountInput: sendAmountInput)

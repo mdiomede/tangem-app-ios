@@ -29,13 +29,16 @@ struct SendAmountStepBuilder {
             sendFeeLoader: sendFeeLoader
         )
 
-        let compactViewModel = SendAmountCompactViewModel(
-            input: io.input,
+        let compact = makeSendAmountCompactViewModel(input: io.input)
+        return (step: step, interactor: interactor, compact: compact)
+    }
+
+    func makeSendAmountCompactViewModel(input: SendAmountInput) -> SendAmountCompactViewModel {
+        .init(
+            input: input,
             tokenIconInfo: builder.makeTokenIconInfo(),
             tokenItem: walletModel.tokenItem
         )
-
-        return (step: step, interactor: interactor, compact: compactViewModel)
     }
 }
 

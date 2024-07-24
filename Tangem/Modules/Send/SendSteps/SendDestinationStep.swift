@@ -40,7 +40,7 @@ extension SendDestinationStep: SendStep {
 
     var type: SendStepType { .destination(viewModel) }
 
-    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { nil }
+    var sendStepViewAnimatable: (any SendStepViewAnimatable)? { viewModel }
 
     var navigationTrailingViewType: SendStepNavigationTrailingViewType? {
         .qrCodeButton { [weak self] in
@@ -53,27 +53,18 @@ extension SendDestinationStep: SendStep {
     }
 
     func willAppear(previous step: any SendStep) {
-        switch step.type {
-        case .summary:
-            viewModel.transition = .offset() // SendView.StepAnimation.moveAndFade.transition
-        case .amount:
-            viewModel.transition = .move(edge: .leading) // SendView.StepAnimation.slideBackward.transition
-        default:
-            assertionFailure("Not implemented")
+        if step.type.isSummary {
+            Analytics.log(.sendScreenReopened, params: [.source: .address])
+        } else {
+            Analytics.log(.sendAddressScreenOpened)
         }
     }
 
     func willDisappear(next step: SendStep) {
-        UIApplication.shared.endEditing()
-
         guard step.type.isSummary else {
             return
         }
 
-//        RunLoop.main.perform {
-        viewModel.transition = .offset() // SendView.StepAnimation.moveAndFade.transition
-//        }
-//        viewModel.transition = SendView.StepAnimation.moveAndFade.transition
         sendFeeInteractor.updateFees()
     }
 }

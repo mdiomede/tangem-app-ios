@@ -42,6 +42,7 @@ struct SendView: View {
             bottomContainer
                 .animation(Constants.defaultAnimation, value: viewModel.showBackButton)
         }
+//        .animation(SendView.Constants.defaultAnimation, value: viewModel.title)
     }
 
     @ViewBuilder
@@ -55,14 +56,14 @@ struct SendView: View {
 
                     Spacer()
 
-                    if let trailing = viewModel.step.navigationTrailingViewType {
-                        switch trailing {
-                        case .qrCodeButton(let action):
-                            Button(action: action) {
-                                Assets.qrCode.image
-                                    .renderingMode(.template)
-                                    .foregroundColor(Colors.Icon.primary1)
-                            }
+                    switch viewModel.step.navigationTrailingViewType {
+                    case .none:
+                        EmptyView()
+                    case .qrCodeButton(let action):
+                        Button(action: action) {
+                            Assets.qrCode.image
+                                .renderingMode(.template)
+                                .foregroundColor(Colors.Icon.primary1)
                         }
                     }
                 }
@@ -90,8 +91,7 @@ struct SendView: View {
             }
         }
         .lineLimit(1)
-        .frame(maxWidth: .infinity)
-        .animation(SendView.Constants.defaultAnimation, value: title)
+        .infinityFrame(axis: .horizontal, alignment: .center)
     }
 
     @ViewBuilder
@@ -100,6 +100,7 @@ struct SendView: View {
         case .destination(let sendDestinationViewModel):
             SendDestinationView(
                 viewModel: sendDestinationViewModel,
+                transitionService: transitionService,
                 namespace: .init(id: namespace, names: SendGeometryEffectNames())
             )
             .onAppear(perform: {
