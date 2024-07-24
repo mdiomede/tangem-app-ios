@@ -32,12 +32,14 @@ struct SendFeeView: View {
                                 transitionService.selectedFeeContentOffset = value
                             }
                         }
-                        .transition(.opacity)
-                }
-            } header: {
-                if !viewModel.auxiliaryViewsVisible {
-                    DefaultHeaderView(Localization.commonNetworkFeeTitle)
-                        .matchedGeometryEffect(id: namespace.names.feeTitle, in: namespace.id)
+                        .modifier(if: feeRowViewModel.isSelected.value) {
+                            $0.overlay(alignment: .topLeading) {
+                                DefaultHeaderView(Localization.commonNetworkFeeTitle)
+                                    .matchedGeometryEffect(id: namespace.names.feeTitle, in: namespace.id)
+                                    .transition(.opacity)
+                                    .hidden()
+                            }
+                        }
                         .transition(.opacity)
                 }
             } footer: {

@@ -28,6 +28,7 @@ struct StakingFlowBaseBuilder {
         )
 
         let sendFeeCompactViewModel = sendFeeStepBuilder.makeSendFeeCompactViewModel(input: stakingModel)
+        sendFeeCompactViewModel.bind(input: stakingModel)
 
         let amount = sendAmountStepBuilder.makeSendAmountStep(
             io: (input: stakingModel, output: stakingModel),

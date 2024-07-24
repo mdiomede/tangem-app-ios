@@ -41,38 +41,19 @@ class SendFeeCompactViewModel: ObservableObject, Identifiable {
     }
 
     private func mapToFeeRowViewModel(fee: SendFee) -> FeeRowViewModel {
-        let feeComponents = formattedFeeComponents(from: fee.value)
+        let feeComponents = fee.value.mapValue {
+            feeFormatter.formattedFeeComponents(
+                fee: $0.amount.value,
+                currencySymbol: feeTokenItem.currencySymbol,
+                currencyId: feeTokenItem.currencyId,
+                isFeeApproximate: isFeeApproximate
+            )
+        }
 
         return FeeRowViewModel(
             option: fee.option,
             formattedFeeComponents: feeComponents,
             isSelected: .constant(true)
         )
-    }
-
-    private func makeFeeViewData(from value: SendFee) -> SendFeeSummaryViewModel? {
-        let formattedFeeComponents = formattedFeeComponents(from: value.value)
-        return SendFeeSummaryViewModel(
-            title: Localization.commonNetworkFeeTitle,
-            feeOption: value.option,
-            formattedFeeComponents: formattedFeeComponents
-        )
-    }
-
-    private func formattedFeeComponents(from feeValue: LoadingValue<Fee>) -> LoadingValue<FormattedFeeComponents> {
-        switch feeValue {
-        case .loading:
-            return .loading
-        case .loaded(let value):
-            let formattedFeeComponents = feeFormatter.formattedFeeComponents(
-                fee: value.amount.value,
-                currencySymbol: feeTokenItem.currencySymbol,
-                currencyId: feeTokenItem.currencyId,
-                isFeeApproximate: isFeeApproximate
-            )
-            return .loaded(formattedFeeComponents)
-        case .failedToLoad(let error):
-            return .failedToLoad(error: error)
-        }
     }
 }

@@ -77,7 +77,6 @@ private extension SendSummaryStepBuilder {
             interactor: interactor,
             notificationManager: notificationManager,
             addressTextViewHeightModel: addressTextViewHeightModel,
-            sectionViewModelFactory: makeSendSummarySectionViewModelFactory(),
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
             sendAmountCompactViewModel: sendAmountCompactViewModel,
             stakingValidatorsCompactViewModel: stakingValidatorsCompactViewModel,
@@ -97,17 +96,10 @@ private extension SendSummaryStepBuilder {
         )
     }
 
-    func makeSendSummarySectionViewModelFactory() -> SendSummarySectionViewModelFactory {
-        SendSummarySectionViewModelFactory(
-            feeCurrencySymbol: walletModel.feeTokenItem.currencySymbol,
-            feeCurrencyId: walletModel.feeTokenItem.currencyId,
-            isFeeApproximate: builder.isFeeApproximate(),
-            currencyId: walletModel.tokenItem.currencyId,
-            tokenIconInfo: builder.makeTokenIconInfo()
-        )
-    }
-
     func makeSendTransactionSummaryDescriptionBuilder() -> SendTransactionSummaryDescriptionBuilder {
-        SendTransactionSummaryDescriptionBuilder(tokenItem: walletModel.tokenItem, feeTokenItem: walletModel.feeTokenItem)
+        SendTransactionSummaryDescriptionBuilder(
+            tokenItem: walletModel.tokenItem,
+            feeTokenItem: walletModel.feeTokenItem
+        )
     }
 }

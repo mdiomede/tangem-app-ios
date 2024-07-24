@@ -28,12 +28,15 @@ struct StakingValidatorsView: View {
                                 transitionService.selectedValidatorContentOffset = value
                             }
                         }
+                        .modifier(if: isSelected) {
+                            $0.overlay(alignment: .topLeading) {
+                                DefaultHeaderView(Localization.stakingValidator)
+                                    .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
+                                    .hidden()
+                            }
+                        }
                         .transition(.opacity)
                 }
-            } header: {
-                DefaultHeaderView(Localization.stakingValidator)
-                    .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
-                    .hidden()
             }
             .settings(\.backgroundColor, Colors.Background.action)
             .settings(\.backgroundGeometryEffect, .init(id: namespace.names.validatorContainer, namespace: namespace.id))

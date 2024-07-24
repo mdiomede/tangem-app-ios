@@ -44,22 +44,11 @@ private extension SendFinishStepBuilder {
     ) -> SendFinishViewModel {
         SendFinishViewModel(
             settings: .init(tokenItem: walletModel.tokenItem),
-            sectionViewModelFactory: makeSendSummarySectionViewModelFactory(),
             feeAnalyticsParameterBuilder: builder.makeFeeAnalyticsParameterBuilder(),
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
             sendAmountCompactViewModel: sendAmountCompactViewModel,
             stakingValidatorsCompactViewModel: stakingValidatorsCompactViewModel,
             sendFeeCompactViewModel: sendFeeCompactViewModel
-        )
-    }
-
-    func makeSendSummarySectionViewModelFactory() -> SendSummarySectionViewModelFactory {
-        SendSummarySectionViewModelFactory(
-            feeCurrencySymbol: walletModel.feeTokenItem.currencySymbol,
-            feeCurrencyId: walletModel.feeTokenItem.currencyId,
-            isFeeApproximate: builder.isFeeApproximate(),
-            currencyId: walletModel.tokenItem.currencyId,
-            tokenIconInfo: builder.makeTokenIconInfo()
         )
     }
 }

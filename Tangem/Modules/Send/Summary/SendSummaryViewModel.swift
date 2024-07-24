@@ -22,7 +22,12 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var destinationVisible = true
     @Published var amountVisible = true
     @Published var validatorVisible = true
-    @Published var feeVisible = true
+    @Published var feeVisible = true {
+        didSet {
+            print("feeVisible ->>", feeVisible)
+        }
+    }
+
     @Published var showHint = false
 
     @Published var alert: AlertBinder?
@@ -39,7 +44,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     private let tokenItem: TokenItem
     private let interactor: SendSummaryInteractor
     private let notificationManager: NotificationManager
-    private let sectionViewModelFactory: SendSummarySectionViewModelFactory
     weak var router: SendSummaryStepsRoutable?
 
     private var bag: Set<AnyCancellable> = []
@@ -49,7 +53,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         interactor: SendSummaryInteractor,
         notificationManager: NotificationManager,
         addressTextViewHeightModel: AddressTextViewHeightModel?,
-        sectionViewModelFactory: SendSummarySectionViewModelFactory,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
         sendAmountCompactViewModel: SendAmountCompactViewModel?,
         stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?,
@@ -61,7 +64,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         self.interactor = interactor
         self.notificationManager = notificationManager
         self.addressTextViewHeightModel = addressTextViewHeightModel
-        self.sectionViewModelFactory = sectionViewModelFactory
         self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
         self.sendAmountCompactViewModel = sendAmountCompactViewModel
         self.stakingValidatorsCompactViewModel = stakingValidatorsCompactViewModel
@@ -74,7 +76,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         destinationVisible = true
         amountVisible = true
         validatorVisible = true
-        feeVisible = true
+//        feeVisible = true
         transactionDescriptionIsVisible = true
 
         Analytics.log(.sendConfirmScreenOpened)
@@ -155,7 +157,7 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             destinationVisible = true
             amountVisible = true
             validatorVisible = false
-            feeVisible = true
+//            feeVisible = true
         case .appearing(.fee(_), _):
             destinationVisible = true
             amountVisible = true
@@ -167,7 +169,7 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             assertionFailure("Not implemented")
         }
 
-//        showHint = false
+        showHint = false
         transactionDescriptionIsVisible = false
     }
 }
