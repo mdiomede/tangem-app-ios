@@ -17,7 +17,6 @@ class SendAmountViewModel: ObservableObject, Identifiable {
     let balance: String
     let tokenIconInfo: TokenIconInfo
     let currencyPickerData: SendCurrencyPickerData
-    let amountMinTextScale: CGFloat = SendView.Constants.amountMinTextScale
 
     @Published var auxiliaryViewsVisible: Bool = true
     @Published var isEditMode: Bool = false

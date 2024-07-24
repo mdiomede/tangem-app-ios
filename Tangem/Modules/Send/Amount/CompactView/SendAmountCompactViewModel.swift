@@ -29,16 +29,18 @@ class SendAmountCompactViewModel: ObservableObject, Identifiable {
         self.tokenIconInfo = tokenIconInfo
         self.tokenItem = tokenItem
 
-        bind()
+        bind(input: input)
     }
 
-    func bind() {
-        input?.amountPublisher
+    func bind(input: SendAmountInput) {
+        input.amountPublisher
             .withWeakCaptureOf(self)
             .receive(on: DispatchQueue.main)
             .sink { viewModel, amount in
                 viewModel.amount = amount?.format(currencySymbol: viewModel.tokenItem.currencySymbol)
-                viewModel.alternativeAmount = amount?.formatAlternative(currencySymbol: viewModel.tokenItem.currencySymbol)
+                viewModel.alternativeAmount = amount?.formatAlternative(
+                    currencySymbol: viewModel.tokenItem.currencySymbol
+                )
             }
             .store(in: &bag)
     }

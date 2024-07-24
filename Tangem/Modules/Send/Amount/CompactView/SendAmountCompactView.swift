@@ -31,16 +31,13 @@ struct SendAmountCompactView: View {
             VStack(alignment: .center, spacing: 6) {
                 ZStack {
                     Text(viewModel.amount ?? " ")
-                        .style(DecimalNumberTextField.Appearance().font, color: DecimalNumberTextField.Appearance().textColor)
-//                        .fixedSize()
-//                        .initialFocusBehavior(.noFocus)
-//                        .alignment(.center)
-//                        .prefixSuffixOptions(viewModel.currentFieldOptions)
-//                        .minTextScale(viewModel.amountMinTextScale)
-
+                        .style(
+                            DecimalNumberTextField.Appearance().font,
+                            color: DecimalNumberTextField.Appearance().textColor
+                        )
                         .infinityFrame(axis: .horizontal, alignment: .center)
-                        .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
                         .minimumScaleFactor(SendView.Constants.amountMinTextScale)
+                        .matchedGeometryEffect(id: namespace.names.amountCryptoText, in: namespace.id)
                 }
                 // We have to keep frame until SendDecimalNumberTextField size fix
                 // Just on appear it has the zero height. Is cause break animation

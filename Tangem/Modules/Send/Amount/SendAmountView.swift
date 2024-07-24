@@ -34,6 +34,7 @@ struct SendAmountView: View {
                     // Because the top padding have to be is 16 to the white background
                     // But the bottom padding have to be is 12
                     .padding(.top, 4)
+                    .transition(.opacity)
             }
 
             amountContent
@@ -72,7 +73,7 @@ struct SendAmountView: View {
                         .initialFocusBehavior(.noFocus)
                         .alignment(.center)
                         .prefixSuffixOptions(viewModel.currentFieldOptions)
-                        .minTextScale(viewModel.amountMinTextScale)
+                        .minTextScale(SendView.Constants.amountMinTextScale)
                 }
                 // We have to keep frame until SendDecimalNumberTextField size fix
                 // Just on appear it has the zero height. Is cause break animation
@@ -106,6 +107,7 @@ struct SendAmountView: View {
                 .frame(width: proxy.size.width / 3)
             }
         }
+        .transition(.opacity)
     }
 }
 

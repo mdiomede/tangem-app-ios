@@ -30,10 +30,10 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var selectedValidatorViewModel: ValidatorViewData?
     @Published var deselectedFeeRowViewModels: [FeeRowViewModel] = []
 
-    @Published var destinationVisible = false
-    @Published var amountVisible = false
-    @Published var validatorVisible = false
-    @Published var feeVisible = false
+    @Published var destinationVisible = true
+    @Published var amountVisible = true
+    @Published var validatorVisible = true
+    @Published var feeVisible = true
     @Published var showHint = false
 
     @Published var alert: AlertBinder?

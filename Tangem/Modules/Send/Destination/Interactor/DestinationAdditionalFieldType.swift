@@ -37,8 +37,7 @@ enum SendDestinationAdditionalFieldType {
              .terraV1,
              .terraV2,
              .algorand,
-             .hedera,
-             .cardano:
+             .hedera:
             return .memo
         case .xrp:
             return .destinationTag
