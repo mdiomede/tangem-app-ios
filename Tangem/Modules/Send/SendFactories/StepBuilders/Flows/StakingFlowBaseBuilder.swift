@@ -27,6 +27,8 @@ struct StakingFlowBaseBuilder {
             sendTransactionDispatcher: sendTransactionDispatcher
         )
 
+        let sendFeeCompactViewModel = sendFeeStepBuilder.makeSendFeeCompactViewModel(input: stakingModel)
+
         let amount = sendAmountStepBuilder.makeSendAmountStep(
             io: (input: stakingModel, output: stakingModel),
             sendFeeLoader: stakingModel,
@@ -45,7 +47,8 @@ struct StakingFlowBaseBuilder {
             addressTextViewHeightModel: .none,
             editableType: .editable,
             sendDestinationCompactViewModel: .none,
-            sendAmountCompactViewModel: amount.compact
+            sendAmountCompactViewModel: amount.compact,
+            sendFeeCompactViewModel: sendFeeCompactViewModel
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(

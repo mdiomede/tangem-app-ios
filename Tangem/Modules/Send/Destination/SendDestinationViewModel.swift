@@ -181,7 +181,7 @@ class SendDestinationViewModel: ObservableObject, Identifiable {
     }
 }
 
-// MARK: - AuxiliaryViewAnimatable
+// MARK: - SendStepViewAnimatable
 
 extension SendDestinationViewModel: SendStepViewAnimatable {
     func viewDidChangeVisibilityState(_ state: SendStepVisibilityState) {

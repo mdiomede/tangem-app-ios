@@ -53,7 +53,8 @@ struct SendFlowBaseBuilder {
             addressTextViewHeightModel: addressTextViewHeightModel,
             editableType: .editable,
             sendDestinationCompactViewModel: destination.compact,
-            sendAmountCompactViewModel: amount.compact
+            sendAmountCompactViewModel: amount.compact,
+            sendFeeCompactViewModel: fee.compact
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(
@@ -79,6 +80,9 @@ struct SendFlowBaseBuilder {
 
         finish.setup(sendFeeInput: sendModel)
         finish.setup(sendFinishInput: sendModel)
+
+        // We have to do it after sendModel fully setup
+        fee.compact.bind(input: sendModel)
 
         let stepsManager = CommonSendStepsManager(
             destinationStep: destination.step,

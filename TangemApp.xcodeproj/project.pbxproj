@@ -1287,6 +1287,8 @@
 		EF0F99E3289177C6008B01DF /* InfoDictionaryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0F99E2289177C6008B01DF /* InfoDictionaryUtils.swift */; };
 		EF0FBB462C50F2D90095A6BD /* SendDestinationCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB452C50F2D90095A6BD /* SendDestinationCompactView.swift */; };
 		EF0FBB482C50F2E70095A6BD /* SendDestinationCompactViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB472C50F2E70095A6BD /* SendDestinationCompactViewModel.swift */; };
+		EF0FBB4B2C51146A0095A6BD /* SendFeeCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB4A2C51146A0095A6BD /* SendFeeCompactView.swift */; };
+		EF0FBB4D2C5114710095A6BD /* SendFeeCompactViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FBB4C2C5114710095A6BD /* SendFeeCompactViewModel.swift */; };
 		EF0FF8712866021B00B7CEAF /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0FF8702866021B00B7CEAF /* AppEnvironment.swift */; };
 		EF193C032A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF193C022A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift */; };
 		EF1D1ADE2C270DDE000CB941 /* SendFeeInputOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */; };
@@ -3202,6 +3204,8 @@
 		EF0F99E2289177C6008B01DF /* InfoDictionaryUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoDictionaryUtils.swift; sourceTree = "<group>"; };
 		EF0FBB452C50F2D90095A6BD /* SendDestinationCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendDestinationCompactView.swift; sourceTree = "<group>"; };
 		EF0FBB472C50F2E70095A6BD /* SendDestinationCompactViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendDestinationCompactViewModel.swift; sourceTree = "<group>"; };
+		EF0FBB4A2C51146A0095A6BD /* SendFeeCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeCompactView.swift; sourceTree = "<group>"; };
+		EF0FBB4C2C5114710095A6BD /* SendFeeCompactViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeCompactViewModel.swift; sourceTree = "<group>"; };
 		EF0FF8702866021B00B7CEAF /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		EF193C022A78EBA60048C0C3 /* BottomScrollableSheetStateObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomScrollableSheetStateObject.swift; sourceTree = "<group>"; };
 		EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFeeInputOutput.swift; sourceTree = "<group>"; };
@@ -6883,6 +6887,7 @@
 				DA559C222B0261F300F59584 /* SendFeeViewModel.swift */,
 				EF1D1ADD2C270DDE000CB941 /* SendFeeInputOutput.swift */,
 				DA19EF5E2B8CBB2600F7BDFD /* SendFeeRoutable.swift */,
+				EF0FBB492C51145E0095A6BD /* SendFeeCompactView */,
 				EF339E4C2C21FC6800B5CDC9 /* SendCustomFeeInputField */,
 				EF339E472C21FBE000B5CDC9 /* Interactor */,
 				DADBECD92BBE910C007E7885 /* CustomFeeService */,
@@ -7937,6 +7942,15 @@
 				EF0FBB472C50F2E70095A6BD /* SendDestinationCompactViewModel.swift */,
 			);
 			path = SendDestinationCompactView;
+			sourceTree = "<group>";
+		};
+		EF0FBB492C51145E0095A6BD /* SendFeeCompactView */ = {
+			isa = PBXGroup;
+			children = (
+				EF0FBB4A2C51146A0095A6BD /* SendFeeCompactView.swift */,
+				EF0FBB4C2C5114710095A6BD /* SendFeeCompactViewModel.swift */,
+			);
+			path = SendFeeCompactView;
 			sourceTree = "<group>";
 		};
 		EF1D1AE32C296D79000CB941 /* SendAmountSummaryView */ = {
@@ -10747,6 +10761,7 @@
 				EF4662202924DEEE00346B6C /* DefaultWarningRowViewModel.swift in Sources */,
 				DC261CAA292CF56600875E64 /* AuthView.swift in Sources */,
 				B09BB860259A075600B92000 /* ButtonStyles.swift in Sources */,
+				EF0FBB4D2C5114710095A6BD /* SendFeeCompactViewModel.swift in Sources */,
 				B0DC10CD2927505300BBE854 /* SwiftConcurrency+.swift in Sources */,
 				DC0CC5B42B0D3F0E00E32CAC /* TwinPreflightReadFilter.swift in Sources */,
 				B0B469512C11B3CD000D9387 /* AddCustomTokenNetworksListView.swift in Sources */,
@@ -10896,6 +10911,7 @@
 				B6934E8B2B5E9E36004AA300 /* RateAppRoutable.swift in Sources */,
 				DC6DACFF2A98DF1F00AEBB8C /* ReferralInputModel.swift in Sources */,
 				2D1146A72ADD0EDC00DEE827 /* ManageTokensNetworkSelectorItemViewModel.swift in Sources */,
+				EF0FBB4B2C51146A0095A6BD /* SendFeeCompactView.swift in Sources */,
 				DC66BC04285B6C5F00CDF765 /* LegacySendCoordinator.swift in Sources */,
 				B03478602B0F6C08004FECA0 /* HighPriceImpactCalculator.swift in Sources */,
 				DA43719E2A7D1937006215CA /* ManageTokensCoinView.swift in Sources */,

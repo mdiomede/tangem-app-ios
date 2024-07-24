@@ -229,7 +229,7 @@ extension SendViewModel: SendViewAlertPresenter {
 
 extension SendViewModel: SendStepsManagerOutput {
     func update(state: SendStepsManagerViewState) {
-        let isEditAction = state.mainButtonType == .continue
+        let isEditAction = mainButtonType == .continue
 
         step.willDisappear(next: state.step)
         step.sendStepViewAnimatable?.viewDidChangeVisibilityState(

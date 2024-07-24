@@ -60,9 +60,22 @@ struct SendSummaryView: View {
 //                    validatorSection
 //                }
 //
-//                if !viewModel.animatingFeeOnAppear {
-//                    feeSection
-//                }
+                if viewModel.feeVisible, let sendFeeCompactViewModel = viewModel.sendFeeCompactViewModel {
+                    SendFeeCompactView(
+                        viewModel: sendFeeCompactViewModel,
+                        namespace: .init(id: namespace.id, names: namespace.names)
+                    )
+                    .readContentOffset(
+                        inCoordinateSpace: .named(coordinateSpaceName),
+                        bindTo: $transitionService.feeContentOffset
+                    )
+                    .transition(transitionService.transitionToFeeCompactView)
+                    .contentShape(Rectangle())
+                    .allowsHitTesting(viewModel.canEditFee)
+                    .onTapGesture {
+                        viewModel.userDidTapFee()
+                    }
+                }
 
                 if viewModel.showHint {
                     HintView(
@@ -77,9 +90,9 @@ struct SendSummaryView: View {
                     )
                 }
 
-//                ForEach(viewModel.notificationInputs) { input in
-//                    NotificationView(input: input)
-//                }
+                ForEach(viewModel.notificationInputs) { input in
+                    NotificationView(input: input)
+                }
             }
             .coordinateSpace(name: coordinateSpaceName)
 
@@ -92,34 +105,10 @@ struct SendSummaryView: View {
         .animation(SendView.Constants.defaultAnimation, value: viewModel.validatorVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.feeVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.transactionDescriptionIsVisible)
-
         .alert(item: $viewModel.alert) { $0.alert }
         .onAppear(perform: viewModel.onAppear)
         .onDisappear(perform: viewModel.onDisappear)
     }
-
-    // MARK: - Destination
-
-    // MARK: - Amount
-
-//    private var amountSection: some View {
-//        GroupedSection(viewModel.amountSummaryViewData) { data in
-//            SendAmountSummaryView(data: data)
-//                .amountMinTextScale(amountMinTextScale)
-//                .setNamespace(namespace.id)
-//                .setIconNamespaceId(namespace.names.tokenIcon)
-//                .setAmountCryptoNamespaceId(namespace.names.amountCryptoText)
-//                .setAmountFiatNamespaceId(namespace.names.amountFiatText)
-//        }
-//        .innerContentPadding(0)
-//        .backgroundColor(sectionBackground(type: viewModel.editableType))
-//        .geometryEffect(.init(id: namespace.names.amountContainer, namespace: namespace.id))
-//        .contentShape(Rectangle())
-//        .allowsHitTesting(viewModel.canEditAmount)
-//        .onTapGesture {
-//            viewModel.userDidTapAmount()
-//        }
-//    }
 
     // MARK: - Validator
 
@@ -138,49 +127,6 @@ struct SendSummaryView: View {
         .onTapGesture {
             viewModel.userDidTapValidator()
         }
-    }
-
-    // MARK: - Fee
-
-    private var feeSection: some View {
-        GroupedSection(viewModel.selectedFeeSummaryViewModel) { data in
-            SendFeeSummaryView(data: data)
-                .setNamespace(namespace.id)
-                .setTitleNamespaceId(namespace.names.feeTitle)
-                .setOptionNamespaceId(namespace.names.feeOption(feeOption: data.feeOption))
-                .setAmountNamespaceId(namespace.names.feeAmount(feeOption: data.feeOption))
-                .overlay(alignment: .bottom) {
-                    feeRowViewSeparator(for: data.feeOption)
-                }
-                .overlay {
-                    ForEach(viewModel.deselectedFeeRowViewModels) { model in
-                        FeeRowView(viewModel: model)
-                            .setNamespace(namespace.id)
-                            .setOptionNamespaceId(namespace.names.feeOption(feeOption: model.option))
-                            .setAmountNamespaceId(namespace.names.feeAmount(feeOption: model.option))
-                            .allowsHitTesting(false)
-                            .hidden()
-                            .overlay(alignment: .bottom) {
-                                feeRowViewSeparator(for: model.option)
-                            }
-                    }
-                }
-        }
-        // Fee uses a regular background regardless of whether it's enabled or not
-        .backgroundColor(Colors.Background.action)
-        .geometryEffect(.init(id: namespace.names.feeContainer, namespace: namespace.id))
-        .contentShape(Rectangle())
-        .allowsHitTesting(viewModel.canEditFee)
-        .onTapGesture {
-            viewModel.userDidTapFee()
-        }
-    }
-
-    private func feeRowViewSeparator(for option: FeeOption) -> some View {
-        Separator(height: .minimal, color: Colors.Stroke.primary)
-            .padding(.leading, GroupedSectionConstants.defaultHorizontalPadding)
-            .opacity(0)
-            .matchedGeometryEffect(id: namespace.names.feeSeparator(feeOption: option), in: namespace.id)
     }
 
     // MARK: - Description

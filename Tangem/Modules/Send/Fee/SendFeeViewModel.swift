@@ -16,16 +16,16 @@ class SendFeeViewModel: ObservableObject, Identifiable {
     @Published private(set) var feeRowViewModels: [FeeRowViewModel] = []
     @Published private(set) var customFeeModels: [SendCustomFeeInputFieldModel] = []
 
-    @Published private(set) var deselectedFeeViewsVisible: Bool = false
-    @Published var animatingAuxiliaryViewsOnAppear: Bool = false
+    @Published private(set) var auxiliaryViewsVisible: Bool = true
+    @Published private(set) var isEditMode: Bool = false
 
     @Published private(set) var networkFeeUnreachableNotificationViewInput: NotificationViewInput?
 
     var feeSelectorFooterText: String {
-        Localization.commonFeeSelectorFooter("[\(Localization.commonReadMore)](\(feeExplanationUrl.absoluteString))")
+        Localization.commonFeeSelectorFooter(
+            "[\(Localization.commonReadMore)](\(feeExplanationUrl.absoluteString))"
+        )
     }
-
-    var didProperlyDisappear = true
 
     private let tokenItem: TokenItem
     private let interactor: SendFeeInteractor
@@ -60,22 +60,17 @@ class SendFeeViewModel: ObservableObject, Identifiable {
     }
 
     func onAppear() {
-        let deselectedFeeViewAppearanceDelay = SendView.Constants.animationDuration / 3
-        DispatchQueue.main.asyncAfter(deadline: .now() + deselectedFeeViewAppearanceDelay) {
-            withAnimation(SendView.Constants.defaultAnimation) {
-                self.deselectedFeeViewsVisible = true
-            }
-        }
-
-        if animatingAuxiliaryViewsOnAppear {
-            Analytics.log(.sendScreenReopened, params: [.source: .fee])
-        } else {
-            Analytics.log(.sendFeeScreenOpened)
-        }
+        auxiliaryViewsVisible = true
+//        let deselectedFeeViewAppearanceDelay = SendView.Constants.animationDuration / 3
+//        DispatchQueue.main.asyncAfter(deadline: .now() + deselectedFeeViewAppearanceDelay) {
+//            withAnimation(SendView.Constants.defaultAnimation) {
+//                self.deselectedFeeViewsVisible = true
+//            }
+//        }
     }
 
     func onDisappear() {
-        deselectedFeeViewsVisible = false
+//        deselectedFeeViewsVisible = false
     }
 
     func openFeeExplanation() {
@@ -178,7 +173,20 @@ class SendFeeViewModel: ObservableObject, Identifiable {
     }
 }
 
-extension SendFeeViewModel: AuxiliaryViewAnimatable {}
+// MARK: - SendStepViewAnimatable
+
+extension SendFeeViewModel: SendStepViewAnimatable {
+    func viewDidChangeVisibilityState(_ state: SendStepVisibilityState) {
+        switch state {
+        case .appearing(.summary(_), _):
+            // Will be shown with animation
+            auxiliaryViewsVisible = false
+            isEditMode = true
+        default:
+            break
+        }
+    }
+}
 
 extension SendFeeViewModel {
     struct Settings {

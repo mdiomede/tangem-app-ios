@@ -22,7 +22,8 @@ struct SendSummaryStepBuilder {
         addressTextViewHeightModel: AddressTextViewHeightModel?,
         editableType: SendSummaryViewModel.EditableType,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
-        sendAmountCompactViewModel: SendAmountCompactViewModel?
+        sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) -> ReturnValue {
         let interactor = makeSendSummaryInteractor(
             io: io,
@@ -35,7 +36,8 @@ struct SendSummaryStepBuilder {
             addressTextViewHeightModel: addressTextViewHeightModel,
             editableType: editableType,
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
-            sendAmountCompactViewModel: sendAmountCompactViewModel
+            sendAmountCompactViewModel: sendAmountCompactViewModel,
+            sendFeeCompactViewModel: sendFeeCompactViewModel
         )
 
         let step = SendSummaryStep(
@@ -59,7 +61,8 @@ private extension SendSummaryStepBuilder {
         addressTextViewHeightModel: AddressTextViewHeightModel?,
         editableType: SendSummaryViewModel.EditableType,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
-        sendAmountCompactViewModel: SendAmountCompactViewModel?
+        sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) -> SendSummaryViewModel {
         let settings = SendSummaryViewModel.Settings(
             tokenItem: walletModel.tokenItem,
@@ -73,7 +76,8 @@ private extension SendSummaryStepBuilder {
             addressTextViewHeightModel: addressTextViewHeightModel,
             sectionViewModelFactory: makeSendSummarySectionViewModelFactory(),
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
-            sendAmountCompactViewModel: sendAmountCompactViewModel
+            sendAmountCompactViewModel: sendAmountCompactViewModel,
+            sendFeeCompactViewModel: sendFeeCompactViewModel
         )
     }
 

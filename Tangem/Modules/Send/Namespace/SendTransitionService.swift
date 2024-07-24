@@ -13,6 +13,18 @@ class SendTransitionService: ObservableObject {
     @Published var destinationContentOffset: CGPoint = .zero
     @Published var amountContentOffset: CGPoint = .zero
 
+    @Published var feeContentOffset: CGPoint = .zero {
+        didSet {
+            print("->> feeContentOffset", feeContentOffset)
+        }
+    }
+
+    @Published var selectedFeeContentOffset: CGPoint = .zero {
+        didSet {
+            print("->> selectedFeeContentOffset", selectedFeeContentOffset)
+        }
+    }
+
     // MARK: - Destination
 
     func transitionToDestinationStep(isEditMode: Bool) -> AnyTransition {
@@ -33,9 +45,17 @@ class SendTransitionService: ObservableObject {
         .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
     }
 
+    // MARK: - Validators
+
     // MARK: - Fee
 
-    // MARK: - Validators
+    func transitionToFeeStep(isEditMode: Bool) -> AnyTransition {
+        isEditMode ? .offset(y: -feeContentOffset.y) : .move(edge: .trailing)
+    }
+
+    var transitionToFeeCompactView: AnyTransition {
+        .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
+    }
 
     // MARK: - Summary
 

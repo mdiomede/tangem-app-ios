@@ -51,7 +51,8 @@ struct SellFlowBaseBuilder {
             addressTextViewHeightModel: addressTextViewHeightModel,
             editableType: .disable,
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
-            sendAmountCompactViewModel: sendAmountCompactViewModel
+            sendAmountCompactViewModel: sendAmountCompactViewModel,
+            sendFeeCompactViewModel: fee.compact
         )
 
         let finish = sendFinishStepBuilder.makeSendFinishStep(

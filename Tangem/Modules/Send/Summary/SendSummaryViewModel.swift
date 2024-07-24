@@ -24,11 +24,10 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
 
     @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
     @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
+    @Published var sendFeeCompactViewModel: SendFeeCompactViewModel?
 
     @Published var selectedValidatorData: ValidatorViewData?
-    @Published var selectedFeeSummaryViewModel: SendFeeSummaryViewModel?
     @Published var selectedValidatorViewModel: ValidatorViewData?
-    @Published var deselectedFeeRowViewModels: [FeeRowViewModel] = []
 
     @Published var destinationVisible = true
     @Published var amountVisible = true
@@ -62,7 +61,8 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         addressTextViewHeightModel: AddressTextViewHeightModel?,
         sectionViewModelFactory: SendSummarySectionViewModelFactory,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
-        sendAmountCompactViewModel: SendAmountCompactViewModel?
+        sendAmountCompactViewModel: SendAmountCompactViewModel?,
+        sendFeeCompactViewModel: SendFeeCompactViewModel?
     ) {
         editableType = settings.editableType
         tokenItem = settings.tokenItem
@@ -73,13 +73,12 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         self.sectionViewModelFactory = sectionViewModelFactory
         self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
         self.sendAmountCompactViewModel = sendAmountCompactViewModel
+        self.sendFeeCompactViewModel = sendFeeCompactViewModel
 
         bind()
     }
 
     func onAppear() {
-        selectedFeeSummaryViewModel?.setAnimateTitleOnAppear(true)
-
         destinationVisible = true
         amountVisible = true
         validatorVisible = true
@@ -145,6 +144,10 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
 
 extension SendSummaryViewModel: SendStepViewAnimatable {
     func viewDidChangeVisibilityState(_ state: SendStepVisibilityState) {
+        guard state.isEditAction else {
+            return
+        }
+
         switch state {
         case .appearing(.destination(_), _):
             destinationVisible = true
@@ -172,7 +175,7 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             assertionFailure("Not implemented")
         }
 
-        showHint = false
+//        showHint = false
         transactionDescriptionIsVisible = false
     }
 }
@@ -235,17 +238,17 @@ extension SendSummaryViewModel: SendSummaryViewModelSetupable {
             .assign(to: \.canEditFee, on: self, ownership: .weak)
             .store(in: &bag)
 
-        Publishers.CombineLatest(input.feesPublisher, input.selectedFeePublisher)
-            .withWeakCaptureOf(self)
-            .receive(on: DispatchQueue.main)
-            .sink { viewModel, args in
-                let (feeValues, selectedFee) = args
-                viewModel.selectedFeeSummaryViewModel = viewModel.sectionViewModelFactory.makeFeeViewData(from: selectedFee)
-                viewModel.deselectedFeeRowViewModels = feeValues.filter { $0.option != selectedFee.option }.map { feeValue in
-                    viewModel.sectionViewModelFactory.makeDeselectedFeeRowViewModel(from: feeValue)
-                }
-            }
-            .store(in: &bag)
+//        Publishers.CombineLatest(input.feesPublisher, input.selectedFeePublisher)
+//            .withWeakCaptureOf(self)
+//            .receive(on: DispatchQueue.main)
+//            .sink { viewModel, args in
+//                let (feeValues, selectedFee) = args
+//                viewModel.selectedFeeSummaryViewModel = viewModel.sectionViewModelFactory.makeFeeViewData(from: selectedFee)
+//                viewModel.deselectedFeeRowViewModels = feeValues.filter { $0.option != selectedFee.option }.map { feeValue in
+//                    viewModel.sectionViewModelFactory.makeDeselectedFeeRowViewModel(from: feeValue)
+//                }
+//            }
+//            .store(in: &bag)
     }
 
     func setup(stakingValidatorsInput input: any StakingValidatorsInput) {
