@@ -9,17 +9,17 @@
 import Foundation
 import SwiftUI
 
-class SendTransitionService: ObservableObject {
-    @Published var destinationContentOffset: CGPoint = .zero
-    @Published var amountContentOffset: CGPoint = .zero
+class SendTransitionService {
+    var destinationContentOffset: CGPoint = .zero
+    var amountContentOffset: CGPoint = .zero
 
-    @Published var feeContentOffset: CGPoint = .zero {
+    var feeContentOffset: CGPoint = .zero {
         didSet {
             print("->> feeContentOffset", feeContentOffset)
         }
     }
 
-    @Published var selectedFeeContentOffset: CGPoint = .zero {
+    var selectedFeeContentOffset: CGPoint = .zero {
         didSet {
             print("->> selectedFeeContentOffset", selectedFeeContentOffset)
         }
@@ -54,7 +54,12 @@ class SendTransitionService: ObservableObject {
     }
 
     var transitionToFeeCompactView: AnyTransition {
-        .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
+        let startAnimationPointCompactView: CGFloat = -selectedFeeContentOffset.y - feeContentOffset.y
+        print("->> startAnimationPointCompactView", startAnimationPointCompactView)
+        return .asymmetric(
+            insertion: .offset(y: startAnimationPointCompactView).combined(with: .opacity),
+            removal: .opacity
+        )
     }
 
     // MARK: - Summary

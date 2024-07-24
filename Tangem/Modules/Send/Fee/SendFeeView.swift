@@ -10,9 +10,9 @@ import SwiftUI
 
 struct SendFeeView: View {
     @ObservedObject var viewModel: SendFeeViewModel
-    @ObservedObject var transitionService: SendTransitionService
-
+    let transitionService: SendTransitionService
     let namespace: Namespace
+
     private let coordinateSpaceName = UUID()
 
     private var auxiliaryViewTransition: AnyTransition {
@@ -39,8 +39,6 @@ struct SendFeeView: View {
                     DefaultHeaderView(Localization.commonNetworkFeeTitle)
                         .matchedGeometryEffect(id: namespace.names.feeTitle, in: namespace.id)
                         .transition(.opacity)
-//                        .hidden()
-//                        .border(Color.red)
                 }
             } footer: {
                 if viewModel.auxiliaryViewsVisible {

@@ -10,7 +10,7 @@ import SwiftUI
 
 struct SendView: View {
     @ObservedObject var viewModel: SendViewModel
-    @ObservedObject var transitionService: SendTransitionService
+    let transitionService: SendTransitionService
 
     @Namespace private var namespace
 

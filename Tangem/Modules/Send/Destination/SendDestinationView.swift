@@ -10,8 +10,7 @@ import SwiftUI
 
 struct SendDestinationView: View {
     @ObservedObject var viewModel: SendDestinationViewModel
-    @ObservedObject var transitionService: SendTransitionService
-
+    let transitionService: SendTransitionService
     let namespace: Namespace
 
     private var auxiliaryViewTransition: AnyTransition {

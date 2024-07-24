@@ -168,7 +168,7 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             destinationVisible = false
             amountVisible = false
             validatorVisible = false
-            feeVisible = true
+            feeVisible = false
         case .appeared, .disappeared, .disappearing:
             break
         default:

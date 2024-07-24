@@ -10,8 +10,7 @@ import SwiftUI
 
 struct SendAmountView: View {
     @ObservedObject var viewModel: SendAmountViewModel
-    @ObservedObject var transitionService: SendTransitionService
-
+    let transitionService: SendTransitionService
     let namespace: Namespace
 
     var body: some View {

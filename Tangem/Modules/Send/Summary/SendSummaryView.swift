@@ -10,7 +10,7 @@ import SwiftUI
 
 struct SendSummaryView: View {
     @ObservedObject var viewModel: SendSummaryViewModel
-    @ObservedObject var transitionService: SendTransitionService
+    let transitionService: SendTransitionService
     let namespace: Namespace
 
     private let coordinateSpaceName = UUID()
@@ -27,7 +27,7 @@ struct SendSummaryView: View {
                     )
                     .readContentOffset(
                         inCoordinateSpace: .named(coordinateSpaceName),
-                        bindTo: $transitionService.destinationContentOffset
+                        onChange: { transitionService.destinationContentOffset = $0 }
                     )
                     .transition(transitionService.transitionToDestinationCompactView)
                     .contentShape(Rectangle())
@@ -46,7 +46,7 @@ struct SendSummaryView: View {
                     )
                     .readContentOffset(
                         inCoordinateSpace: .named(coordinateSpaceName),
-                        bindTo: $transitionService.amountContentOffset
+                        onChange: { transitionService.amountContentOffset = $0 }
                     )
                     .transition(transitionService.transitionToAmountCompactView)
                     .contentShape(Rectangle())
@@ -67,7 +67,7 @@ struct SendSummaryView: View {
                     )
                     .readContentOffset(
                         inCoordinateSpace: .named(coordinateSpaceName),
-                        bindTo: $transitionService.feeContentOffset
+                        onChange: { transitionService.feeContentOffset = $0 }
                     )
                     .transition(transitionService.transitionToFeeCompactView)
                     .contentShape(Rectangle())
