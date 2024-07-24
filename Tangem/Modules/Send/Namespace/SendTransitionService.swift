@@ -54,10 +54,10 @@ class SendTransitionService {
     }
 
     var transitionToFeeCompactView: AnyTransition {
-        let startAnimationPointCompactView: CGFloat = -selectedFeeContentOffset.y - feeContentOffset.y
+        let startAnimationPointCompactView: CGFloat = -selectedFeeContentOffset.y + feeContentOffset.y
         print("->> startAnimationPointCompactView", startAnimationPointCompactView)
         return .asymmetric(
-            insertion: .offset(y: startAnimationPointCompactView).combined(with: .opacity),
+            insertion: .offset(y: startAnimationPointCompactView),
             removal: .opacity
         )
     }

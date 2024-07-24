@@ -42,8 +42,6 @@ struct SendTransactionParametersBuilder {
             return AlgorandTransactionParams(nonce: value)
         case .hedera:
             return HederaTransactionParams(memo: value)
-        case .cardano:
-            return HederaTransactionParams(memo: value)
         case .bitcoin,
              .litecoin,
              .ethereum,

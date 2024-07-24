@@ -150,24 +150,24 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
 
         switch state {
         case .appearing(.destination(_), _):
-            destinationVisible = true
-            amountVisible = false
-            validatorVisible = false
-            feeVisible = false
-        case .appearing(.amount(_), _):
             destinationVisible = false
             amountVisible = true
-            validatorVisible = false
-            feeVisible = false
-        case .appearing(.validators(_), _):
-            destinationVisible = false
+            validatorVisible = true
+            feeVisible = true
+        case .appearing(.amount(_), _):
+            destinationVisible = true
             amountVisible = false
             validatorVisible = true
-            feeVisible = false
-        case .appearing(.fee(_), _):
-            destinationVisible = false
-            amountVisible = false
+            feeVisible = true
+        case .appearing(.validators(_), _):
+            destinationVisible = true
+            amountVisible = true
             validatorVisible = false
+            feeVisible = true
+        case .appearing(.fee(_), _):
+            destinationVisible = true
+            amountVisible = true
+            validatorVisible = true
             feeVisible = false
         case .appeared, .disappeared, .disappearing:
             break
