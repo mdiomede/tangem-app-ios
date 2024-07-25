@@ -21,6 +21,7 @@ struct SendAmountView: View {
                 segmentControl
             }
         }
+        .id(viewModel.id)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.auxiliaryViewsVisible)
         .transition(transitionService.transitionToAmountStep(isEditMode: viewModel.isEditMode))
         .onAppear(perform: viewModel.onAppear)

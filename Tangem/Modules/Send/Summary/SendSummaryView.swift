@@ -13,47 +13,69 @@ struct SendSummaryView: View {
     let transitionService: SendTransitionService
     let namespace: Namespace
 
+    @State private var destinationCompactViewSize: CGSize = .zero
+    @State private var amountCompactViewSize: CGSize = .zero
+    @State private var validatorsCompactViewSize: CGSize = .zero
+    @State private var feeCompactViewSize: CGSize = .zero
+
     private let coordinateSpaceName = UUID()
 
     var body: some View {
         VStack(alignment: .center, spacing: 14) {
             GroupedScrollView(spacing: 14) {
-                if viewModel.destinationVisible,
-                   let sendDestinationViewModel = viewModel.sendDestinationCompactViewModel {
-                    SendDestinationCompactView(
-                        viewModel: sendDestinationViewModel,
-                        background: viewModel.editableType.sectionBackground,
-                        namespace: .init(id: namespace.id, names: namespace.names)
-                    )
-                    .readContentOffset(
-                        inCoordinateSpace: .named(coordinateSpaceName),
-                        onChange: { transitionService.destinationContentOffset = $0 }
-                    )
-                    .transition(transitionService.transitionToDestinationCompactView)
-                    .contentShape(Rectangle())
-                    .allowsHitTesting(viewModel.canEditDestination)
-                    .onTapGesture {
-                        viewModel.userDidTapDestination()
+                if let sendDestinationViewModel = viewModel.sendDestinationCompactViewModel {
+//                    ZStack {
+                    if viewModel.destinationVisible {
+                        SendDestinationCompactView(
+                            viewModel: sendDestinationViewModel,
+                            background: viewModel.editableType.sectionBackground,
+                            namespace: .init(id: namespace.id, names: namespace.names)
+                        )
+                        .readGeometry(onChange: {
+                            print("readGeometry d ->>", $0.size)
+                            destinationCompactViewSize = $0.size
+                        })
+                        .readContentOffset(
+                            inCoordinateSpace: .named(coordinateSpaceName),
+                            onChange: { transitionService.destinationContentOffset = $0 }
+                        )
+                        .transition(transitionService.transitionToDestinationCompactView)
+                        .contentShape(Rectangle())
+                        .allowsHitTesting(viewModel.canEditDestination)
+                        .onTapGesture {
+                            viewModel.userDidTapDestination()
+                        }
                     }
+//                    }
+//                    .frame(height: 88) //  destinationCompactViewSize.height
+//                    .frame(maxWidth: .infinity)
+//                    .border(Color.green)
                 }
 
-                if viewModel.amountVisible,
-                   let sendAmountViewModel = viewModel.sendAmountCompactViewModel {
-                    SendAmountCompactView(
-                        viewModel: sendAmountViewModel,
-                        background: viewModel.editableType.sectionBackground,
-                        namespace: .init(id: namespace.id, names: namespace.names)
-                    )
-                    .readContentOffset(
-                        inCoordinateSpace: .named(coordinateSpaceName),
-                        onChange: { transitionService.amountContentOffset = $0 }
-                    )
-                    .transition(transitionService.transitionToAmountCompactView)
-                    .contentShape(Rectangle())
-                    .allowsHitTesting(viewModel.canEditAmount)
-                    .onTapGesture {
-                        viewModel.userDidTapAmount()
+                if let sendAmountViewModel = viewModel.sendAmountCompactViewModel {
+//                    ZStack {
+                    if viewModel.amountVisible {
+                        SendAmountCompactView(
+                            viewModel: sendAmountViewModel,
+                            background: viewModel.editableType.sectionBackground,
+                            namespace: .init(id: namespace.id, names: namespace.names)
+                        )
+                        .readGeometry(onChange: { print("readGeometry am ->>", $0.size) })
+                        .readContentOffset(
+                            inCoordinateSpace: .named(coordinateSpaceName),
+                            onChange: { transitionService.amountContentOffset = $0 }
+                        )
+                        .transition(transitionService.transitionToAmountCompactView)
+                        .contentShape(Rectangle())
+                        .allowsHitTesting(viewModel.canEditAmount)
+                        .onTapGesture {
+                            viewModel.userDidTapAmount()
+                        }
                     }
+//                    }
+//                    .frame(height: 143)
+//                    .frame(maxWidth: .infinity)
+//                    .border(Color.orange)
                 }
 
                 if viewModel.validatorVisible,
@@ -73,21 +95,29 @@ struct SendSummaryView: View {
                     }
                 }
 
-                if viewModel.feeVisible, let sendFeeCompactViewModel = viewModel.sendFeeCompactViewModel {
-                    SendFeeCompactView(
-                        viewModel: sendFeeCompactViewModel,
-                        namespace: .init(id: namespace.id, names: namespace.names)
-                    )
-                    .readContentOffset(
-                        inCoordinateSpace: .named(coordinateSpaceName),
-                        onChange: { transitionService.feeContentOffset = $0 }
-                    )
-                    .transition(transitionService.transitionToFeeCompactView)
-                    .contentShape(Rectangle())
-                    .allowsHitTesting(viewModel.canEditFee)
-                    .onTapGesture {
-                        viewModel.userDidTapFee()
+                if let sendFeeCompactViewModel = viewModel.sendFeeCompactViewModel {
+//                    ZStack {
+                    if viewModel.feeVisible {
+                        SendFeeCompactView(
+                            viewModel: sendFeeCompactViewModel,
+                            namespace: .init(id: namespace.id, names: namespace.names)
+                        )
+                        .readGeometry(onChange: { print("readGeometry fee ->>", $0.size) })
+                        .readContentOffset(
+                            inCoordinateSpace: .named(coordinateSpaceName),
+                            onChange: { transitionService.feeContentOffset = $0 }
+                        )
+                        .transition(transitionService.transitionToFeeCompactView)
+                        .contentShape(Rectangle())
+                        .allowsHitTesting(viewModel.canEditFee)
+                        .onTapGesture {
+                            viewModel.userDidTapFee()
+                        }
                     }
+//                    }
+//                    .frame(height: 76)
+//                    .frame(maxWidth: .infinity)
+//                    .border(Color.red)
                 }
 
                 if viewModel.showHint {
@@ -106,12 +136,14 @@ struct SendSummaryView: View {
                 ForEach(viewModel.notificationInputs) { input in
                     NotificationView(input: input)
                 }
+
+                ContentView()
             }
             .coordinateSpace(name: coordinateSpaceName)
 
             descriptionView
         }
-        .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
+//        .background(Colors.Background.tertiary.edgesIgnoringSafeArea(.all))
         .transition(transitionService.summaryViewTransition)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.destinationVisible)
         .animation(SendView.Constants.defaultAnimation, value: viewModel.amountVisible)

@@ -70,6 +70,6 @@ class SendTransitionService {
     // MARK: - Summary
 
     var summaryViewTransition: AnyTransition {
-        .asymmetric(insertion: .identity, removal: .opacity)
+        .asymmetric(insertion: .opacity, removal: .opacity)
     }
 }

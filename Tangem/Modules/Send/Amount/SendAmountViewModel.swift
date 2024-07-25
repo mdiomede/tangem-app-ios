@@ -10,13 +10,15 @@ import Foundation
 import SwiftUI
 import Combine
 
-class SendAmountViewModel: ObservableObject, Identifiable {
+class SendAmountViewModel: ObservableObject {
     // MARK: - ViewState
 
     let userWalletName: String
     let balance: String
     let tokenIconInfo: TokenIconInfo
     let currencyPickerData: SendCurrencyPickerData
+
+    @Published var id: UUID = .init()
 
     @Published var auxiliaryViewsVisible: Bool = true
     @Published var isEditMode: Bool = false
@@ -178,6 +180,10 @@ extension SendAmountViewModel: SendStepViewAnimatable {
             // Have to be always visible
             auxiliaryViewsVisible = true
             isEditMode = false
+
+        case .disappearing(.summary(_), _):
+            id = UUID()
+            isEditMode = true
 
         case .disappearing:
             UIApplication.shared.endEditing()

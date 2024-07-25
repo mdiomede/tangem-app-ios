@@ -12,7 +12,7 @@ import Combine
 
 class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var editableType: EditableType
-    @Published var canEditFee: Bool = false
+    @Published var canEditFee: Bool = true
 
     @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
     @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
@@ -76,7 +76,7 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         destinationVisible = true
         amountVisible = true
         validatorVisible = true
-//        feeVisible = true
+        feeVisible = true
         transactionDescriptionIsVisible = true
 
         Analytics.log(.sendConfirmScreenOpened)
@@ -157,7 +157,7 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             destinationVisible = true
             amountVisible = true
             validatorVisible = false
-//            feeVisible = true
+            feeVisible = true
         case .appearing(.fee(_), _):
             destinationVisible = true
             amountVisible = true
