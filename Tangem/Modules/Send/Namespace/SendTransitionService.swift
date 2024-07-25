@@ -23,8 +23,11 @@ class SendTransitionService {
         isEditMode ? .offset(y: -destinationContentOffset.y) : .move(edge: .leading)
     }
 
-    var transitionToDestinationCompactView: AnyTransition {
-        .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
+    func transitionToDestinationCompactView(isEditMode: Bool) -> AnyTransition {
+        .asymmetric(
+            insertion: isEditMode ? .offset().combined(with: .opacity) : .opacity,
+            removal: .opacity
+        )
     }
 
     // MARK: - Amount
@@ -33,8 +36,11 @@ class SendTransitionService {
         isEditMode ? .offset(y: -amountContentOffset.y) : .move(edge: .trailing)
     }
 
-    var transitionToAmountCompactView: AnyTransition {
-        .asymmetric(insertion: .offset().combined(with: .opacity), removal: .opacity)
+    func transitionToAmountCompactView(isEditMode: Bool) -> AnyTransition {
+        .asymmetric(
+            insertion: isEditMode ? .offset().combined(with: .opacity) : .opacity,
+            removal: .opacity
+        )
     }
 
     // MARK: - Validators
@@ -43,11 +49,10 @@ class SendTransitionService {
         isEditMode ? .offset(y: -validatorsContentOffset.y) : .move(edge: .trailing)
     }
 
-    var transitionToValidatorsCompactView: AnyTransition {
-        let startAnimationPointCompactView: CGFloat = -selectedValidatorContentOffset.y + validatorsContentOffset.y
-        print("->> startAnimationPointCompactView v", startAnimationPointCompactView)
+    func transitionToValidatorsCompactView(isEditMode: Bool) -> AnyTransition {
+        let offset = -selectedValidatorContentOffset.y + validatorsContentOffset.y
         return .asymmetric(
-            insertion: .offset(y: startAnimationPointCompactView),
+            insertion: isEditMode ? .offset(y: offset) : .opacity,
             removal: .opacity
         )
     }
@@ -58,11 +63,10 @@ class SendTransitionService {
         isEditMode ? .offset(y: -feeContentOffset.y) : .move(edge: .trailing)
     }
 
-    var transitionToFeeCompactView: AnyTransition {
-        let startAnimationPointCompactView: CGFloat = -selectedFeeContentOffset.y + feeContentOffset.y
-        print("->> startAnimationPointCompactView f", startAnimationPointCompactView)
+    func transitionToFeeCompactView(isEditMode: Bool) -> AnyTransition {
+        let offset: CGFloat = -selectedFeeContentOffset.y + feeContentOffset.y
         return .asymmetric(
-            insertion: .offset(y: startAnimationPointCompactView),
+            insertion: .offset(y: offset),
             removal: .opacity
         )
     }

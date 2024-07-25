@@ -19,14 +19,15 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?
     @Published var sendFeeCompactViewModel: SendFeeCompactViewModel?
 
+    @Published var destinationEditMode = false
+    @Published var amountEditMode = false
+    @Published var validatorEditMode = false
+    @Published var feeEditMode = false
+
     @Published var destinationVisible = true
     @Published var amountVisible = true
     @Published var validatorVisible = true
-    @Published var feeVisible = true {
-        didSet {
-            print("feeVisible ->>", feeVisible)
-        }
-    }
+    @Published var feeVisible = true
 
     @Published var showHint = false
 
@@ -89,7 +90,12 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         }
     }
 
-    func onDisappear() {}
+    func onDisappear() {
+//        destinationVisible = false
+//        amountVisible = false
+//        validatorVisible = false
+//        feeVisible = false
+    }
 
     func userDidTapDestination() {
         didTapSummary()
@@ -144,25 +150,25 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
 
         switch state {
         case .appearing(.destination(_), _):
-            destinationVisible = false
-            amountVisible = true
-            validatorVisible = true
-            feeVisible = true
+            destinationEditMode = true
+            amountEditMode = false
+            validatorEditMode = false
+            feeEditMode = false
         case .appearing(.amount(_), _):
-            destinationVisible = true
-            amountVisible = false
-            validatorVisible = true
-            feeVisible = true
+            destinationEditMode = false
+            amountEditMode = true
+            validatorEditMode = false
+            feeEditMode = false
         case .appearing(.validators(_), _):
             destinationVisible = true
             amountVisible = true
             validatorVisible = false
             feeVisible = true
         case .appearing(.fee(_), _):
-            destinationVisible = true
-            amountVisible = true
-            validatorVisible = true
-            feeVisible = false
+            destinationEditMode = false
+            amountEditMode = false
+            validatorEditMode = false
+            feeEditMode = true
         case .appeared, .disappeared, .disappearing:
             break
         default:
