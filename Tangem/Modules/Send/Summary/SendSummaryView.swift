@@ -18,35 +18,34 @@ struct SendSummaryView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 14) {
             GroupedScrollView(spacing: 14) {
-//                if let sendDestinationViewModel = viewModel.sendDestinationCompactViewModel {
-//                    ZStack {
-//                        if viewModel.destinationVisible {
-//                            SendDestinationCompactView(
-//                                viewModel: sendDestinationViewModel,
-//                                background: viewModel.editableType.sectionBackground,
-//                                namespace: .init(id: namespace.id, names: namespace.names)
-//                            )
-//                            .readContentOffset(
-//                                inCoordinateSpace: .named(coordinateSpaceName),
-//                                onChange: { transitionService.destinationContentOffset = $0 }
-//                            )
-//                            .transition(
-//                                transitionService.transitionToDestinationCompactView(
-//                                    isEditMode: viewModel.destinationEditMode
-//                                )
-//                            )
-//                            .contentShape(Rectangle())
-//                            .allowsHitTesting(viewModel.canEditDestination)
-//                            .onTapGesture {
-//                                viewModel.userDidTapDestination()
-//                            }
-//                            .id(viewModel.sendDestinationCompactViewModelId)
-//                        }
-//                    }
-//                    .frame(height: sendDestinationViewModel.viewSize.height)
-//                    .infinityFrame(axis: .horizontal)
-//                    .border(Color.red)
-//                }
+                if let sendDestinationViewModel = viewModel.sendDestinationCompactViewModel {
+                    ZStack {
+                        if viewModel.destinationVisible {
+                            SendDestinationCompactView(
+                                viewModel: sendDestinationViewModel,
+                                background: viewModel.editableType.sectionBackground,
+                                namespace: .init(id: namespace.id, names: namespace.names)
+                            )
+                            .readContentOffset(
+                                inCoordinateSpace: .named(coordinateSpaceName),
+                                onChange: { transitionService.destinationContentOffset = $0 }
+                            )
+                            .transition(
+                                transitionService.transitionToDestinationCompactView(
+                                    isEditMode: viewModel.destinationEditMode
+                                )
+                            )
+                            .contentShape(Rectangle())
+                            .allowsHitTesting(viewModel.canEditDestination)
+                            .onTapGesture {
+                                viewModel.userDidTapDestination()
+                            }
+                            .id(viewModel.sendDestinationCompactViewModelId)
+                        }
+                    }
+                    .frame(height: sendDestinationViewModel.viewSize.height)
+                    .infinityFrame(axis: .horizontal)
+                }
 
                 if let sendAmountViewModel = viewModel.sendAmountCompactViewModel {
                     ZStack {
@@ -75,7 +74,6 @@ struct SendSummaryView: View {
                     }
                     .frame(height: sendAmountViewModel.viewSize.height)
                     .infinityFrame(axis: .horizontal)
-                    .border(Color.red)
                 }
 
                 if let stakingValidatorsCompactViewModel = viewModel.stakingValidatorsCompactViewModel {
@@ -103,7 +101,6 @@ struct SendSummaryView: View {
                     }
                     .frame(height: stakingValidatorsCompactViewModel.viewSize.height)
                     .infinityFrame(axis: .horizontal)
-                    .border(Color.red)
                 }
 
                 if let sendFeeCompactViewModel = viewModel.sendFeeCompactViewModel {
@@ -132,7 +129,6 @@ struct SendSummaryView: View {
                     }
                     .frame(height: sendFeeCompactViewModel.viewSize.height)
                     .infinityFrame(axis: .horizontal)
-                    .border(Color.red)
                 }
 
                 if viewModel.showHint {

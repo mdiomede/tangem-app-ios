@@ -225,8 +225,8 @@ private struct SendViewBackButton: View {
 extension SendView {
     enum Constants {
         static let amountMinTextScale = 0.5
-        static let animationDuration: TimeInterval = 1.3
-        static let defaultAnimation: Animation = .linear(duration: animationDuration)
+        static let animationDuration: TimeInterval = 0.3
+        static let defaultAnimation: Animation = .easeOut(duration: animationDuration)
     }
 }
 
