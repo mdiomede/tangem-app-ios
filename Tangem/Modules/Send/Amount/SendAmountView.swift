@@ -106,7 +106,7 @@ struct SendAmountView: View {
                 .frame(width: proxy.size.width / 3)
             }
         }
-        .transition(.opacity)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }
 
