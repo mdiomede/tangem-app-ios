@@ -149,19 +149,27 @@ struct SendSummaryView: View {
     private var feeSection: some View {
         GroupedSection(viewModel.selectedFeeSummaryViewModel) { data in
             SendFeeSummaryView(data: data)
-                .setNamespace(namespace.id)
-                .setTitleNamespaceId(namespace.names.feeTitle)
-                .setOptionNamespaceId(namespace.names.feeOption(feeOption: data.feeOption))
-                .setAmountNamespaceId(namespace.names.feeAmount(feeOption: data.feeOption))
+                .titleGeometryEffect(.init(id: namespace.names.feeTitle, namespace: namespace.id))
+                .titleGeometryEffect(
+                    .init(
+                        id: namespace.names.feeOption(feeOption: data.feeRowViewModel.option),
+                        namespace: namespace.id
+                    )
+                )
+                .titleGeometryEffect(
+                    .init(
+                        id: namespace.names.feeAmount(feeOption: data.feeRowViewModel.option),
+                        namespace: namespace.id
+                    )
+                )
                 .overlay(alignment: .bottom) {
-                    feeRowViewSeparator(for: data.feeOption)
+                    feeRowViewSeparator(for: data.feeRowViewModel.option)
                 }
                 .overlay {
                     ForEach(viewModel.deselectedFeeRowViewModels) { model in
                         FeeRowView(viewModel: model)
-                            .setNamespace(namespace.id)
-                            .setOptionNamespaceId(namespace.names.feeOption(feeOption: model.option))
-                            .setAmountNamespaceId(namespace.names.feeAmount(feeOption: model.option))
+                            .optionGeometryEffect(.init(id: namespace.names.feeOption(feeOption: model.option), namespace: namespace.id))
+                            .amountGeometryEffect(.init(id: namespace.names.feeAmount(feeOption: model.option), namespace: namespace.id))
                             .allowsHitTesting(false)
                             .hidden()
                             .overlay(alignment: .bottom) {

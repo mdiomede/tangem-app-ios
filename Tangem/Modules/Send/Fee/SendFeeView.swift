@@ -21,7 +21,9 @@ struct SendFeeView: View {
             GroupedSection(viewModel.feeRowViewModels) { feeRowViewModel in
                 Group {
                     let isLast = viewModel.feeRowViewModels.last?.option == feeRowViewModel.option
-                    if feeRowViewModel.isSelected.value {
+                    let isSelected = viewModel.selectedFeeOption == feeRowViewModel.option
+
+                    if isSelected {
                         feeRowView(feeRowViewModel, isLast: isLast)
                             .overlay(alignment: .topLeading) {
                                 Text(Localization.commonNetworkFeeTitle)
@@ -66,9 +68,18 @@ struct SendFeeView: View {
 
     private func feeRowView(_ feeRowViewModel: FeeRowViewModel, isLast: Bool) -> some View {
         FeeRowView(viewModel: feeRowViewModel)
-            .setNamespace(namespace.id)
-            .setOptionNamespaceId(namespace.names.feeOption(feeOption: feeRowViewModel.option))
-            .setAmountNamespaceId(namespace.names.feeAmount(feeOption: feeRowViewModel.option))
+            .optionGeometryEffect(
+                .init(
+                    id: namespace.names.feeOption(feeOption: feeRowViewModel.option),
+                    namespace: namespace.id
+                )
+            )
+            .amountGeometryEffect(
+                .init(
+                    id: namespace.names.feeAmount(feeOption: feeRowViewModel.option),
+                    namespace: namespace.id
+                )
+            )
             .overlay(alignment: .bottom) {
                 if !isLast {
                     Separator(height: .minimal, color: Colors.Stroke.primary)

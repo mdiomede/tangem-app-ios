@@ -59,16 +59,15 @@ struct SendSummarySectionViewModelFactory {
         let formattedFeeComponents = formattedFeeComponents(from: value.value)
         return SendFeeSummaryViewModel(
             title: Localization.commonNetworkFeeTitle,
-            feeOption: value.option,
-            formattedFeeComponents: formattedFeeComponents
+            feeRowViewModel: .init(option: value.option, components: formattedFeeComponents, style: .plain)
         )
     }
 
     func makeDeselectedFeeRowViewModel(from value: SendFee) -> FeeRowViewModel {
         return FeeRowViewModel(
             option: value.option,
-            formattedFeeComponents: formattedFeeComponents(from: value.value),
-            isSelected: .constant(false)
+            components: formattedFeeComponents(from: value.value),
+            style: .selectable(isSelected: .constant(false))
         )
     }
 

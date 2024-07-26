@@ -120,10 +120,9 @@ struct SendFinishView: View {
     private var feeSection: some View {
         GroupedSection(viewModel.selectedFeeSummaryViewModel) { data in
             SendFeeSummaryView(data: data)
-                .setNamespace(namespace.id)
-                .setTitleNamespaceId(namespace.names.feeTitle)
-                .setOptionNamespaceId(namespace.names.feeOption(feeOption: .market))
-                .setAmountNamespaceId(namespace.names.feeAmount(feeOption: .market))
+                .titleGeometryEffect(.init(id: namespace.names.feeTitle, namespace: namespace.id))
+                .titleGeometryEffect(.init(id: namespace.names.feeOption(feeOption: .market), namespace: namespace.id))
+                .titleGeometryEffect(.init(id: namespace.names.feeAmount(feeOption: .market), namespace: namespace.id))
         }
         .backgroundColor(Colors.Background.action)
         .geometryEffect(.init(id: namespace.names.feeContainer, namespace: namespace.id))

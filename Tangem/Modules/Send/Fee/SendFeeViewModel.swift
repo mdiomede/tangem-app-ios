@@ -145,14 +145,16 @@ class SendFeeViewModel: ObservableObject, Identifiable {
 
         return FeeRowViewModel(
             option: fee.option,
-            formattedFeeComponents: feeComponents,
-            isSelected: .init(root: self, default: false, get: { root in
-                root.selectedFeeOption == fee.option
-            }, set: { root, newValue in
-                if newValue {
-                    root.userDidSelected(fee: fee)
-                }
-            })
+            components: feeComponents,
+            style: .selectable(
+                isSelected: .init(root: self, default: false, get: { root in
+                    root.selectedFeeOption == fee.option
+                }, set: { root, newValue in
+                    if newValue {
+                        root.userDidSelected(fee: fee)
+                    }
+                })
+            )
         )
     }
 
