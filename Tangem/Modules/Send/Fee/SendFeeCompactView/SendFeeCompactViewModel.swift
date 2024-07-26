@@ -11,6 +11,7 @@ import Combine
 import BlockchainSdk
 
 class SendFeeCompactViewModel: ObservableObject, Identifiable {
+    @Published var viewSize: CGSize = .zero
     @Published var selectedFeeRowViewModel: FeeRowViewModel?
 
     private let feeTokenItem: TokenItem

@@ -12,12 +12,17 @@ import Combine
 
 class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var editableType: EditableType
-    @Published var canEditFee: Bool = true
+    @Published var canEditFee: Bool = false
 
     @Published var sendDestinationCompactViewModel: SendDestinationCompactViewModel?
     @Published var sendAmountCompactViewModel: SendAmountCompactViewModel?
     @Published var stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?
     @Published var sendFeeCompactViewModel: SendFeeCompactViewModel?
+
+    @Published var sendDestinationCompactViewModelId: UUID = .init()
+    @Published var sendAmountCompactViewModelId: UUID = .init()
+    @Published var stakingValidatorsCompactViewModelId: UUID = .init()
+    @Published var sendFeeCompactViewModelId: UUID = .init()
 
     @Published var destinationEditMode = false
     @Published var amountEditMode = false
@@ -30,14 +35,10 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
     @Published var feeVisible = true
 
     @Published var showHint = false
-
-    @Published var alert: AlertBinder?
-    @Published private(set) var notificationInputs: [NotificationViewInput] = []
+    @Published var notificationInputs: [NotificationViewInput] = []
 
     @Published var transactionDescription: String?
     @Published var transactionDescriptionIsVisible: Bool = false
-
-    let addressTextViewHeightModel: AddressTextViewHeightModel?
 
     var canEditAmount: Bool { editableType == .editable }
     var canEditDestination: Bool { editableType == .editable }
@@ -53,7 +54,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
         settings: Settings,
         interactor: SendSummaryInteractor,
         notificationManager: NotificationManager,
-        addressTextViewHeightModel: AddressTextViewHeightModel?,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
         sendAmountCompactViewModel: SendAmountCompactViewModel?,
         stakingValidatorsCompactViewModel: StakingValidatorsCompactViewModel?,
@@ -64,7 +64,6 @@ class SendSummaryViewModel: ObservableObject, Identifiable {
 
         self.interactor = interactor
         self.notificationManager = notificationManager
-        self.addressTextViewHeightModel = addressTextViewHeightModel
         self.sendDestinationCompactViewModel = sendDestinationCompactViewModel
         self.sendAmountCompactViewModel = sendAmountCompactViewModel
         self.stakingValidatorsCompactViewModel = stakingValidatorsCompactViewModel
@@ -154,12 +153,29 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             amountEditMode = false
             validatorEditMode = false
             feeEditMode = false
+
+            destinationVisible = false
+            amountVisible = true
+            validatorVisible = true
+            feeVisible = true
+
         case .appearing(.amount(_), _):
             destinationEditMode = false
             amountEditMode = true
             validatorEditMode = false
             feeEditMode = false
+
+            destinationVisible = true
+            amountVisible = false
+            validatorVisible = true
+            feeVisible = true
+
         case .appearing(.validators(_), _):
+            destinationEditMode = false
+            amountEditMode = false
+            validatorEditMode = true
+            feeEditMode = false
+
             destinationVisible = true
             amountVisible = true
             validatorVisible = false
@@ -169,11 +185,21 @@ extension SendSummaryViewModel: SendStepViewAnimatable {
             amountEditMode = false
             validatorEditMode = false
             feeEditMode = true
+
+            destinationVisible = true
+            amountVisible = true
+            validatorVisible = true
+            feeVisible = false
         case .appeared, .disappeared, .disappearing:
             break
         default:
             assertionFailure("Not implemented")
         }
+
+        sendDestinationCompactViewModelId = .init()
+        sendAmountCompactViewModelId = .init()
+        stakingValidatorsCompactViewModelId = .init()
+        sendFeeCompactViewModelId = .init()
 
         showHint = false
         transactionDescriptionIsVisible = false

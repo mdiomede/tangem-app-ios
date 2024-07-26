@@ -21,6 +21,7 @@ struct SendAmountCompactView: View {
         .innerContentPadding(16)
         .backgroundColor(background)
         .geometryEffect(.init(id: namespace.names.amountContainer, namespace: namespace.id))
+        .readGeometry(\.size, bindTo: $viewModel.viewSize)
     }
 
     private var amountContent: some View {

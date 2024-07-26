@@ -50,5 +50,6 @@ struct SendDestinationCompactView: View {
         .separatorStyle(.single)
         .settings(\.backgroundColor, .clear)
         .settings(\.backgroundGeometryEffect, .init(id: namespace.names.destinationContainer, namespace: namespace.id))
+        .readGeometry(\.size, bindTo: $viewModel.viewSize)
     }
 }

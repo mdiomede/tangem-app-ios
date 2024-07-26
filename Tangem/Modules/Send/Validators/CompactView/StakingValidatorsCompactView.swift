@@ -24,5 +24,6 @@ struct StakingValidatorsCompactView: View {
         }
         .settings(\.backgroundColor, Colors.Background.action)
         .settings(\.backgroundGeometryEffect, .init(id: namespace.names.validatorContainer, namespace: namespace.id))
+        .readGeometry(\.size, bindTo: $viewModel.viewSize)
     }
 }

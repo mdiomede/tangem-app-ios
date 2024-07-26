@@ -195,6 +195,10 @@ extension SendDestinationViewModel: SendStepViewAnimatable {
             // Have to be always visible
             auxiliaryViewsVisible = true
             isEditMode = false
+        case .disappearing(.summary(_), _):
+            auxiliaryViewsVisible = false
+            isEditMode = true
+            UIApplication.shared.endEditing()
 
         case .disappearing:
             UIApplication.shared.endEditing()

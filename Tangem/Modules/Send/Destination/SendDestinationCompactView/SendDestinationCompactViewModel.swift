@@ -11,9 +11,10 @@ import Combine
 import UIKit
 
 class SendDestinationCompactViewModel: ObservableObject, Identifiable {
-    let addressTextViewHeightModel: AddressTextViewHeightModel
+    @Published var viewSize: CGSize = .zero
     @Published var destinationViewTypes: [SendDestinationSummaryViewType] = []
 
+    let addressTextViewHeightModel: AddressTextViewHeightModel
     private weak var input: SendDestinationInput?
     private var inputSubscription: AnyCancellable?
 

@@ -182,8 +182,12 @@ extension SendAmountViewModel: SendStepViewAnimatable {
             isEditMode = false
 
         case .disappearing(.summary(_), _):
-            id = UUID()
-            isEditMode = true
+            if !isEditMode {
+                isEditMode = true
+                id = UUID()
+            } else {
+                auxiliaryViewsVisible = false
+            }
 
         case .disappearing:
             UIApplication.shared.endEditing()

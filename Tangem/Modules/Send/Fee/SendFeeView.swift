@@ -22,26 +22,23 @@ struct SendFeeView: View {
     var body: some View {
         GroupedScrollView(spacing: 20) {
             GroupedSection(viewModel.feeRowViewModels) { feeRowViewModel in
-                if feeRowViewModel.isSelected.value || viewModel.auxiliaryViewsVisible {
-                    FeeRowView(viewModel: feeRowViewModel)
-                        .setNamespace(namespace.id)
-                        .setOptionNamespaceId(namespace.names.feeOption(feeOption: feeRowViewModel.option))
-                        .setAmountNamespaceId(namespace.names.feeAmount(feeOption: feeRowViewModel.option))
-                        .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName)) { value in
-                            if feeRowViewModel.isSelected.value {
-                                transitionService.selectedFeeContentOffset = value
-                            }
+                FeeRowView(viewModel: feeRowViewModel)
+                    .setNamespace(namespace.id)
+                    .setOptionNamespaceId(namespace.names.feeOption(feeOption: feeRowViewModel.option))
+                    .setAmountNamespaceId(namespace.names.feeAmount(feeOption: feeRowViewModel.option))
+                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName)) { value in
+                        if feeRowViewModel.isSelected.value {
+                            transitionService.selectedFeeContentOffset = value
                         }
-                        .modifier(if: feeRowViewModel.isSelected.value) {
-                            $0.overlay(alignment: .topLeading) {
-                                DefaultHeaderView(Localization.commonNetworkFeeTitle)
-                                    .matchedGeometryEffect(id: namespace.names.feeTitle, in: namespace.id)
-                                    .transition(.opacity)
-                                    .hidden()
-                            }
+                    }
+                    .modifier(if: feeRowViewModel.isSelected.value) {
+                        $0.overlay(alignment: .topLeading) {
+                            DefaultHeaderView(Localization.commonNetworkFeeTitle)
+                                .matchedGeometryEffect(id: namespace.names.feeTitle, in: namespace.id)
+                                .hidden()
                         }
-                        .transition(.opacity)
-                }
+                    }
+                    .visible(viewModel.auxiliaryViewsVisible)
             } footer: {
                 if viewModel.auxiliaryViewsVisible {
                     feeSelectorFooter

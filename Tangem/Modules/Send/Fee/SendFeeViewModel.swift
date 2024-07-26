@@ -182,6 +182,9 @@ extension SendFeeViewModel: SendStepViewAnimatable {
             // Will be shown with animation
             auxiliaryViewsVisible = false
             isEditMode = true
+        case .disappearing(.summary(_), _):
+            auxiliaryViewsVisible = false
+            isEditMode = true
         default:
             break
         }

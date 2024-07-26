@@ -10,6 +10,7 @@ import Foundation
 import Combine
 
 class SendAmountCompactViewModel: ObservableObject, Identifiable {
+    @Published var viewSize: CGSize = .zero
     @Published var amount: String?
     @Published var alternativeAmount: String?
 

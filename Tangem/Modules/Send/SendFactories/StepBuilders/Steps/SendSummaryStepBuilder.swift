@@ -34,7 +34,6 @@ struct SendSummaryStepBuilder {
         let viewModel = makeSendSummaryViewModel(
             interactor: interactor,
             notificationManager: notificationManager,
-            addressTextViewHeightModel: addressTextViewHeightModel,
             editableType: editableType,
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
             sendAmountCompactViewModel: sendAmountCompactViewModel,
@@ -60,7 +59,6 @@ private extension SendSummaryStepBuilder {
     func makeSendSummaryViewModel(
         interactor: SendSummaryInteractor,
         notificationManager: NotificationManager,
-        addressTextViewHeightModel: AddressTextViewHeightModel?,
         editableType: SendSummaryViewModel.EditableType,
         sendDestinationCompactViewModel: SendDestinationCompactViewModel?,
         sendAmountCompactViewModel: SendAmountCompactViewModel?,
@@ -76,7 +74,6 @@ private extension SendSummaryStepBuilder {
             settings: settings,
             interactor: interactor,
             notificationManager: notificationManager,
-            addressTextViewHeightModel: addressTextViewHeightModel,
             sendDestinationCompactViewModel: sendDestinationCompactViewModel,
             sendAmountCompactViewModel: sendAmountCompactViewModel,
             stakingValidatorsCompactViewModel: stakingValidatorsCompactViewModel,

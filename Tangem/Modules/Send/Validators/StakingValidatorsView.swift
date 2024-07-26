@@ -20,23 +20,21 @@ struct StakingValidatorsView: View {
             GroupedSection(viewModel.validators) { data in
                 let isSelected = data.id == viewModel.selectedValidator
 
-                if isSelected || viewModel.auxiliaryViewsVisible {
-                    ValidatorView(data: data, selection: $viewModel.selectedValidator)
-                        .geometryEffect(.init(id: namespace.id, names: namespace.names))
-                        .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName)) { value in
-                            if isSelected {
-                                transitionService.selectedValidatorContentOffset = value
-                            }
+                ValidatorView(data: data, selection: $viewModel.selectedValidator)
+                    .geometryEffect(.init(id: namespace.id, names: namespace.names))
+                    .readContentOffset(inCoordinateSpace: .named(coordinateSpaceName)) { value in
+                        if isSelected {
+                            transitionService.selectedValidatorContentOffset = value
                         }
-                        .modifier(if: isSelected) {
-                            $0.overlay(alignment: .topLeading) {
-                                DefaultHeaderView(Localization.stakingValidator)
-                                    .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
-                                    .hidden()
-                            }
+                    }
+                    .modifier(if: isSelected) {
+                        $0.overlay(alignment: .topLeading) {
+                            DefaultHeaderView(Localization.stakingValidator)
+                                .matchedGeometryEffect(id: namespace.names.validatorSectionHeaderTitle, in: namespace.id)
+                                .hidden()
                         }
-                        .transition(.opacity)
-                }
+                    }
+                    .visible(viewModel.auxiliaryViewsVisible)
             }
             .settings(\.backgroundColor, Colors.Background.action)
             .settings(\.backgroundGeometryEffect, .init(id: namespace.names.validatorContainer, namespace: namespace.id))

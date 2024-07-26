@@ -10,6 +10,7 @@ import Foundation
 import Combine
 
 class StakingValidatorsCompactViewModel: ObservableObject, Identifiable {
+    @Published var viewSize: CGSize = .zero
     @Published var selectedValidatorData: ValidatorViewData?
     private weak var input: StakingValidatorsInput?
 
