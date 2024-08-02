@@ -113,7 +113,10 @@ struct MarketsHistoryChartView: View {
             chartView.xAxis.labelTextColor = .textTertiary
             chartView.xAxis.yOffset = 26.0
             chartView.xAxis.xOffset = 0.0
-            chartView.xAxis.avoidFirstLastClippingEnabled = true // TODO: Andrey Fedorov - Disable if a custom renderer is used (IOS-7476)
+            // TODO: Andrey Fedorov - Disable if custom X axis renderer is used (IOS-7476)
+            chartView.xAxis.avoidFirstLastClippingEnabled = true
+            // Allows highlight vertical line to be draw outside of the chart minY/maxY (using `verticalHighlightIndicatorInset` property)
+            chartView.clipDataToContentEnabled = false
             chartView.leftAxis.gridLineWidth = 1.0
             chartView.leftAxis.gridColor = .iconInactive.withAlphaComponent(0.12)
             chartView.leftAxis.labelPosition = .insideChart
