@@ -38,22 +38,22 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return balancesInfo
     }
 
-    func estimateStakeFee(amount: Decimal, address: String, integrationId: String) async throws -> Decimal {
+    func estimateStakeFee(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> Decimal {
         let request = StakeKitDTO.EstimateGas.EnterAction.Request(
             integrationId: integrationId,
             addresses: .init(address: address),
-            args: .init(amount: amount.description)
+            args: .init(amount: amount.description, validatorAddress: validator)
         )
 
         let response = try await service.estimateGasEnterAction(request: request)
         return Decimal(stringValue: response.amount) ?? .zero
     }
 
-    func estimateUnstakeFee(amount: Decimal, address: String, integrationId: String) async throws -> Decimal {
+    func estimateUnstakeFee(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> Decimal {
         let request = StakeKitDTO.EstimateGas.ExitAction.Request(
             integrationId: integrationId,
             addresses: .init(address: address),
-            args: .init(amount: amount.description)
+            args: .init(amount: amount.description, validatorAddress: validator)
         )
 
         let response = try await service.estimateGasExitAction(request: request)
@@ -63,6 +63,7 @@ class CommonStakingAPIProvider: StakingAPIProvider {
     func estimateClaimRewardsFee(
         amount: Decimal,
         address: String,
+        validator: String,
         integrationId: String,
         passthrough: String
     ) async throws -> Decimal {
@@ -71,7 +72,7 @@ class CommonStakingAPIProvider: StakingAPIProvider {
             integrationId: integrationId,
             passthrough: passthrough,
             addresses: .init(address: address),
-            args: .init(amount: amount.description)
+            args: .init(amount: amount.description, validatorAddress: validator)
         )
 
         let response = try await service.estimateGasPendingAction(request: request)

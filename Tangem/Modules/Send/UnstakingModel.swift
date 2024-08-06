@@ -53,8 +53,11 @@ private extension UnstakingModel {
             .withWeakCaptureOf(self)
             .tryAsyncMap { model, state in
                 model._transaction.send(.loading)
-
-                return try await model.stakingManager.transaction(action: .unstake)
+                guard case .staked(let balancesInfo, let yield) = state else {
+                    throw WalletError.empty // provide valid error
+                }
+                let action = StakingAction(amount: Decimal(stringValue: "10")!, validator: "", type: .unstake)
+                return try await model.stakingManager.transaction(action: action)
             }
             .mapToResult()
             .withWeakCaptureOf(self)

@@ -88,8 +88,8 @@ private extension StakeKitStakingAPIService {
         do {
             response = try response.filterSuccessfulStatusAndRedirectCodes()
         } catch {
-            if let expressError = tryMapError(target: request, response: response) {
-                throw expressError
+            if let stakeKitError = tryMapError(target: request, response: response) {
+                throw stakeKitError
             }
 
             throw error

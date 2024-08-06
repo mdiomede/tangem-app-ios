@@ -42,6 +42,7 @@ extension StakeKitDTO {
 
         struct Args: Encodable {
             let amount: String
+            let validatorAddress: String
         }
 
         struct Response: Decodable {

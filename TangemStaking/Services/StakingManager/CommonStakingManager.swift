@@ -62,12 +62,14 @@ extension CommonStakingManager: StakingManager {
             return try await provider.estimateStakeFee(
                 amount: action.amount,
                 address: wallet.address,
+                validator: action.validator,
                 integrationId: yieldInfo.id
             )
         case (.staked(_, let yieldInfo), .unstake):
             return try await provider.estimateUnstakeFee(
                 amount: action.amount,
                 address: wallet.address,
+                validator: action.validator,
                 integrationId: yieldInfo.id
             )
         case (.staked(let balanceInfo, let yieldInfo), .claimRewards):
@@ -77,6 +79,7 @@ extension CommonStakingManager: StakingManager {
             return try await provider.estimateClaimRewardsFee(
                 amount: action.amount,
                 address: wallet.address,
+                validator: action.validator,
                 integrationId: yieldInfo.id,
                 passthrough: passthrough
             )
