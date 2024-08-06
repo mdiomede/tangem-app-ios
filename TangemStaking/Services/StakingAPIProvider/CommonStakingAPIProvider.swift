@@ -50,11 +50,11 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return enterAction
     }
 
-    func exitAction(address: String, validator: String, integrationId: String) async throws -> ExitAction {
+    func exitAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> ExitAction {
         let request = StakeKitDTO.Actions.Exit.Request(
             integrationId: integrationId,
             addresses: .init(address: address),
-            args: .init(validatorAddress: validator, validatorAddresses: [.init(address: validator)])
+            args: .init(amount: amount.description, validatorAddress: validator, validatorAddresses: [.init(address: validator)])
         )
 
         let response = try await service.exitAction(request: request)

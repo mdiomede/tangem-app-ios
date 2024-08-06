@@ -61,8 +61,8 @@ final class StakingDetailsViewModel: ObservableObject {
         coordinator?.openStakingFlow()
     }
 
-    func userDidTapValidator(id: String) {
-        coordinator?.openUnstakingFlow()
+    func userDidTapValidator(validator: String) {
+        coordinator?.openUnstakingFlow(validator: validator)
     }
 
     func userDidTapHideBanner() {
@@ -291,8 +291,8 @@ private extension StakingDetailsViewModel {
 
             let validatorStakeState: StakingValidatorViewMapper.ValidatorStakeState =
                 switch validatorBalance.balanceGroupType {
-                case .active, .unknown: .active(apr: validatorBalance.validator.apr)
-                case .unstaked: .unstaked(
+            case .active, .unknown: .active(apr: validatorBalance.validator.apr)
+            case .unstaked: .unstaked(
                     unboundingPeriod: input.unbondingPeriod.formatted(formatter: DateComponentsFormatter())
                 )
             }

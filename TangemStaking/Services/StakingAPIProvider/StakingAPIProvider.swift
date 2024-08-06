@@ -14,7 +14,7 @@ public protocol StakingAPIProvider {
     func balances(wallet: StakingWallet) async throws -> [StakingBalanceInfo]?
 
     func enterAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> EnterAction
-    func exitAction(address: String, validator: String, integrationId: String) async throws -> ExitAction
+    func exitAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> ExitAction
     func pendingAction() async throws // TODO: https://tangem.atlassian.net/browse/IOS-7482
 
     func transaction(id: String) async throws -> StakingTransactionInfo

@@ -59,9 +59,14 @@ extension CommonStakingManager: StakingManager {
     func transaction(action: StakingActionType) async throws -> StakingTransactionInfo {
         switch (state, action) {
         case (.availableToStake(let yieldInfo), .stake(let amount, let validator)):
-            try await getTransactionToStake(amount: amount, validator: validator, integrationId: yieldInfo.id)
-        case (.staked(_, let yieldInfo), .unstake(let validator)):
-            try await getTransactionToUnstake(validator: validator, integrationId: yieldInfo.id)
+            return try await getTransactionToStake(amount: amount, validator: validator, integrationId: yieldInfo.id)
+
+        case (.staked(let balances, let yieldInfo), .unstake(let validator)):
+            guard let balance = balances.first(where: { $0.validatorAddress == validator }) else {
+                throw StakingManagerError.stakedBalanceNotFound(validator: validator)
+            }
+
+            return try await getTransactionToUnstake(amount: balance.blocked, validator: validator, integrationId: yieldInfo.id)
         default:
             throw StakingManagerError.stakingManagerStateNotSupportTransactionAction(action: action)
         }
@@ -105,9 +110,9 @@ private extension CommonStakingManager {
         return transaction
     }
 
-    func getTransactionToUnstake(validator: String, integrationId: String) async throws -> StakingTransactionInfo {
+    func getTransactionToUnstake(amount: Decimal, validator: String, integrationId: String) async throws -> StakingTransactionInfo {
         let action = try await provider.exitAction(
-            address: wallet.address,
+            amount: amount, address: wallet.address,
             validator: validator,
             integrationId: integrationId
         )
@@ -132,6 +137,7 @@ private extension CommonStakingManager {
 
 public enum StakingManagerError: Error {
     case stakingManagerStateNotSupportTransactionAction(action: StakingActionType)
+    case stakedBalanceNotFound(validator: String)
     case notImplemented
     case notFound
 }
