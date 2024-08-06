@@ -8,7 +8,6 @@
 
 import Foundation
 import Combine
-import UIKit // FIXME: Andrey Fedorov - Test only, remove when not needed
 
 class TokenMarketsDetailsViewModel: ObservableObject {
     @Injected(\.quotesRepository) private var quotesRepository: TokenQuotesRepository
@@ -28,7 +27,7 @@ class TokenMarketsDetailsViewModel: ObservableObject {
     @Published var pricePerformanceViewModel: MarketsTokenDetailsPricePerformanceViewModel?
     @Published var linksSections: [TokenMarketsDetailsLinkSection] = []
     @Published var portfolioViewModel: MarketsPortfolioContainerViewModel?
-    @Published private(set) var historyChartViewModel: MarketsHistoryChartViewModel? // TODO: Andrey Fedorov - make it lazy?
+    @Published private(set) var historyChartViewModel: MarketsHistoryChartViewModel?
 
     @Published var descriptionBottomSheetInfo: DescriptionBottomSheetInfo?
 
