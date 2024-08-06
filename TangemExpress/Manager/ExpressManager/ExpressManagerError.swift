@@ -17,6 +17,7 @@ public enum ExpressManagerError: String, LocalizedError {
     case quotesNotFound
     case availableQuotesForProviderNotFound
     case objectReleased
+    case dataNotFound
 
     public var errorDescription: String? {
         rawValue

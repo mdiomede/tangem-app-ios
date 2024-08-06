@@ -46,25 +46,33 @@ extension CommonExpressFeeProvider: ExpressFeeProvider {
         return Fee(makeAmount(amount: amount, isFeeTokenItem: false))
     }
 
-    func getFee(amount: Decimal, destination: String, hexData: Data?, isFeeTokenItem: Bool) async throws -> ExpressFee {
-        let amount = makeAmount(amount: amount, isFeeTokenItem: isFeeTokenItem)
+    func getFee(amount: ExpressAmount, destination: String) async throws -> ExpressFee {
+        switch amount {
+        case .transfer(let amount):
+            let amount = makeAmount(amount: amount, isFeeTokenItem: false)
+            let fees = try await wallet.getFee(amount: amount, destination: destination).async()
+            return try mapToExpressFee(fees: fees)
 
-        // If EVM network we should pass data in the fee calculation
-        if let ethereumNetworkProvider = wallet.ethereumNetworkProvider, let hexData {
-            var fees = try await ethereumNetworkProvider.getFee(
-                destination: destination,
-                value: amount.encodedForSend,
-                data: hexData
-            ).async()
+        case .dex(let txValue, let txData):
+            let amount = makeAmount(amount: txValue, isFeeTokenItem: true)
 
-            // For EVM networks increase gas limit
-            fees = fees.map { increaseGasLimit(fee: $0) }
+            // If EVM network we should pass data in the fee calculation
+            if let ethereumNetworkProvider = wallet.ethereumNetworkProvider {
+                var fees = try await ethereumNetworkProvider.getFee(
+                    destination: destination,
+                    value: amount.encodedForSend,
+                    data: txData
+                ).async()
 
+                // For EVM networks increase gas limit
+                fees = fees.map { increaseGasLimit(fee: $0) }
+
+                return try mapToExpressFee(fees: fees)
+            }
+
+            let fees = try await wallet.getFee(amount: amount, destination: destination).async()
             return try mapToExpressFee(fees: fees)
         }
-
-        let fees = try await wallet.getFee(amount: amount, destination: destination).async()
-        return try mapToExpressFee(fees: fees)
     }
 }
 
