@@ -30,6 +30,7 @@ struct StakingDetailsView: View {
                 rewardView
 
                 activeValidatorsView
+
                 unstakedValidatorsView
 
                 FixedSpacer(height: bottomViewHeight)

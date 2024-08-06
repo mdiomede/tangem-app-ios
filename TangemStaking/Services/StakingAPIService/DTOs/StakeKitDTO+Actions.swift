@@ -113,7 +113,7 @@ extension StakeKitDTO {
                 let args: Args
 
                 struct Args: Encodable {
-                    let amount: String
+//                    let amount: String
                     let validatorAddress: String?
                     let validatorAddresses: [Address]
                 }

@@ -60,8 +60,8 @@ extension CommonStakingManager: StakingManager {
         switch (state, action) {
         case (.availableToStake(let yieldInfo), .stake(let amount, let validator)):
             try await getTransactionToStake(amount: amount, validator: validator, integrationId: yieldInfo.id)
-        case (.staked(_, _), .unstake):
-            throw StakingManagerError.notImplemented // TODO: https://tangem.atlassian.net/browse/IOS-6898
+        case (.staked(_, let yieldInfo), .unstake(let validator)):
+            try await getTransactionToUnstake(validator: validator, integrationId: yieldInfo.id)
         default:
             throw StakingManagerError.stakingManagerStateNotSupportTransactionAction(action: action)
         }
@@ -91,6 +91,22 @@ private extension CommonStakingManager {
     func getTransactionToStake(amount: Decimal, validator: String, integrationId: String) async throws -> StakingTransactionInfo {
         let action = try await provider.enterAction(
             amount: amount,
+            address: wallet.address,
+            validator: validator,
+            integrationId: integrationId
+        )
+
+        let transactionId = action.transactions[action.currentStepIndex].id
+        // We have to wait that stakek.it prepared the transaction
+        // Otherwise we may get the 404 error
+        try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
+        let transaction = try await provider.patchTransaction(id: transactionId)
+
+        return transaction
+    }
+
+    func getTransactionToUnstake(validator: String, integrationId: String) async throws -> StakingTransactionInfo {
+        let action = try await provider.exitAction(
             address: wallet.address,
             validator: validator,
             integrationId: integrationId
