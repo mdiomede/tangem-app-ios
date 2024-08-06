@@ -14,13 +14,20 @@ public protocol StakingManager {
     var statePublisher: AnyPublisher<StakingManagerState, Never> { get }
 
     func updateState() async throws
-    func transaction(action: StakingActionType) async throws -> StakingTransactionInfo
+    func estimateFee(action: StakingAction) async throws -> Decimal
+    func transaction(action: StakingAction) async throws -> StakingTransactionInfo
 }
 
-public enum StakingActionType {
-    case stake(amount: Decimal, validator: String)
-    case claimRewards
-    case unstake
+public struct StakingAction {
+    let amount: Decimal
+    let validator: String
+    let type: ActionType
+
+    enum ActionType {
+        case stake
+        case claimRewards
+        case unstake
+    }
 }
 
 public enum StakingManagerState: Hashable, CustomStringConvertible {

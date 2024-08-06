@@ -56,10 +56,44 @@ extension CommonStakingManager: StakingManager {
         }
     }
 
-    func transaction(action: StakingActionType) async throws -> StakingTransactionInfo {
-        switch (state, action) {
-        case (.availableToStake(let yieldInfo), .stake(let amount, let validator)):
-            try await getTransactionToStake(amount: amount, validator: validator, integrationId: yieldInfo.id)
+    func estimateFee(action: StakingAction) async throws -> Decimal {
+        switch (state, action.type) {
+        case (.availableToStake(let yieldInfo), .stake):
+            return try await provider.estimateStakeFee(
+                amount: action.amount,
+                address: wallet.address,
+                integrationId: yieldInfo.id
+            )
+        case (.staked(_, let yieldInfo), .unstake):
+            return try await provider.estimateUnstakeFee(
+                amount: action.amount,
+                address: wallet.address,
+                integrationId: yieldInfo.id
+            )
+        case (.staked(let balanceInfo, let yieldInfo), .claimRewards):
+            guard let passthrough = balanceInfo.first(where: { $0.passthrough != nil })?.passthrough else {
+                fallthrough
+            }
+            return try await provider.estimateClaimRewardsFee(
+                amount: action.amount,
+                address: wallet.address,
+                integrationId: yieldInfo.id,
+                passthrough: passthrough
+            )
+        default:
+            log("Invalid staking manager state: \(state), for action: \(action)")
+            throw StakingManagerError.stakingManagerStateNotSupportTransactionAction(action: action)
+        }
+    }
+
+    func transaction(action: StakingAction) async throws -> StakingTransactionInfo {
+        switch (state, action.type) {
+        case (.availableToStake(let yieldInfo), .stake):
+            try await getTransactionToStake(
+                amount: action.amount,
+                validator: action.validator,
+                integrationId: yieldInfo.id
+            )
         case (.staked(_, _), .unstake):
             throw StakingManagerError.notImplemented // TODO: https://tangem.atlassian.net/browse/IOS-6898
         default:
@@ -115,7 +149,7 @@ private extension CommonStakingManager {
 }
 
 public enum StakingManagerError: Error {
-    case stakingManagerStateNotSupportTransactionAction(action: StakingActionType)
+    case stakingManagerStateNotSupportTransactionAction(action: StakingAction)
     case notImplemented
     case notFound
 }

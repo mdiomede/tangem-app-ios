@@ -38,6 +38,46 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return balancesInfo
     }
 
+    func estimateStakeFee(amount: Decimal, address: String, integrationId: String) async throws -> Decimal {
+        let request = StakeKitDTO.EstimateGas.EnterAction.Request(
+            integrationId: integrationId,
+            addresses: .init(address: address),
+            args: .init(amount: amount.description)
+        )
+
+        let response = try await service.estimateGasEnterAction(request: request)
+        return Decimal(stringValue: response.amount) ?? .zero
+    }
+
+    func estimateUnstakeFee(amount: Decimal, address: String, integrationId: String) async throws -> Decimal {
+        let request = StakeKitDTO.EstimateGas.ExitAction.Request(
+            integrationId: integrationId,
+            addresses: .init(address: address),
+            args: .init(amount: amount.description)
+        )
+
+        let response = try await service.estimateGasExitAction(request: request)
+        return Decimal(stringValue: response.amount) ?? .zero
+    }
+
+    func estimateClaimRewardsFee(
+        amount: Decimal,
+        address: String,
+        integrationId: String,
+        passthrough: String
+    ) async throws -> Decimal {
+        let request = StakeKitDTO.EstimateGas.PendingAction.Request(
+            type: .claimRewards,
+            integrationId: integrationId,
+            passthrough: passthrough,
+            addresses: .init(address: address),
+            args: .init(amount: amount.description)
+        )
+
+        let response = try await service.estimateGasPendingAction(request: request)
+        return Decimal(stringValue: response.amount) ?? .zero
+    }
+
     func enterAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> EnterAction {
         let request = StakeKitDTO.Actions.Enter.Request(
             integrationId: integrationId,
