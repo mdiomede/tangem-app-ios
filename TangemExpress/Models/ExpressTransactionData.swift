@@ -15,7 +15,7 @@ public struct ExpressTransactionData {
 
     /// The Internal `tangem-express` transaction id
     public let expressTransactionId: String
-    public let transactionType: ExpressTransactionType
+    public let expressTransactionValue: ExpressTransactionValue
 
     /// account for debiting tokens (same as toAddress)
     /// for CEX doesn't matter from which address send
@@ -27,12 +27,6 @@ public struct ExpressTransactionData {
 
     /// MEMO / DestinationTag or something additional id
     public let extraDestinationId: String?
-
-    /// The value which should be in tx value
-    public let txValue: Decimal
-
-    /// The value which should be in tx data. EVM-like blockchains
-    public let txData: String?
 
     /// The value which will be included in value. Used in dex/bridge
     public let otherNativeFee: Decimal?
@@ -54,8 +48,7 @@ public struct ExpressTransactionData {
         sourceAddress: String?,
         destinationAddress: String,
         extraDestinationId: String?,
-        txValue: Decimal,
-        txData: String?,
+        expressTransactionValue: ExpressTransactionValue,
         otherNativeFee: Decimal?,
         estimatedGasLimit: Int?,
         externalTxId: String?,
@@ -65,12 +58,10 @@ public struct ExpressTransactionData {
         self.fromAmount = fromAmount
         self.toAmount = toAmount
         self.expressTransactionId = expressTransactionId
-        self.transactionType = transactionType
         self.sourceAddress = sourceAddress
         self.destinationAddress = destinationAddress
         self.extraDestinationId = extraDestinationId
-        self.txValue = txValue
-        self.txData = txData
+        self.expressTransactionValue = expressTransactionValue
         self.otherNativeFee = otherNativeFee
         self.estimatedGasLimit = estimatedGasLimit
         self.externalTxId = externalTxId
