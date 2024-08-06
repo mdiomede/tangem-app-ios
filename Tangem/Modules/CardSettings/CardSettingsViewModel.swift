@@ -168,7 +168,7 @@ extension CardSettingsViewModel {
     }
 
     func openResetCard() {
-        if let disabledLocalizedReason = input.resetTofactoryDisabledLocalizedReason {
+        if let disabledLocalizedReason = input.resetToFactoryDisabledLocalizedReason {
             alert = AlertBuilder.makeDemoAlert(disabledLocalizedReason)
             return
         }
@@ -206,6 +206,6 @@ extension CardSettingsViewModel {
         let canDisplayHashesCount: Bool
         let cardSignedHashes: Int
         let canChangeAccessCodeRecoverySettings: Bool
-        let resetTofactoryDisabledLocalizedReason: String?
+        let resetToFactoryDisabledLocalizedReason: String?
     }
 }
