@@ -92,16 +92,33 @@ private extension StakingModel {
 
 private extension StakingModel {
     private func send() -> AnyPublisher<SendTransactionDispatcherResult, Never> {
-        guard let transaction = _transaction.value?.value else {
-            return .just(output: .transactionNotFound)
-        }
-
-        return sendTransactionDispatcher
-            .send(transaction: .staking(transaction))
+        Publishers
+            .CombineLatest(
+                _amount.compactMap { $0?.crypto },
+                _selectedValidator.compactMap { $0.value }
+            )
+            .setFailureType(to: Error.self)
             .withWeakCaptureOf(self)
-            .compactMap { sender, result in
-                sender.proceed(transaction: transaction, result: result)
-                return result
+            .tryAsyncMap { args in
+                let (model, (amount, validator)) = args
+                let action = StakingAction(amount: amount, validator: validator.address, type: .stake)
+                return try await model.stakingManager.transaction(action: action)
+            }
+            .mapToResult()
+            .withWeakCaptureOf(self)
+            .flatMap { model, result in
+                switch result {
+                case .success(let transaction):
+                    return model.sendTransactionDispatcher
+                        .send(transaction: .staking(transaction))
+                        .handleEvents(receiveOutput: { [weak model] output in
+                            model?.proceed(transaction: transaction, result: output)
+                        })
+                        .eraseToAnyPublisher()
+                case .failure(let error):
+                    return Just(.transactionNotFound)
+                        .eraseToAnyPublisher()
+                }
             }
             .eraseToAnyPublisher()
     }

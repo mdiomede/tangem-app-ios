@@ -59,13 +59,14 @@ private extension UnstakingModel {
             }
             .store(in: &bag)
 
-        Just(validator) // TODO: Any input data (?)
+        _amount.compactMap { $0?.crypto }
             .setFailureType(to: Error.self)
             .withWeakCaptureOf(self)
-            .tryAsyncMap { model, validator in
+            .tryAsyncMap { args in
+                let (model, amount) = args
                 model._transaction.send(.loading)
 
-                let action = StakingAction(amount: .zero, validator: validator, type: .unstake)
+                let action = StakingAction(amount: amount, validator: model.validator, type: .unstake)
                 return try await model.stakingManager.estimateFee(action: action)
             }
             .mapToResult()
@@ -109,16 +110,29 @@ private extension UnstakingModel {
 
 private extension UnstakingModel {
     private func send() -> AnyPublisher<SendTransactionDispatcherResult, Never> {
-        guard let transaction = _transaction.value?.value else {
-            return .just(output: .transactionNotFound)
-        }
-
-        return sendTransactionDispatcher
-            .send(transaction: .staking(transaction))
+        _amount.compactMap { $0?.crypto }
+            .setFailureType(to: Error.self)
             .withWeakCaptureOf(self)
-            .compactMap { sender, result in
-                sender.proceed(transaction: transaction, result: result)
-                return result
+            .tryAsyncMap { args in
+                let (model, amount) = args
+                let action = StakingAction(amount: amount, validator: model.validator, type: .unstake)
+                return try await model.stakingManager.transaction(action: action)
+            }
+            .mapToResult()
+            .withWeakCaptureOf(self)
+            .flatMap { model, result in
+                switch result {
+                case .success(let transaction):
+                    return model.sendTransactionDispatcher
+                        .send(transaction: .staking(transaction))
+                        .handleEvents(receiveOutput: { [weak model] output in
+                            model?.proceed(transaction: transaction, result: output)
+                        })
+                        .eraseToAnyPublisher()
+                case .failure:
+                    return Just(.transactionNotFound)
+                        .eraseToAnyPublisher()
+                }
             }
             .eraseToAnyPublisher()
     }
