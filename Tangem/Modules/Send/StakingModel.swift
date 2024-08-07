@@ -77,7 +77,7 @@ private extension StakingModel {
     }
 
     func mapToSendFee(transaction: LoadingValue<StakingTransactionInfo>?) -> SendFee {
-        var value = transaction?.mapValue { tx in
+        let value = transaction?.mapValue { tx in
             Fee(.init(with: feeTokenItem.blockchain, type: feeTokenItem.amountType, value: tx.fee))
         }
 
@@ -163,7 +163,7 @@ extension StakingModel: StakingValidatorsOutput {
 
 extension StakingModel: SendFeeInput {
     var selectedFee: SendFee {
-        return mapToSendFee(transaction: _transaction.value)
+        mapToSendFee(transaction: _transaction.value)
     }
 
     var selectedFeePublisher: AnyPublisher<SendFee, Never> {

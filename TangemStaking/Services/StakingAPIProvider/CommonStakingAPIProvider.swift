@@ -62,8 +62,22 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return enterAction
     }
 
-    func pendingAction() async throws {
-        // TODO: https://tangem.atlassian.net/browse/IOS-7482
+    func pendingAction(
+        amount: Decimal,
+        address: String,
+        validator: String,
+        integrationId: String,
+        passthrough: String
+    ) async throws -> PendingAction {
+        let request = StakeKitDTO.Actions.Pending.Request(
+            type: .claimRewards,
+            passthrough: passthrough,
+            args: .init(amount: amount, validatorAddress: validator)
+        )
+
+        let response = try await service.pendingAction(request: request)
+        let enterAction = try mapper.mapToPendingAction(from: response)
+        return enterAction
     }
 
     func transaction(id: String) async throws -> StakingTransactionInfo {

@@ -138,13 +138,70 @@ extension StakeKitDTO {
                 let args: Args
 
                 struct Args: Encodable {
-                    // TODO: https://tangem.atlassian.net/browse/IOS-7482
+                    let amount: Decimal
+                    let validatorAddress: String
+                    let validatorAddresses: [String]?
+                    let duration: Int?
+                    let nfts: Ntfs?
+
+                    init(
+                        amount: Decimal,
+                        validatorAddress: String,
+                        validatorAddresses: [String]? = nil,
+                        duration: Int? = nil,
+                        nfts: StakeKitDTO.Actions.Pending.Request.Args.Ntfs? = nil
+                    ) {
+                        self.amount = amount
+                        self.validatorAddress = validatorAddress
+                        self.validatorAddresses = validatorAddresses
+                        self.duration = duration
+                        self.nfts = nfts
+                    }
+
+                    struct Ntfs: Encodable {
+                        let baycId: String
+                        let maycId: String
+                        let bakcId: String
+                    }
                 }
             }
 
             struct Response: Decodable {
-                // TODO: https://tangem.atlassian.net/browse/IOS-7482
+                let id: String
+                let integrationId: String
+                let status: ActionStatus
+                let type: PendingAction
+                let currentStepIndex: Int
+                let amount: Decimal
+                let USDAmount: Decimal
+                let tokenId: String
+                let validatorAddress: String
+                let validatorAddresses: [String]
+                let transactions: [Transaction.Response]?
             }
+        }
+    }
+
+    struct PendingAction: Decodable {
+        let type: PendingActionType
+        let passthrough: String
+
+        enum PendingActionType: String, Decodable {
+            case STAKE
+            case UNSTAKE
+            case CLAIM_REWARDS
+            case RESTAKE_REWARDS
+            case WITHDRAW
+            case RESTAKE
+            case CLAIM_UNSTAKED
+            case UNLOCK_LOCKED
+            case STAKE_LOCKED
+            case VOTE
+            case REVOKE
+            case VOTE_LOCKED
+            case REVOTE
+            case REBOND
+            case MIGRATE
         }
     }
 }
