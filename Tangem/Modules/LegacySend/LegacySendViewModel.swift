@@ -751,7 +751,7 @@ class LegacySendViewModel: ObservableObject {
                     ])
 
                     let fullErrorDescription: String
-                    if let blockchainSdkError = error as? BlockchainSdkError {
+                    if let blockchainSdkError = error.error as? BlockchainSdkError {
                         fullErrorDescription = blockchainSdkError.errorDescriptionWithCode
                     } else {
                         fullErrorDescription = error.localizedDescription
