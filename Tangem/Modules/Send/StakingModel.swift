@@ -74,7 +74,7 @@ private extension StakingModel {
             }
         }
     }
-    
+
     @MainActor
     private func updateEstimateFee(_ result: LoadingValue<Decimal>) {
         _fee.send(result)

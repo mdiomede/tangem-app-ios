@@ -92,13 +92,21 @@ extension CommonStakingManager: StakingManager {
     func transaction(action: StakingAction) async throws -> StakingTransactionInfo {
         switch (state, action.type) {
         case (.availableToStake(let yieldInfo), .stake):
-            try await getTransactionToStake(
+            return try await getTransactionToStake(
                 amount: action.amount,
                 validator: action.validator,
                 integrationId: yieldInfo.id
             )
-        case (.staked(_, _), .unstake):
-            throw StakingManagerError.notImplemented // TODO: https://tangem.atlassian.net/browse/IOS-6898
+        case (.staked(let balances, let yieldInfo), .unstake):
+            guard let balance = balances.first(where: { $0.validatorAddress == action.validator }) else {
+                throw StakingManagerError.stakedBalanceNotFound(validator: action.validator)
+            }
+
+            return try await getTransactionToUnstake(
+                amount: balance.blocked,
+                validator: action.validator,
+                integrationId: yieldInfo.id
+            )
         default:
             throw StakingManagerError.stakingManagerStateNotSupportTransactionAction(action: action)
         }
@@ -133,7 +141,29 @@ private extension CommonStakingManager {
             integrationId: integrationId
         )
 
-        let transactionId = action.transactions[action.currentStepIndex].id
+        guard let transactionId = action.transactions.first(where: { $0.stepIndex == action.currentStepIndex })?.id else {
+            throw StakingManagerError.transactionNotFound
+        }
+
+        // We have to wait that stakek.it prepared the transaction
+        // Otherwise we may get the 404 error
+        try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
+        let transaction = try await provider.patchTransaction(id: transactionId)
+
+        return transaction
+    }
+
+    func getTransactionToUnstake(amount: Decimal, validator: String, integrationId: String) async throws -> StakingTransactionInfo {
+        let action = try await provider.exitAction(
+            amount: amount, address: wallet.address,
+            validator: validator,
+            integrationId: integrationId
+        )
+
+        guard let transactionId = action.transactions.first(where: { $0.stepIndex == action.currentStepIndex })?.id else {
+            throw StakingManagerError.transactionNotFound
+        }
+
         // We have to wait that stakek.it prepared the transaction
         // Otherwise we may get the 404 error
         try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
@@ -153,6 +183,8 @@ private extension CommonStakingManager {
 
 public enum StakingManagerError: Error {
     case stakingManagerStateNotSupportTransactionAction(action: StakingAction)
+    case stakedBalanceNotFound(validator: String)
+    case transactionNotFound
     case notImplemented
     case notFound
 }
