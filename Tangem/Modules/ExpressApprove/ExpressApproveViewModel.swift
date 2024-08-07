@@ -176,8 +176,6 @@ private extension ExpressApproveViewModel {
                 viewModel.subheader = Localization.givePermissionSwapSubtitle(provider.name, currencySymbol)
             }
         }
-
-        let currencySymbol = expressInteractor.getSender().tokenItem.currencySymbol
     }
 
     func sendApproveTransaction() {
