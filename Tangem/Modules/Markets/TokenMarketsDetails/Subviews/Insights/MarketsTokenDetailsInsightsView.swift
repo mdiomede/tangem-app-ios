@@ -115,13 +115,6 @@ extension MarketsTokenDetailsInsightsView {
 }
 
 #Preview {
-    let records: [MarketsTokenDetailsInsightsView.RecordInfo] = [
-        .init(type: .buyers, recordData: "+44"),
-        .init(type: .buyPressure, recordData: "-$400"),
-        .init(type: .holdersChange, recordData: "+100"),
-        .init(type: .liquidity, recordData: "+445,9K"),
-    ]
-
     return MarketsTokenDetailsInsightsView(
         viewModel: .init(
             insights: .init(dto: MarketsDTO.Coins.Insights(
