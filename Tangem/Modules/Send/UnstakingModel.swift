@@ -59,27 +59,41 @@ private extension UnstakingModel {
             }
             .store(in: &bag)
 
-        _amount.compactMap { $0?.crypto }
-            .setFailureType(to: Error.self)
-            .withWeakCaptureOf(self)
-            .tryAsyncMap { model, amount in
-                model._fee.send(.loading)
-
-                let action = StakingAction(amount: amount, validator: model.validator, type: .unstake)
-                return try await model.stakingManager.estimateFee(action: action)
-            }
-            .mapToResult()
-            .withWeakCaptureOf(self)
-            .sink { model, result in
-                switch result {
-                case .success(let fee):
-                    model._fee.send(.loaded(fee))
-                case .failure(let error):
-                    AppLog.shared.error(error)
-                    model._fee.send(.failedToLoad(error: error))
+        Publishers.CombineLatest(
+            _amount.compactMap { $0?.crypto },
+            stakingManagerStatePublisher.compactMap { state in
+                if case .staked(_, let yieldInfo) = state {
+                    return yieldInfo
                 }
+                return nil
             }
-            .store(in: &bag)
+        )
+        .setFailureType(to: Error.self)
+        .withWeakCaptureOf(self)
+        .tryAsyncMap { args in
+            let (model, (amount, yieldInfo)) = args
+
+            guard yieldInfo.exitMinimumRequirement < amount else {
+                throw StakingValidationError.amountRequirementError(minAmount: yieldInfo.exitMinimumRequirement)
+            }
+
+            model._fee.send(.loading)
+
+            let action = StakingAction(amount: amount, validator: model.validator, type: .unstake)
+            return try await model.stakingManager.estimateFee(action: action)
+        }
+        .mapToResult()
+        .withWeakCaptureOf(self)
+        .sink { model, result in
+            switch result {
+            case .success(let fee):
+                model._fee.send(.loaded(fee))
+            case .failure(let error):
+                AppLog.shared.error(error)
+                model._fee.send(.failedToLoad(error: error))
+            }
+        }
+        .store(in: &bag)
     }
 
     func update(state: StakingManagerState) {
@@ -124,19 +138,19 @@ private extension UnstakingModel {
                 case .success(let transaction):
                     return model.sendTransactionDispatcher
                         .send(transaction: .staking(transaction))
-                        .handleEvents(receiveOutput: { [weak model] output in
-                            model?.proceed(transaction: transaction, result: output)
-                        })
                         .eraseToAnyPublisher()
                 case .failure:
                     return Just(.transactionNotFound)
                         .eraseToAnyPublisher()
                 }
             }
+            .handleEvents(receiveOutput: { [weak self] output in
+                self?.proceed(result: output)
+            })
             .eraseToAnyPublisher()
     }
 
-    private func proceed(transaction: StakingTransactionInfo, result: SendTransactionDispatcherResult) {
+    private func proceed(result: SendTransactionDispatcherResult) {
         switch result {
         case .informationRelevanceServiceError,
              .informationRelevanceServiceFeeWasIncreased,
