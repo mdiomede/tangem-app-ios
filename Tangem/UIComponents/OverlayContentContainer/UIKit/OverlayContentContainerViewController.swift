@@ -57,7 +57,7 @@ final class OverlayContentContainerViewController: UIViewController {
     // MARK: - IBOutlets/UI
 
     private var overlayViewTopAnchorConstraint: NSLayoutConstraint?
-    private var backgroundShadowView: UIView?
+    private lazy var backgroundShadowView = UIView(frame: screenBounds)
 
     // MARK: - Initialization/Deinitialization
 
@@ -159,13 +159,11 @@ final class OverlayContentContainerViewController: UIViewController {
     /// - Note: The order in which this method is called matters. Must be called between `setupContent` and `setupOverlay`.
     private func setupBackgroundShadowView() {
         // TODO: Andrey Fedorov - Add support for dark mode (adjust content view contrast instead of using background shadow) (IOS-7364)
-        let backgroundShadowView = UIView(frame: screenBounds)
         backgroundShadowView.backgroundColor = .black
         backgroundShadowView.alpha = Constants.minBackgroundShadowViewAlpha
         backgroundShadowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         backgroundShadowView.isUserInteractionEnabled = false
         view.addSubview(backgroundShadowView)
-        self.backgroundShadowView = backgroundShadowView
     }
 
     private func setupContent() {
@@ -267,10 +265,10 @@ final class OverlayContentContainerViewController: UIViewController {
 
         if isFinalState {
             UIView.animate(withDuration: Constants.animationDuration) { // TODO: Andrey Fedorov - Animations should take gesture speed into account (IOS-7364)
-                self.backgroundShadowView?.alpha = alpha
+                self.backgroundShadowView.alpha = alpha
             }
         } else {
-            backgroundShadowView?.alpha = alpha
+            backgroundShadowView.alpha = alpha
         }
     }
 
