@@ -48,10 +48,10 @@ extension OverlayContentContainerViewControllerAdapter: OverlayContentStateObser
 
 extension OverlayContentContainerViewControllerAdapter: OverlayContentStateController {
     func collapse() {
-        // TODO: Andrey Fedorov - Add actual implementation (IOS-7364)
+        containerViewController?.collapse()
     }
 
     func expand() {
-        // TODO: Andrey Fedorov - Add actual implementation (IOS-7364)
+        containerViewController?.expand()
     }
 }
