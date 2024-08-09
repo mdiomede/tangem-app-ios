@@ -59,41 +59,27 @@ private extension UnstakingModel {
             }
             .store(in: &bag)
 
-        Publishers.CombineLatest(
-            _amount.compactMap { $0?.crypto },
-            stakingManagerStatePublisher.compactMap { state in
-                if case .staked(_, let yieldInfo) = state {
-                    return yieldInfo
+        _amount.compactMap { $0?.crypto }
+            .setFailureType(to: Error.self)
+            .withWeakCaptureOf(self)
+            .tryAsyncMap { model, amount in
+                model._fee.send(.loading)
+
+                let action = StakingAction(amount: amount, validator: model.validator, type: .unstake)
+                return try await model.stakingManager.estimateFee(action: action)
+            }
+            .mapToResult()
+            .withWeakCaptureOf(self)
+            .sink { model, result in
+                switch result {
+                case .success(let fee):
+                    model._fee.send(.loaded(fee))
+                case .failure(let error):
+                    AppLog.shared.error(error)
+                    model._fee.send(.failedToLoad(error: error))
                 }
-                return nil
             }
-        )
-        .setFailureType(to: Error.self)
-        .withWeakCaptureOf(self)
-        .tryAsyncMap { args in
-            let (model, (amount, yieldInfo)) = args
-
-            guard yieldInfo.exitMinimumRequirement < amount else {
-                throw StakingValidationError.amountRequirementError(minAmount: yieldInfo.exitMinimumRequirement)
-            }
-
-            model._fee.send(.loading)
-
-            let action = StakingAction(amount: amount, validator: model.validator, type: .unstake)
-            return try await model.stakingManager.estimateFee(action: action)
-        }
-        .mapToResult()
-        .withWeakCaptureOf(self)
-        .sink { model, result in
-            switch result {
-            case .success(let fee):
-                model._fee.send(.loaded(fee))
-            case .failure(let error):
-                AppLog.shared.error(error)
-                model._fee.send(.failedToLoad(error: error))
-            }
-        }
-        .store(in: &bag)
+            .store(in: &bag)
     }
 
     func update(state: StakingManagerState) {

@@ -14,7 +14,7 @@ import TangemStaking
 class StakingSendAmountValidator {
     private let tokenItem: TokenItem
     private let validator: TransactionValidator
-    private let _stakingManagerState = CurrentValueSubject<StakingManagerState, Never>(.notEnabled)
+    private let _minimumAmount = CurrentValueSubject<Decimal?, Never>(.none)
     private var bag = Set<AnyCancellable>()
 
     init(
@@ -27,20 +27,21 @@ class StakingSendAmountValidator {
 
         stakingManagerStatePublisher
             .eraseToAnyPublisher()
-            .assign(to: \.value, on: _stakingManagerState, ownership: .weak)
+            .compactMap { state in
+                switch state {
+                case .availableToStake(let yield): yield.enterMinimumRequirement
+                case .staked(_, let yield): yield.exitMinimumRequirement
+                default: nil
+                }
+            }
+            .assign(to: \.value, on: _minimumAmount, ownership: .weak)
             .store(in: &bag)
     }
 }
 
 extension StakingSendAmountValidator: SendAmountValidator {
     func validate(amount: Decimal) throws {
-        let minAmount: Decimal? = switch _stakingManagerState.value {
-        case .availableToStake(let yield): yield.enterMinimumRequirement
-        case .staked(_, let yield): yield.exitMinimumRequirement
-        default: nil
-        }
-
-        if let minAmount, amount < minAmount {
+        if let minAmount = _minimumAmount.value, amount < minAmount {
             throw StakingValidationError.amountRequirementError(minAmount: minAmount)
         }
 
