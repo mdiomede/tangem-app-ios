@@ -35,10 +35,7 @@ struct SendFlowBaseBuilder {
             io: (input: sendModel, output: sendModel),
             sendFeeLoader: fee.interactor,
             sendQRCodeService: sendQRCodeService,
-            sendAmountValidator: CommonSendAmountValidator(
-                tokenItem: walletModel.tokenItem,
-                validator: walletModel.transactionValidator
-            )
+            sendAmountValidator: builder.makeSendAmountValidator()
         )
 
         let destination = sendDestinationStepBuilder.makeSendDestinationStep(

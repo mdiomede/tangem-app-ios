@@ -49,30 +49,18 @@ class StakingModel {
 private extension StakingModel {
     func bind() {
         Publishers
-            .CombineLatest3(
+            .CombineLatest(
                 _amount.compactMap { $0?.crypto },
-                _selectedValidator.compactMap { $0.value },
-                stakingManagerStatePublisher.compactMap { state in
-                    if case .availableToStake(let yieldInfo) = state {
-                        return yieldInfo
-                    }
-                    return nil
-                }
+                _selectedValidator.compactMap { $0.value }
             )
-            .sink { [weak self] args in
-                let (amount, validator, yieldInfo) = args
-                self?.estimateFee(amount: amount, validator: validator.address, yieldInfo: yieldInfo)
+            .sink { [weak self] amount, validator in
+                self?.estimateFee(amount: amount, validator: validator.address)
             }
             .store(in: &bag)
     }
 
-    private func estimateFee(amount: Decimal, validator: String, yieldInfo: YieldInfo) {
+    private func estimateFee(amount: Decimal, validator: String) {
         runTask(in: self) { model in
-            let minAmount = yieldInfo.enterMinimumRequirement
-            guard minAmount < amount else {
-                // validation error will be displayed in this case, so just skip redundant request
-                return
-            }
             await model.updateEstimateFee(.loading)
             do {
                 let fee = try await model.stakingManager.estimateFee(

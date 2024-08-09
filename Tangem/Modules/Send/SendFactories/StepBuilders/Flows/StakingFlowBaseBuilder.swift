@@ -36,11 +36,7 @@ struct StakingFlowBaseBuilder {
             io: (input: stakingModel, output: stakingModel),
             sendFeeLoader: stakingModel,
             sendQRCodeService: .none,
-            sendAmountValidator: StakingSendAmountValidator(
-                tokenItem: walletModel.tokenItem,
-                validator: walletModel.transactionValidator,
-                stakingManagerStatePublisher: manager.statePublisher
-            )
+            sendAmountValidator: builder.makeStakingSendAmountValidator(stakingManager: manager)
         )
 
         let validators = stakingValidatorsStepBuilder.makeStakingValidatorsStep(
