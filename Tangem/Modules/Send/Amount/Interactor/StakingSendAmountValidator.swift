@@ -31,12 +31,14 @@ class StakingSendAmountValidator {
 
     private func bind() {
         stakingManagerStatePublisher
-            .eraseToAnyPublisher()
-            .compactMap { state in
+            .compactMap { state -> Decimal? in
                 switch state {
-                case .availableToStake(let yield): yield.enterMinimumRequirement
-                case .staked(_, let yield): yield.exitMinimumRequirement
-                default: nil
+                case .availableToStake(let yieldInfo):
+                    return yieldInfo.enterMinimumRequirement
+                case .staked(let staked):
+                    return staked.yieldInfo.exitMinimumRequirement
+                default:
+                    return nil
                 }
             }
             .sink(receiveValue: { [weak self] amount in
