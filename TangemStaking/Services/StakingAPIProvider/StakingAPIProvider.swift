@@ -15,23 +15,32 @@ public protocol StakingAPIProvider {
 
     func estimateStakeFee(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> Decimal
     func estimateUnstakeFee(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> Decimal
-    func estimateClaimRewardsFee(
+    func estimatePendingFee(
+        data: StakingAction.Pending,
         amount: Decimal,
         address: String,
         validator: String,
-        integrationId: String,
-        passthrough: String
+        integrationId: String
     ) async throws -> Decimal
 
-    func enterAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> EnterAction
-    func exitAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> ExitAction
-    func pendingAction(
+    func enterAction(
         amount: Decimal,
         address: String,
         validator: String,
-        integrationId: String,
-        passthrough: String
-    ) async throws -> PendingAction
+        integrationId: String
+    ) async throws -> EnterActionModel
+    func exitAction(
+        amount: Decimal,
+        address: String,
+        validator: String,
+        integrationId: String
+    ) async throws -> ExitActionModel
+    func pendingAction(
+        data: StakingAction.Pending,
+        amount: Decimal,
+        validator: String,
+        integrationId: String
+    ) async throws -> PendingActionModel
 
     func transaction(id: String) async throws -> StakingTransactionInfo
     func patchTransaction(id: String) async throws -> StakingTransactionInfo

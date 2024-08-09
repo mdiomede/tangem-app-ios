@@ -11,7 +11,7 @@ import Foundation
 struct StakeKitMapper {
     // MARK: - Actions
 
-    func mapToEnterAction(from response: StakeKitDTO.Actions.Enter.Response) throws -> EnterAction {
+    func mapToEnterAction(from response: StakeKitDTO.Actions.Enter.Response) throws -> EnterActionModel {
         guard let transactions = response.transactions, !transactions.isEmpty else {
             throw StakeKitMapperError.noData("EnterAction.transactions not found")
         }
@@ -25,7 +25,7 @@ struct StakeKitMapper {
             )
         }
 
-        return try EnterAction(
+        return try EnterActionModel(
             id: response.id,
             status: mapToActionStatus(from: response.status),
             currentStepIndex: response.currentStepIndex,
@@ -33,7 +33,7 @@ struct StakeKitMapper {
         )
     }
 
-    func mapToExitAction(from response: StakeKitDTO.Actions.Exit.Response) throws -> ExitAction {
+    func mapToExitAction(from response: StakeKitDTO.Actions.Exit.Response) throws -> ExitActionModel {
         guard let transactions = response.transactions, !transactions.isEmpty else {
             throw StakeKitMapperError.noData("EnterAction.transactions not found")
         }
@@ -47,7 +47,7 @@ struct StakeKitMapper {
             )
         }
 
-        return try ExitAction(
+        return try ExitActionModel(
             id: response.id,
             status: mapToActionStatus(from: response.status),
             currentStepIndex: response.currentStepIndex,
@@ -55,7 +55,7 @@ struct StakeKitMapper {
         )
     }
 
-    func mapToPendingAction(from response: StakeKitDTO.Actions.Pending.Response) throws -> PendingAction {
+    func mapToPendingAction(from response: StakeKitDTO.Actions.Pending.Response) throws -> PendingActionModel {
         guard let transactions = response.transactions, !transactions.isEmpty else {
             throw StakeKitMapperError.noData("EnterAction.transactions not found")
         }
@@ -69,7 +69,7 @@ struct StakeKitMapper {
             )
         }
 
-        return try PendingAction(
+        return try PendingActionModel(
             id: response.id,
             status: mapToActionStatus(from: response.status),
             currentStepIndex: response.currentStepIndex,

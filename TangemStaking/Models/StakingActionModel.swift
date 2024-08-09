@@ -21,6 +21,6 @@ public struct StakingActionModel<T>: Hashable {
     public let transactions: [ActionTransaction]
 }
 
-public typealias EnterAction = StakingActionModel<StakingActions.Enter>
-public typealias ExitAction = StakingActionModel<StakingActions.Exit>
-public typealias PendingAction = StakingActionModel<StakingActions.Pending>
+public typealias EnterActionModel = StakingActionModel<StakingActions.Enter>
+public typealias ExitActionModel = StakingActionModel<StakingActions.Exit>
+public typealias PendingActionModel = StakingActionModel<StakingActions.Pending>

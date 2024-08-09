@@ -76,17 +76,17 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return result
     }
 
-    func estimateClaimRewardsFee(
+    func estimatePendingFee(
+        data: StakingAction.Pending,
         amount: Decimal,
         address: String,
         validator: String,
-        integrationId: String,
-        passthrough: String
+        integrationId: String
     ) async throws -> Decimal {
         let request = StakeKitDTO.Actions.EstimateGasPending.Request(
-            type: .claimRewards,
+            type: data.type.pendingActionType,
             integrationId: integrationId,
-            passthrough: passthrough,
+            passthrough: data.passthrough,
             addresses: .init(address: address),
             args: .init(amount: amount.description, validatorAddress: validator)
         )
@@ -98,7 +98,7 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return result
     }
 
-    func enterAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> EnterAction {
+    func enterAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> EnterActionModel {
         let request = StakeKitDTO.Actions.Enter.Request(
             integrationId: integrationId,
             addresses: .init(address: address),
@@ -110,7 +110,7 @@ class CommonStakingAPIProvider: StakingAPIProvider {
         return enterAction
     }
 
-    func exitAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> ExitAction {
+    func exitAction(amount: Decimal, address: String, validator: String, integrationId: String) async throws -> ExitActionModel {
         let request = StakeKitDTO.Actions.Exit.Request(
             integrationId: integrationId,
             addresses: .init(address: address),
@@ -123,16 +123,16 @@ class CommonStakingAPIProvider: StakingAPIProvider {
     }
 
     func pendingAction(
+        data: StakingAction.Pending,
         amount: Decimal,
-        address: String,
         validator: String,
-        integrationId: String,
-        passthrough: String
-    ) async throws -> PendingAction {
+        integrationId: String
+    ) async throws -> PendingActionModel {
         let request = StakeKitDTO.Actions.Pending.Request(
-            type: .claimRewards,
-            passthrough: passthrough,
-            args: .init(amount: amount, validatorAddress: validator)
+            type: data.type.pendingActionType,
+            integrationId: integrationId,
+            passthrough: data.passthrough,
+            args: .init(amount: amount.description, validatorAddress: validator)
         )
 
         let response = try await service.pendingAction(request: request)

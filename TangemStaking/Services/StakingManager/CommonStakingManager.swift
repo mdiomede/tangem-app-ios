@@ -72,16 +72,16 @@ extension CommonStakingManager: StakingManager {
                 validator: action.validator,
                 integrationId: yieldInfo.id
             )
-        case (.staked(let balanceInfo, let yieldInfo), .claimRewards):
+        case (.staked(let balanceInfo, let yieldInfo), .pending(let pendingData)):
             guard let passthrough = balanceInfo.first(where: { $0.passthrough != nil })?.passthrough else {
                 fallthrough
             }
-            return try await provider.estimateClaimRewardsFee(
+            return try await provider.estimatePendingFee(
+                data: pendingData,
                 amount: action.amount,
                 address: wallet.address,
                 validator: action.validator,
-                integrationId: yieldInfo.id,
-                passthrough: passthrough
+                integrationId: yieldInfo.id
             )
         default:
             log("Invalid staking manager state: \(state), for action: \(action)")
@@ -104,6 +104,13 @@ extension CommonStakingManager: StakingManager {
 
             return try await getTransactionToUnstake(
                 amount: balance.blocked,
+                validator: action.validator,
+                integrationId: yieldInfo.id
+            )
+        case (.staked(let balanceInfo, let yieldInfo), .pending(let pendingData)):
+            return try await getTransactionToPendingAction(
+                data: pendingData,
+                amount: action.amount,
                 validator: action.validator,
                 integrationId: yieldInfo.id
             )
@@ -171,6 +178,26 @@ private extension CommonStakingManager {
 
         return transaction
     }
+
+    func getTransactionToPendingAction(data: StakingAction.Pending, amount: Decimal, validator: String, integrationId: String) async throws -> StakingTransactionInfo {
+        let action = try await provider.pendingAction(
+            data: data,
+            amount: amount,
+            validator: validator,
+            integrationId: integrationId
+        )
+
+        guard let transactionId = action.transactions.first(where: { $0.stepIndex == action.currentStepIndex })?.id else {
+            throw StakingManagerError.transactionNotFound
+        }
+
+        // We have to wait that stakek.it prepared the transaction
+        // Otherwise we may get the 404 error
+        try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
+        let transaction = try await provider.patchTransaction(id: transactionId)
+
+        return transaction
+    }
 }
 
 // MARK: - Log
@@ -187,4 +214,14 @@ public enum StakingManagerError: Error {
     case transactionNotFound
     case notImplemented
     case notFound
+}
+
+extension StakingAction.PendingActionType {
+    var pendingActionType: StakeKitDTO.Actions.ActionType {
+        switch self {
+        case .claimRewards: .claimRewards
+        case .withdraw: .withdraw
+        case .restake: .restake
+        }
+    }
 }

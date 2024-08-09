@@ -161,6 +161,11 @@ extension StakeKitDTO {
                     case locked
                     case unlocking
                 }
+
+                struct PendingAction: Decodable {
+                    let type: Actions.ActionType
+                    let passthrough: String
+                }
             }
         }
     }

@@ -177,52 +177,18 @@ extension StakeKitDTO {
 
         enum Pending {
             struct Request: Encodable {
-                let type: ActionType
+                let type: Actions.ActionType
+                let integrationId: String
                 let passthrough: String
                 let args: Args
-
-                struct Args: Encodable {
-                    let amount: Decimal
-                    let validatorAddress: String
-                    let validatorAddresses: [String]?
-                    let duration: Int?
-                    let nfts: Ntfs?
-
-                    init(
-                        amount: Decimal,
-                        validatorAddress: String,
-                        validatorAddresses: [String]? = nil,
-                        duration: Int? = nil,
-                        nfts: StakeKitDTO.Actions.Pending.Request.Args.Ntfs? = nil
-                    ) {
-                        self.amount = amount
-                        self.validatorAddress = validatorAddress
-                        self.validatorAddresses = validatorAddresses
-                        self.duration = duration
-                        self.nfts = nfts
-                    }
-
-                    struct Ntfs: Encodable {
-                        let baycId: String
-                        let maycId: String
-                        let bakcId: String
-                    }
-                }
             }
 
-            struct Response: Decodable {
-                let id: String
-                let integrationId: String
-                let status: ActionStatus
-                let type: PendingAction
-                let currentStepIndex: Int
-                let amount: Decimal
-                let USDAmount: Decimal
-                let tokenId: String
+            struct Args: Encodable {
+                let amount: String
                 let validatorAddress: String
-                let validatorAddresses: [String]
-                let transactions: [Transaction.Response]?
             }
+
+            typealias Response = Exit.Response
         }
     }
 }

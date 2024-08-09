@@ -31,8 +31,19 @@ public struct StakingAction {
 
     public enum ActionType {
         case stake
-        case claimRewards
         case unstake
+        case pending(_: Pending)
+    }
+
+    public struct Pending {
+        let passthrough: String
+        let type: PendingActionType
+    }
+
+    public enum PendingActionType {
+        case claimRewards
+        case withdraw
+        case restake
     }
 }
 
