@@ -29,7 +29,6 @@ final class OverlayContentContainerViewController: UIViewController {
         didSet { onProgressChange(oldValue: oldValue, newValue: progress) }
     }
 
-    // TODO: Andrey Fedorov - Check for leaks (IOS-7364)
     private var stateObservers: [AnyHashable: OverlayContentStateObserver.Observer] = [:]
 
     // MARK: - Read-only state
@@ -131,6 +130,8 @@ final class OverlayContentContainerViewController: UIViewController {
         self.overlayViewController = nil
     }
 
+    /// - Warning: This method maintains strong reference to the given `observer` closure.
+    /// Remove this reference by using `removeObserver(forToken:)` method.
     func addObserver(_ observer: @escaping OverlayContentStateObserver.Observer, forToken token: any Hashable) {
         stateObservers[AnyHashable(token)] = observer
     }
