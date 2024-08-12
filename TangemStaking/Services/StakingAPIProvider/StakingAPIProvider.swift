@@ -18,7 +18,6 @@ public protocol StakingAPIProvider {
     func estimatePendingFee(
         data: StakingAction.Pending,
         amount: Decimal,
-        address: String,
         validator: String,
         integrationId: String
     ) async throws -> Decimal

@@ -98,7 +98,7 @@ struct StakeKitMapper {
             network: response.network.rawValue,
             type: mapToTransactionType(from: response.type),
             status: mapToTransactionStatus(from: response.status),
-            unsignedTransactionData: Data(hexString: unsignedTransaction),
+            unsignedTransactionData: unsignedTransaction,
             fee: fee
         )
     }
@@ -132,6 +132,7 @@ struct StakeKitMapper {
 
         return try YieldInfo(
             id: response.id,
+            isAvailable: response.isAvailable,
             apy: response.apy,
             rewardType: mapToRewardType(from: response.rewardType),
             rewardRate: response.rewardRate,
@@ -244,10 +245,12 @@ struct StakeKitMapper {
         from balanceType: StakeKitDTO.Balances.Response.Balance.BalanceType
     ) -> BalanceGroupType {
         switch balanceType {
-        case .preparing, .available, .locked, .staked:
+        case .preparing:
+            return .warmup
+        case .available, .locked, .staked:
             return .active
         case .unstaking, .unstaked, .unlocking:
-            return .unstaked
+            return .unbonding
         case .rewards, .unknown:
             return .unknown
         }
