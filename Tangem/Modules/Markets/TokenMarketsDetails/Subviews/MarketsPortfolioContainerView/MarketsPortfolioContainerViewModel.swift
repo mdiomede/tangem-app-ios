@@ -12,31 +12,31 @@ import SwiftUI
 
 class MarketsPortfolioContainerViewModel: ObservableObject {
     // MARK: - Services
-
+    
     @Injected(\.swapAvailabilityProvider) private var swapAvailabilityProvider: SwapAvailabilityProvider
-
+    
     // MARK: - Published Properties
-
+    
     @Published var isShowTopAddButton: Bool = false
     @Published var typeView: MarketsPortfolioContainerView.TypeView = .empty
     @Published var tokenItemViewModels: [MarketsPortfolioTokenItemViewModel] = []
     @Published var isLoading: Bool = true
-
+    
     // This strict condition is conditioned by the requirements
     var isOneTokenInPortfolio: Bool {
         tokenItemViewModels.count == 1
     }
-
+    
     // MARK: - Private Properties
-
+    
     private let userWalletModels: [UserWalletModel]
     private let coinId: String
-
+    
     private weak var coordinator: MarketsPortfolioContainerRoutable?
     private var addTokenTapAction: (() -> Void)?
-
+    
     // MARK: - Init
-
+    
     init(
         userWalletModels: [UserWalletModel],
         coinId: String,
@@ -47,25 +47,51 @@ class MarketsPortfolioContainerViewModel: ObservableObject {
         self.coinId = coinId
         self.coordinator = coordinator
         self.addTokenTapAction = addTokenTapAction
-
+        
         initialSetup()
     }
-
+    
     // MARK: - Public Implementation
-
+    
     func onAddTapAction() {
         addTokenTapAction?()
     }
-
+    
     // MARK: - Private Implementation
-
+    
     private func initialSetup() {
+        updateTokenList()
+        
+        let hasMultiCurrency = !userWalletModels.filter { $0.config.hasFeature(.multiCurrency) }.isEmpty
+        
+        if hasMultiCurrency {
+            isShowTopAddButton = !tokenItemViewModels.isEmpty
+            typeView = tokenItemViewModels.isEmpty ? .empty : .list
+        } else {
+            isShowTopAddButton = false
+            typeView = tokenItemViewModels.isEmpty ? .unavailable : .list
+        }
+    }
+    
+    private func filterAvailableTokenActions(_ actions: [TokenActionType]) -> [TokenActionType] {
+        if isOneTokenInPortfolio {
+            let filteredActions = [TokenActionType.receive, TokenActionType.exchange, TokenActionType.buy]
+            
+            return filteredActions.filter { actionType in
+                actions.contains(actionType)
+            }
+        }
+        
+        return actions
+    }
+    
+    private func updateTokenList() {
         let tokenItemViewModelByUserWalletModels: [MarketsPortfolioTokenItemViewModel] = userWalletModels
             .reduce(into: []) { partialResult, userWalletModel in
                 let filteredWalletModels = userWalletModel.walletModelsManager.walletModels.filter {
                     $0.tokenItem.id?.caseInsensitiveCompare(coinId) == .orderedSame
                 }
-
+                
                 let viewModels = filteredWalletModels.map { walletModel in
                     return MarketsPortfolioTokenItemViewModel(
                         userWalletId: userWalletModel.userWalletId,
@@ -75,33 +101,11 @@ class MarketsPortfolioContainerViewModel: ObservableObject {
                         contextActionsDelegate: self
                     )
                 }
-
+                
                 partialResult.append(contentsOf: viewModels)
             }
-
+        
         tokenItemViewModels = tokenItemViewModelByUserWalletModels
-
-        let hasMultiCurrency = !userWalletModels.filter { $0.config.hasFeature(.multiCurrency) }.isEmpty
-
-        if hasMultiCurrency {
-            isShowTopAddButton = !tokenItemViewModels.isEmpty
-            typeView = tokenItemViewModels.isEmpty ? .empty : .list
-        } else {
-            isShowTopAddButton = false
-            typeView = tokenItemViewModels.isEmpty ? .unavailable : .list
-        }
-    }
-
-    private func filterAvailableTokenActions(_ actions: [TokenActionType]) -> [TokenActionType] {
-        if isOneTokenInPortfolio {
-            let filteredActions = [TokenActionType.receive, TokenActionType.exchange, TokenActionType.buy]
-
-            return filteredActions.filter { actionType in
-                actions.contains(actionType)
-            }
-        }
-
-        return actions
     }
 }
 
