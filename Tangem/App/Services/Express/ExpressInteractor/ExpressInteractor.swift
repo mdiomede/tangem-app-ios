@@ -176,7 +176,9 @@ extension ExpressInteractor {
         feeOption.mutate { $0 = option }
 
         updateTask { interactor in
-            try await interactor.feeOptionDidChange()
+            await interactor.expressManager.update(isFastestFee: option == .fast)
+
+            return try await interactor.feeOptionDidChange()
         }
     }
 }
@@ -431,7 +433,8 @@ private extension ExpressInteractor {
             )
         }
 
-        let previewCEXState = PreviewCEXState(subtractFee: previewCEX.subtractFee, fees: fees, notification: notification)
+        let subtractFees = previewCEX.subtractFee.map { mapToFees(fee: $0) } ?? [:]
+        let previewCEXState = PreviewCEXState(subtractFees: subtractFees, fees: fees, notification: notification)
         let correctState: State = .previewCEX(previewCEXState, quote: previewCEX.quote)
 
         return await validate(amount: amount, fee: fee, correctState: correctState)
@@ -832,7 +835,7 @@ extension ExpressInteractor {
     }
 
     struct PreviewCEXState {
-        let subtractFee: Decimal
+        let subtractFees: [FeeOption: Fee]
         let fees: [FeeOption: Fee]
         let notification: WithdrawalNotification?
     }

@@ -51,7 +51,7 @@ public extension ExpressManagerState {
 
     struct PreviewCEX {
         public let fee: ExpressFee
-        public let subtractFee: Decimal
+        public let subtractFee: ExpressFee?
         public let quote: ExpressQuote
     }
 

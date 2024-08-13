@@ -22,6 +22,7 @@ actor CommonExpressManager {
 
     private var _pair: ExpressManagerSwappingPair?
     private var _approvePolicy: ExpressApprovePolicy = .unlimited
+    private var _useFastestFee: Bool = false
     private var _amount: Decimal?
 
     private var allProviders: [ExpressAvailableProvider] = []
@@ -67,6 +68,10 @@ extension CommonExpressManager: ExpressManager {
 
     func getApprovePolicy() -> ExpressApprovePolicy {
         return _approvePolicy
+    }
+
+    func update(isFastestFee: Bool) {
+        _useFastestFee = isFastestFee
     }
 
     func updatePair(pair: ExpressManagerSwappingPair) async throws -> ExpressManagerState {
@@ -295,7 +300,7 @@ private extension CommonExpressManager {
             throw ExpressManagerError.amountNotFound
         }
 
-        return ExpressManagerSwappingPairRequest(pair: pair, amount: amount)
+        return ExpressManagerSwappingPairRequest(pair: pair, amount: amount, useFastestFee: _useFastestFee)
     }
 
     func clearCache() {

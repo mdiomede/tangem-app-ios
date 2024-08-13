@@ -14,6 +14,7 @@ public protocol ExpressManager: Actor {
     func getAmount() async -> Decimal?
     func getApprovePolicy() -> ExpressApprovePolicy
 
+    func update(isFastestFee: Bool)
     func updatePair(pair: ExpressManagerSwappingPair) async throws -> ExpressManagerState
     func updateAmount(amount: Decimal?) async throws -> ExpressManagerState
     func update(approvePolicy: ExpressApprovePolicy) async throws -> ExpressManagerState

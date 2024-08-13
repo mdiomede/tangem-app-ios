@@ -57,7 +57,7 @@ class ExpressNotificationManager {
 
         case .previewCEX(let preview, _):
             notificationInputsSubject.value = [
-                setupFeeWillBeSubtractFromSendingAmountNotification(subtractFee: preview.subtractFee),
+                setupFeeWillBeSubtractFromSendingAmountNotification(subtractFees: preview.subtractFees),
                 setupWithdrawalInput(notification: preview.notification),
             ].compactMap { $0 }
         }
@@ -173,8 +173,9 @@ class ExpressNotificationManager {
         }
     }
 
-    private func setupFeeWillBeSubtractFromSendingAmountNotification(subtractFee: Decimal) -> NotificationViewInput? {
-        guard let interactor = expressInteractor, subtractFee > 0 else {
+    private func setupFeeWillBeSubtractFromSendingAmountNotification(subtractFees: [FeeOption: Fee]) -> NotificationViewInput? {
+        guard let interactor = expressInteractor,
+              let subtractFee = subtractFees[interactor.getFeeOption()]?.amount.value else {
             return nil
         }
 
