@@ -188,7 +188,7 @@ private extension CommonStakingManager {
     func getTransactionToStake(params: StakingActionRequestParams) async throws -> StakingTransactionInfo {
         let action = try await provider.enterAction(params: params)
 
-        guard let transactionId = action.transactions.first(where: { $0.stepIndex == action.currentStepIndex })?.id else {
+        guard let transactionId = action.transactions.first(where: { $0.type == .stake })?.id else {
             throw StakingManagerError.transactionNotFound
         }
 
@@ -203,7 +203,7 @@ private extension CommonStakingManager {
     func getTransactionToUnstake(params: StakingActionRequestParams) async throws -> StakingTransactionInfo {
         let action = try await provider.exitAction(params: params)
 
-        guard let transactionId = action.transactions.first(where: { $0.stepIndex == action.currentStepIndex })?.id else {
+        guard let transactionId = action.transactions.first(where: { $0.type == .unstake })?.id else {
             throw StakingManagerError.transactionNotFound
         }
 
