@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct MarketsTokenDetailsInsightsView: View {
     @ObservedObject var viewModel: MarketsTokenDetailsInsightsViewModel
@@ -115,14 +116,19 @@ extension MarketsTokenDetailsInsightsView {
 }
 
 #Preview {
+    let insights = CurrentValueSubject<TokenMarketsDetailsInsights?, Never>(nil)
+
     return MarketsTokenDetailsInsightsView(
         viewModel: .init(
+            tokenSymbol: "BTC",
             insights: .init(dto: MarketsDTO.Coins.Insights(
                 holdersChange: [:],
                 liquidityChange: [:],
                 buyPressureChange: [:],
                 experiencedBuyerChange: [:]
             ))!,
+            insightsPublisher: insights,
+            notationFormatter: .init(),
             infoRouter: nil
         )
     )
