@@ -82,6 +82,7 @@ final class SingleTokenRouter: SingleTokenRoutable {
     }
 
     func openStaking(walletModel: WalletModel) {
+        sendAnalyticsEvent(.stakingClicked, for: walletModel)
         guard let stakingManager = walletModel.stakingManager else {
             return
         }

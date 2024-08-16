@@ -246,6 +246,13 @@ private extension StakingDetailsViewModel {
         unstakedValidators = balances.filter { !$0.balanceGroupType.isActive }.compactMap { balance -> ValidatorViewData? in
             mapToValidatorViewData(yield: yield, balance: balance)
         }
+        
+        // "Staking Info Screen Opened" analytics call should be called only after validator count is available
+        // FIXME: move into the place where it will be called only once
+        Analytics.log(
+            event: .stakingInfoScreenOpened,
+            params: [.validatorsCount: String(activeValidators.count + unstakedValidators.count)]
+        )
     }
 
     func mapToValidatorViewData(yield: YieldInfo, balance: StakingBalanceInfo) -> ValidatorViewData? {

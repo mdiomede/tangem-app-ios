@@ -40,6 +40,7 @@ extension SendAmountStep: SendStep {
     }
 
     func willAppear(previous step: any SendStep) {
+        // TODO: staking analytics
         if step.type.isSummary {
             Analytics.log(.sendScreenReopened, params: [.source: .amount])
         } else {

@@ -104,6 +104,7 @@ extension StakingDetailsCoordinator: StakingDetailsRoutable {
             type: .staking(manager: options.manager)
         ))
         sendCoordinator = coordinator
+        Analytics.log(.stakingButtonStake)
     }
 
     func openUnstakingFlow(balanceInfo: StakingBalanceInfo) {
@@ -119,6 +120,7 @@ extension StakingDetailsCoordinator: StakingDetailsRoutable {
             type: .unstaking(manager: options.manager, balanceInfo: balanceInfo)
         ))
         sendCoordinator = coordinator
+        Analytics.log(.stakingButtonUnstake) // TODO: withdraw, claim rewards
     }
 
     func openClaimRewardsFlow() {
@@ -126,6 +128,7 @@ extension StakingDetailsCoordinator: StakingDetailsRoutable {
     }
 
     func openWhatIsStaking() {
+        Analytics.log(.stakingLinkWhatIsStaking)
         safariManager.openURL(TangemBlogUrlBuilder().url(post: .whatIsStaking))
     }
 }
